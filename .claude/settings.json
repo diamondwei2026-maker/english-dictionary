@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "PowerShell(git add -A)",
-      "PowerShell(git commit -m \"�ع� skills���滻Ϊ�µ� skill ����\")"
+      "PowerShell(git commit -m \"�ع� skills���滻Ϊ�µ� skill ����\")",
+      "PowerShell(git push origin main)",
+      "PowerShell(git filter-branch --force --index-filter \"git rm --cached --ignore-unmatch .claude/settings.local.json\" --prune-empty --tag-name-filter cat -- --all)",
+      "PowerShell(git stash; $env:FILTER_BRANCH_SQUELCH_WARNING = \"1\"; git filter-branch --force --index-filter \"git rm --cached --ignore-unmatch .claude/settings.local.json\" --prune-empty --tag-name-filter cat -- --all; git stash pop)",
+      "PowerShell(git stash drop 2>$null; git for-each-ref --format=\"%\\(refname\\)\" refs/original/ | foreach { git update-ref -d $_ }; git reflog expire --expire=now --all; git gc --prune=now --aggressive; git push --force origin main)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
