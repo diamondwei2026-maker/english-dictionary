@@ -8,7 +8,37 @@
       "PowerShell(git stash; $env:FILTER_BRANCH_SQUELCH_WARNING = \"1\"; git filter-branch --force --index-filter \"git rm --cached --ignore-unmatch .claude/settings.local.json\" --prune-empty --tag-name-filter cat -- --all; git stash pop)",
       "PowerShell(git stash drop 2>$null; git for-each-ref --format=\"%\\(refname\\)\" refs/original/ | foreach { git update-ref -d $_ }; git reflog expire --expire=now --all; git gc --prune=now --aggressive; git push --force origin main)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(mkdir -p client/config client/src/hooks client/src/data client/src/components client/src/pages/home client/src/pages/word-detail client/src/pages/libraries client/src/pages/library-words client/src/pages/profile client/src/pages/login client/src/pages/register client/src/pages/admin)",
+      "Bash(git -C \"d:/Users/weij/english-dictionary\" status --short)",
+      "Bash(pnpm install *)",
+      "Bash(npx taro *)",
+      "Bash(git check-ignore *)",
+      "Bash(git status *)",
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm ls *)",
+      "Bash(node client/scripts/generate-icons.js)",
+      "Bash(node -e \"const p = require\\('@taroify/icons/package.json'\\); console.log\\(JSON.stringify\\({main: p.main, module: p.module, exports: p.exports}, null, 2\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(pnpm dev:h5)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} | Size: %{size_download} bytes | Time: %{time_total}s\" http://localhost:10089/)",
+      "Bash(curl -s http://localhost:10089/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:10089/app.js)",
+      "Bash(curl -s http://localhost:10089/index.html -o /dev/null -w \"HTTP: %{http_code}, Size: %{size_download}\")",
+      "Bash(curl -s -L http://localhost:10089/index.html)",
+      "Bash(npx ctx7@latest library \"@tarojs/taro\" \"H5 index.html template\")",
+      "Bash(npx ctx7@latest docs /nervjs/taro-docs \"H5 index.html template for webpack HtmlWebpackPlugin\")",
+      "Bash(curl -s http://localhost:10090/)",
+      "Bash(curl -s -o /dev/null -w \"app.js: HTTP %{http_code} Size: %{size_download}\\\\n\" http://localhost:10090/app.js)",
+      "Bash(curl -s -o /dev/null -w \"runtime.js: HTTP %{http_code} Size: %{size_download}\\\\n\" http://localhost:10090/runtime.js)"
+    ],
+    "additionalDirectories": [
+      "D:\\Users\\weij\\english-dictionary\\client"
     ]
   }
 }

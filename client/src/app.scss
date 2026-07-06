@@ -1,0 +1,55 @@
+/* CSS 变量色彩系统 — 来自 todo.md 定义的 10 色体系 */
+page {
+  --bg: #F7F9FC;
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-light: #93C5FD;
+  --primary-bg: #EFF6FF;
+  --primary-border: #BFDBFE;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --success: #16A34A;
+  --success-bg: #F0FDF4;
+  --success-border: #BBF7D0;
+  --success-dark: #166534;
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FDE68A;
+  --danger: #DC2626;
+  --danger-bg: #FEF2F2;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --card-shadow-weak: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --card-shadow-mid: 0 2px 16px rgba(0, 0, 0, 0.05);
+  --card-shadow-strong: 0 4px 24px rgba(0, 0, 0, 0.07);
+  --card-shadow-brand: 0 8px 32px rgba(37, 99, 235, 0.25);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-card: 16px;
+  --radius-section: 24px;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  font-family: var(--font-family);
+  background: var(--bg);
+  font-size: 16px;
+  color: var(--text-primary);
+
+  /* 全局 430px 居中约束 — Figma 设计基准宽度 */
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* 毛玻璃统一降级 — 7 处 backdrop-filter 替换 */
+.glass-header {
+  background: rgba(255, 255, 255, 0.93);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+}
+
+/* 全局布局：430px 居中 */
+.page-container {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+}
