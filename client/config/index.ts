@@ -1,3 +1,5 @@
+const SafeAreaPlugin = require('./SafeAreaPlugin');
+
 const config = {
   projectName: 'english-dictionary',
   date: '2026-7-6',
@@ -22,6 +24,10 @@ const config = {
     enable: false,
   },
   mini: {
+    webpackChain(chain) {
+      // SafeAreaPlugin — 修补 app.wxss 的 page 选择器（CSS 兜底，Babel 已处理 JS 行内 style）
+      chain.plugin('safe-area').use(SafeAreaPlugin);
+    },
     postcss: {
       pxtransform: {
         enable: true,
@@ -43,6 +49,10 @@ const config = {
     },
   },
   h5: {
+    webpackChain(chain) {
+      // SafeAreaPlugin — 修补 app.css 的 .page-container（CSS 兜底，Babel 已处理 JS 行内 style）
+      chain.plugin('safe-area').use(SafeAreaPlugin);
+    },
     publicPath: '/',
     staticDirectory: 'static',
     postcss: {
