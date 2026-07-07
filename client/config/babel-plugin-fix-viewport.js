@@ -2,8 +2,8 @@
  * Babel 插件 — AST 级别修复 viewport 单位 + 注入底部安全距离。
  *
  * 对每个 style 对象中 minHeight / height: '100vh' 的 ObjectProperty：
- *   1. 将值替换为 calc(100vh - 100px)
- *   2. 对 minHeight 项额外注入 paddingBottom: '80px'
+ *   1. 将值替换为 calc(100vh - 120px)
+ *   2. 对 minHeight 项额外注入 paddingBottom: '100px'
  *      （追加到 ObjectExpression 末尾，覆盖可能存在的 padding 简写）
  *
  * Babel AST 级别操作，全平台（小程序 / H5 / APP）统一生效，
@@ -28,8 +28,8 @@ module.exports = function ({ types: t }) {
           return;
         }
 
-        // 替换 value: '100vh' → 'calc(100vh - 100px)'
-        path.node.value = t.stringLiteral('calc(100vh - 100px)');
+        // 替换 value: '100vh' → 'calc(100vh - 120px)'
+        path.node.value = t.stringLiteral('calc(100vh - 120px)');
 
         // minHeight 场景：在父级 ObjectExpression 末尾注入 paddingBottom
         if (keyName === 'minHeight') {
@@ -38,7 +38,7 @@ module.exports = function ({ types: t }) {
             obj.properties.push(
               t.objectProperty(
                 t.identifier('paddingBottom'),
-                t.stringLiteral('80px'),
+                t.stringLiteral('100px'),
               ),
             );
           }

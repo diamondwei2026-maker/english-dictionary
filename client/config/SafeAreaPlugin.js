@@ -6,7 +6,7 @@
  * 本插件仅处理 CSS 文件中 Babel 无法触及的部分。
  */
 
-const TABBAR_RESERVE = '100px';
+const TABBAR_RESERVE = '120px';
 
 class SafeAreaPlugin {
   apply(compiler) {
