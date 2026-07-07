@@ -138,7 +138,12 @@ function Overview({
 
   return (
     <View style={{ minHeight: "100vh", background: BG }}>
-      <PageHeader subtitle="管理后台" title="数据概览" sticky bgColor="rgba(247,249,252,0.94)" />
+      <PageHeader
+        subtitle="管理后台"
+        title="数据概览"
+        sticky
+        bgColor="rgba(247,249,252,0.94)"
+      />
 
       <View style={{ padding: "16px 24px 40px" }}>
         {/* Stats banner */}
@@ -374,9 +379,10 @@ function LibraryManager({
               placeholder="输入词库名称"
               style={{
                 ...INPUT,
-                border: focusedField === "libName"
-                  ? "1.5px solid #2563EB"
-                  : "1.5px solid transparent",
+                border:
+                  focusedField === "libName"
+                    ? "1.5px solid #2563EB"
+                    : "1.5px solid transparent",
                 background: focusedField === "libName" ? "#fff" : "#F1F5F9",
               }}
             />
@@ -392,9 +398,10 @@ function LibraryManager({
               style={{
                 ...INPUT,
                 minHeight: "88px",
-                border: focusedField === "libDesc"
-                  ? "1.5px solid #2563EB"
-                  : "1.5px solid transparent",
+                border:
+                  focusedField === "libDesc"
+                    ? "1.5px solid #2563EB"
+                    : "1.5px solid transparent",
                 background: focusedField === "libDesc" ? "#fff" : "#F1F5F9",
               }}
             />
@@ -402,7 +409,6 @@ function LibraryManager({
           <View
             onClick={handleSave}
             style={{
-              width: "100%",
               padding: "15px",
               borderRadius: "16px",
               background: !name.trim() ? "#93C5FD" : "#2563EB",
@@ -417,7 +423,6 @@ function LibraryManager({
           <View
             onClick={() => setEditTarget(null)}
             style={{
-              width: "100%",
               padding: "15px",
               borderRadius: "16px",
               background: "#fff",
@@ -672,10 +677,16 @@ function WordEditForm({
   const taShort = { ...ta, minHeight: "48px" };
 
   /** 根据 fieldKey 返回带 focus/blur 样式的 input style */
-  const fieldStyle = (fieldKey: string, baseStyle: Record<string, unknown> = INPUT) => ({
+  const fieldStyle = (
+    fieldKey: string,
+    baseStyle: Record<string, unknown> = INPUT,
+  ) => ({
     ...baseStyle,
-    border: focusedField === fieldKey ? "1.5px solid #2563EB" : "1.5px solid transparent",
-    background: focusedField === fieldKey ? "#fff" : "#F1F5F9",
+    border:
+      focusedField === fieldKey
+        ? "1.5px solid #2563EB"
+        : "1.5px solid transparent",
+    background: focusedField === fieldKey ? "#fff" : "transparent",
   });
 
   return (
@@ -706,7 +717,6 @@ function WordEditForm({
           <View
             onClick={handleAI}
             style={{
-              width: "100%",
               padding: "14px",
               borderRadius: "14px",
               background: aiLoading
@@ -839,7 +849,6 @@ function WordEditForm({
         <View
           onClick={handleRegenImg}
           style={{
-            width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1040,7 +1049,6 @@ function WordEditForm({
         <View
           onClick={handleSave}
           style={{
-            width: "100%",
             padding: "15px",
             borderRadius: "16px",
             background: !form.word || !form.libraryId ? "#93C5FD" : "#2563EB",
@@ -1056,7 +1064,6 @@ function WordEditForm({
           <View
             onClick={onCancel}
             style={{
-              width: "100%",
               padding: "15px",
               borderRadius: "16px",
               background: "#fff",
@@ -1124,7 +1131,7 @@ function WordManager({
       <View style={{ minHeight: "100vh", background: BG }}>
         <PageHeader
           showBack
-          backLabel="单词列表"
+          backLabel="返回"
           title={editWord.word ? `编辑：${editWord.word}` : "新增单词"}
           onBack={() => setEditWord(null)}
           bgColor="rgba(247,249,252,0.94)"
@@ -1366,7 +1373,14 @@ function WordManager({
 function UserManager({ onBack }: { onBack: () => void }) {
   return (
     <View style={{ minHeight: "100vh", background: BG }}>
-      <PageHeader showBack backLabel="返回" title="用户管理" onBack={onBack} bgColor="rgba(247,249,252,0.94)" sticky />
+      <PageHeader
+        showBack
+        backLabel="返回"
+        title="用户管理"
+        onBack={onBack}
+        bgColor="rgba(247,249,252,0.94)"
+        sticky
+      />
       <View style={{ padding: "8px 24px 40px" }}>
         <SLabel>共 {mockUsers.length} 位用户</SLabel>
         <View style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
