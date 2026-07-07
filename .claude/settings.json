@@ -77,7 +77,15 @@
       "PowerShell(git add .docs/adr/ .docs/development-plan.md)",
       "PowerShell(git commit -m \"docs: ���� ADR �ܹ����� + �����ƻ�\")",
       "PowerShell(git add .claude/settings.json)",
-      "PowerShell(git commit -m \"chore: ���� ADR �ĵ��ύ��� Git Ȩ��\")"
+      "PowerShell(git commit -m \"chore: ���� ADR �ĵ��ύ��� Git Ȩ��\")",
+      "PowerShell(git add .docs/tasks.md .docs/tasks/)",
+      "PowerShell(git commit -m \"docs: ���ӿ��������б�����������\")",
+      "Bash(npm start *)",
+      "Bash(curl -s http://localhost:3001/api/v1/health)",
+      "Bash(kill %1)",
+      "Skill(code-review)",
+      "Skill(code-review:*)",
+      "Bash(npx eslint *)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"

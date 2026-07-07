@@ -14,7 +14,7 @@
 
 | Task ID | 名称 | 阶段 | 状态 | 优先级 | 依赖 | 详情 |
 |---------|------|------|------|--------|------|------|
-| 0.1 | 后端项目脚手架初始化 | 阶段0: 架构决策与项目初始化 | ⏳ pending | P0 | 无 | [task.md](./tasks/english-dict-v1/task-0.1/task.md) |
+| 0.1 | 后端项目脚手架初始化 | 阶段0: 架构决策与项目初始化 | ✅ done | P0 | 无 | [task.md](./tasks/english-dict-v1/task-0.1/task.md) |
 | 0.2 | 数据库 Schema 设计 | 阶段0: 架构决策与项目初始化 | ⏳ pending | P0 | 0.1 | [task.md](./tasks/english-dict-v1/task-0.2/task.md) |
 | 1.1 | 数据库表创建与 Migration | 阶段1: 数据层 | ⏳ pending | P0 | 0.2 | [task.md](./tasks/english-dict-v1/task-1.1/task.md) |
 | 1.2 | ORM 模型定义 | 阶段1: 数据层 | ⏳ pending | P0 | 1.1 | [task.md](./tasks/english-dict-v1/task-1.2/task.md) |
