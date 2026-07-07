@@ -3,6 +3,7 @@ import { View, Text, Input } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { mockWords, mockLibraries } from '../../data/mockData';
 import { Icon } from '../../components/Icon';
+import { CustomTabBar } from '../../components/CustomTabBar';
 
 export default function HomePage() {
   const [query, setQuery] = useState('');
@@ -213,6 +214,8 @@ export default function HomePage() {
           </View>
         </View>
       )}
+
+      <CustomTabBar activeTab="home" />
     </View>
   );
 }

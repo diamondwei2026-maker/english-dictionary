@@ -3,6 +3,7 @@ import Taro, { useRouter } from '@tarojs/taro';
 import { mockLibraries, mockWords } from '../../data/mockData';
 import { PageHeader } from '../../components/PageHeader';
 import { Icon } from '../../components/Icon';
+import { CustomTabBar } from '../../components/CustomTabBar';
 
 export default function LibraryWordsPage() {
   const router = useRouter();
@@ -66,6 +67,8 @@ export default function LibraryWordsPage() {
           </View>
         )}
       </View>
+
+      <CustomTabBar activeTab="libraries" />
     </View>
   );
 }

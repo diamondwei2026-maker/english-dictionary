@@ -752,7 +752,7 @@ export default function AdminPage() {
 
   return (
     <View style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', minHeight: '100vh', background: BG }}>
-      {section === 'overview' && <Overview libraries={libraries} words={words} onNavigate={setSection} onExit={() => Taro.switchTab({ url: '/pages/profile/index' })} />}
+      {section === 'overview' && <Overview libraries={libraries} words={words} onNavigate={setSection} onExit={() => Taro.redirectTo({ url: '/pages/profile/index' })} />}
       {section === 'libraries' && <LibraryManager libraries={libraries} words={words} onAdd={addLib} onEdit={editLib} onDelete={deleteLib} onBack={() => setSection('overview')} />}
       {section === 'words' && <WordManager words={words} libraries={libraries} onAdd={addWord} onEdit={editWord} onDelete={deleteWord} onBack={() => setSection('overview')} />}
       {section === 'users' && <UserManager onBack={() => setSection('overview')} />}

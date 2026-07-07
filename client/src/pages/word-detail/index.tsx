@@ -4,6 +4,7 @@ import { mockWords, mockLibraries } from '../../data/mockData';
 import { PhysicalImage } from '../../components/PhysicalImage';
 import { PageHeader } from '../../components/PageHeader';
 import { Icon } from '../../components/Icon';
+import { CustomTabBar } from '../../components/CustomTabBar';
 
 const POS_COLORS: Record<string, { bg: string; text: string }> = {
   'n.': { bg: '#EFF6FF', text: '#1D4ED8' },
@@ -34,7 +35,7 @@ export default function WordDetailPage() {
       <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#6B7280' }}>
         <Text style={{ display: 'block' }}>单词不存在</Text>
         <View
-          onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
+          onClick={() => Taro.redirectTo({ url: '/pages/home/index' })}
           style={{ marginTop: '12px', color: '#2563EB' }}
         >
           <Text>返回首页</Text>
@@ -218,6 +219,8 @@ export default function WordDetailPage() {
           </View>
         </View>
       </View>
+
+      <CustomTabBar activeTab="home" />
     </View>
   );
 }

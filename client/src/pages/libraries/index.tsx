@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 import { mockLibraries, mockWords } from '../../data/mockData';
 import { PageHeader } from '../../components/PageHeader';
 import { Icon } from '../../components/Icon';
+import { CustomTabBar } from '../../components/CustomTabBar';
 
 export default function LibrariesPage() {
   const libraryColors = [
@@ -75,6 +76,8 @@ export default function LibrariesPage() {
           })}
         </View>
       </View>
+
+      <CustomTabBar activeTab="libraries" />
     </View>
   );
 }

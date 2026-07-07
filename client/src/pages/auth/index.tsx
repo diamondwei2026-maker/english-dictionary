@@ -6,6 +6,7 @@ import type { AuthUser } from '../../data/types';
 import { setGlobalUser } from '../../hooks/useAuth';
 import { navigateBack } from '../../hooks/useNavigate';
 import { Icon } from '../../components/Icon';
+import { CustomTabBar } from '../../components/CustomTabBar';
 
 type AuthMode = 'login' | 'register';
 
@@ -63,7 +64,7 @@ export default function AuthPage() {
             if (user.role === 'admin') {
               Taro.redirectTo({ url: '/pages/admin/index?tab=overview' });
             } else {
-              Taro.switchTab({ url: '/pages/profile/index' });
+              Taro.redirectTo({ url: '/pages/profile/index' });
             }
           }, 1300);
         } else {
@@ -75,7 +76,7 @@ export default function AuthPage() {
         setGlobalUser(user);
         Taro.showToast({ title: '注册成功', icon: 'success', duration: 1200 });
         setTimeout(() => {
-          Taro.switchTab({ url: '/pages/profile/index' });
+          Taro.redirectTo({ url: '/pages/profile/index' });
         }, 1300);
       }
     }, 800);
@@ -282,6 +283,8 @@ export default function AuthPage() {
           </View>
         )}
       </View>
+
+      <CustomTabBar activeTab="profile" />
     </View>
   );
 }

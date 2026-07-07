@@ -9,6 +9,7 @@ import {
 } from "../../hooks/useAuth";
 import { PageHeader } from "../../components/PageHeader";
 import { Icon } from "../../components/Icon";
+import { CustomTabBar } from "../../components/CustomTabBar";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(getGlobalUser());
@@ -126,6 +127,8 @@ export default function ProfilePage() {
             </View>
           </View>
         </View>
+
+        <CustomTabBar activeTab="profile" />
       </View>
     );
   }
@@ -409,6 +412,8 @@ export default function ProfilePage() {
           <Text style={{ color: "#DC2626" }}>退出登录</Text>
         </View>
       </View>
+
+      <CustomTabBar activeTab="profile" />
     </View>
   );
 }

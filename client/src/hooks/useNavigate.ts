@@ -15,7 +15,7 @@ export interface NavParams {
 }
 
 export function navigateToHome() {
-  Taro.switchTab({ url: '/pages/home/index' });
+  Taro.redirectTo({ url: '/pages/home/index' });
 }
 
 export function navigateToWordDetail(wordId: string) {
@@ -23,7 +23,7 @@ export function navigateToWordDetail(wordId: string) {
 }
 
 export function navigateToLibraries() {
-  Taro.switchTab({ url: '/pages/libraries/index' });
+  Taro.redirectTo({ url: '/pages/libraries/index' });
 }
 
 export function navigateToLibraryWords(libraryId: string) {
@@ -31,7 +31,7 @@ export function navigateToLibraryWords(libraryId: string) {
 }
 
 export function navigateToProfile() {
-  Taro.switchTab({ url: '/pages/profile/index' });
+  Taro.redirectTo({ url: '/pages/profile/index' });
 }
 
 export function navigateToLogin() {
@@ -48,7 +48,7 @@ export function navigateToAdmin(tab?: string) {
 }
 
 /**
- * 智能返回：若页面栈 > 1 则 navigateBack()，否则 switchTab 到首页。
+ * 智能返回：若页面栈 > 1 则 navigateBack()，否则 redirectTo 到首页。
  * 修复 Figma 中返回按钮始终返回首页的设计意图与 Taro 栈式路由的差异。
  */
 export function navigateBack() {
@@ -56,6 +56,6 @@ export function navigateBack() {
   if (pages.length > 1) {
     Taro.navigateBack();
   } else {
-    Taro.switchTab({ url: '/pages/home/index' });
+    Taro.redirectTo({ url: '/pages/home/index' });
   }
 }
