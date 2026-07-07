@@ -53,6 +53,8 @@ export default function WordDetailPage() {
         showBack
         backLabel="返回"
         sticky
+        compact
+        bgColor="rgba(247,249,252,0.92)"
         right={library ? (
           <Text style={{
             fontSize: '11px',

@@ -138,7 +138,7 @@ function Overview({
 
   return (
     <View style={{ minHeight: "100vh", background: BG }}>
-      <PageHeader subtitle="管理后台" title="数据概览" />
+      <PageHeader subtitle="管理后台" title="数据概览" sticky bgColor="rgba(247,249,252,0.94)" />
 
       <View style={{ padding: "16px 24px 40px" }}>
         {/* Stats banner */}
@@ -315,6 +315,7 @@ function LibraryManager({
   );
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const openNew = () => {
     setName("");
@@ -352,6 +353,8 @@ function LibraryManager({
           backLabel="词库列表"
           title={isNew ? "新增词库" : "编辑词库"}
           onBack={() => setEditTarget(null)}
+          bgColor="rgba(247,249,252,0.94)"
+          sticky
         />
         <View
           style={{
@@ -366,8 +369,16 @@ function LibraryManager({
             <Input
               value={name}
               onInput={(e) => setName(e.detail.value)}
+              onFocus={() => setFocusedField("libName")}
+              onBlur={() => setFocusedField(null)}
               placeholder="输入词库名称"
-              style={INPUT}
+              style={{
+                ...INPUT,
+                border: focusedField === "libName"
+                  ? "1.5px solid #2563EB"
+                  : "1.5px solid transparent",
+                background: focusedField === "libName" ? "#fff" : "#F1F5F9",
+              }}
             />
           </View>
           <View>
@@ -375,8 +386,17 @@ function LibraryManager({
             <Textarea
               value={desc}
               onInput={(e) => setDesc(e.detail.value)}
+              onFocus={() => setFocusedField("libDesc")}
+              onBlur={() => setFocusedField(null)}
               placeholder="简要描述该词库的内容和适用人群..."
-              style={{ ...INPUT, minHeight: "88px" }}
+              style={{
+                ...INPUT,
+                minHeight: "88px",
+                border: focusedField === "libDesc"
+                  ? "1.5px solid #2563EB"
+                  : "1.5px solid transparent",
+                background: focusedField === "libDesc" ? "#fff" : "#F1F5F9",
+              }}
             />
           </View>
           <View
@@ -422,6 +442,8 @@ function LibraryManager({
         backLabel="返回"
         title="词库管理"
         onBack={onBack}
+        bgColor="rgba(247,249,252,0.94)"
+        sticky
         right={
           <View
             onClick={openNew}
@@ -577,6 +599,7 @@ function WordEditForm({
   const [aiLoading, setAiLoading] = useState(false);
   const [imgLoading, setImgLoading] = useState(false);
   const [aiDone, setAiDone] = useState(!!word.word);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [colInput, setColInput] = useState(
     (word.collocations || []).join("、"),
   );
@@ -648,6 +671,13 @@ function WordEditForm({
   const ta = { ...INPUT, minHeight: "72px" };
   const taShort = { ...ta, minHeight: "48px" };
 
+  /** 根据 fieldKey 返回带 focus/blur 样式的 input style */
+  const fieldStyle = (fieldKey: string, baseStyle: Record<string, unknown> = INPUT) => ({
+    ...baseStyle,
+    border: focusedField === fieldKey ? "1.5px solid #2563EB" : "1.5px solid transparent",
+    background: focusedField === fieldKey ? "#fff" : "#F1F5F9",
+  });
+
   return (
     <View style={{ paddingBottom: "40px" }}>
       {/* AI Generate card */}
@@ -668,8 +698,10 @@ function WordEditForm({
               set("word", e.detail.value);
               setAiDone(false);
             }}
+            onFocus={() => setFocusedField("aiWord")}
+            onBlur={() => setFocusedField(null)}
             placeholder="输入英文单词，例：flow"
-            style={{ ...INPUT, marginBottom: "12px" }}
+            style={{ ...fieldStyle("aiWord"), marginBottom: "12px" }}
           />
           <View
             onClick={handleAI}
@@ -737,8 +769,10 @@ function WordEditForm({
           <Input
             value={form.phonetic || ""}
             onInput={(e) => set("phonetic", e.detail.value)}
+            onFocus={() => setFocusedField("phonetic")}
+            onBlur={() => setFocusedField(null)}
             placeholder="/fləʊ/"
-            style={INPUT}
+            style={fieldStyle("phonetic")}
           />
         </View>
       </View>
@@ -760,8 +794,10 @@ function WordEditForm({
           <Textarea
             value={form.coreMeaning || ""}
             onInput={(e) => set("coreMeaning", e.detail.value)}
+            onFocus={() => setFocusedField("coreMeaning")}
+            onBlur={() => setFocusedField(null)}
             placeholder="从物理感知出发，描述词的核心物理意义..."
-            style={ta}
+            style={fieldStyle("coreMeaning", ta)}
           />
         </View>
         <View>
@@ -769,8 +805,10 @@ function WordEditForm({
           <Textarea
             value={form.coreExampleSentence || ""}
             onInput={(e) => set("coreExampleSentence", e.detail.value)}
+            onFocus={() => setFocusedField("coreExampleSent")}
+            onBlur={() => setFocusedField(null)}
             placeholder="English example sentence..."
-            style={taShort}
+            style={fieldStyle("coreExampleSent", taShort)}
           />
         </View>
         <View>
@@ -778,8 +816,10 @@ function WordEditForm({
           <Textarea
             value={form.coreExampleTranslation || ""}
             onInput={(e) => set("coreExampleTranslation", e.detail.value)}
+            onFocus={() => setFocusedField("coreExampleTrans")}
+            onBlur={() => setFocusedField(null)}
             placeholder="中文翻译..."
-            style={taShort}
+            style={fieldStyle("coreExampleTrans", taShort)}
           />
         </View>
       </View>
@@ -889,8 +929,10 @@ function WordEditForm({
                   onInput={(e) =>
                     updateExt(i, "logicalEvolution", e.detail.value)
                   }
+                  onFocus={() => setFocusedField(`extLogic_${i}`)}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="物理感知 → 抽象延伸..."
-                  style={INPUT}
+                  style={fieldStyle(`extLogic_${i}`)}
                 />
               </View>
               <View
@@ -905,8 +947,10 @@ function WordEditForm({
                   <Input
                     value={ext.meaning}
                     onInput={(e) => updateExt(i, "meaning", e.detail.value)}
+                    onFocus={() => setFocusedField(`extMeaning_${i}`)}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="中文引申义"
-                    style={INPUT}
+                    style={fieldStyle(`extMeaning_${i}`)}
                   />
                 </View>
                 <View>
@@ -934,8 +978,10 @@ function WordEditForm({
                   onInput={(e) =>
                     updateExt(i, "exampleSentence", e.detail.value)
                   }
+                  onFocus={() => setFocusedField(`extSent_${i}`)}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="English example..."
-                  style={taShort}
+                  style={fieldStyle(`extSent_${i}`, taShort)}
                 />
               </View>
               <View>
@@ -945,8 +991,10 @@ function WordEditForm({
                   onInput={(e) =>
                     updateExt(i, "exampleTranslation", e.detail.value)
                   }
+                  onFocus={() => setFocusedField(`extTrans_${i}`)}
+                  onBlur={() => setFocusedField(null)}
                   placeholder="中文翻译..."
-                  style={taShort}
+                  style={fieldStyle(`extTrans_${i}`, taShort)}
                 />
               </View>
             </View>
@@ -981,8 +1029,10 @@ function WordEditForm({
         <Textarea
           value={colInput}
           onInput={(e) => setColInput(e.detail.value)}
+          onFocus={() => setFocusedField("collocations")}
+          onBlur={() => setFocusedField(null)}
           placeholder="flow freely、cash flow、go with the flow..."
-          style={{ ...ta, minHeight: "60px" }}
+          style={fieldStyle("collocations", { ...ta, minHeight: "60px" })}
         />
       </View>
 
@@ -1077,6 +1127,8 @@ function WordManager({
           backLabel="单词列表"
           title={editWord.word ? `编辑：${editWord.word}` : "新增单词"}
           onBack={() => setEditWord(null)}
+          bgColor="rgba(247,249,252,0.94)"
+          sticky
         />
         <View style={{ padding: "8px 24px 40px" }}>
           <WordEditForm
@@ -1098,6 +1150,8 @@ function WordManager({
         backLabel="返回"
         title="单词管理"
         onBack={onBack}
+        bgColor="rgba(247,249,252,0.94)"
+        sticky
         right={
           <View
             onClick={() => setEditWord({ id: genId() })}
@@ -1312,7 +1366,7 @@ function WordManager({
 function UserManager({ onBack }: { onBack: () => void }) {
   return (
     <View style={{ minHeight: "100vh", background: BG }}>
-      <PageHeader showBack backLabel="返回" title="用户管理" onBack={onBack} />
+      <PageHeader showBack backLabel="返回" title="用户管理" onBack={onBack} bgColor="rgba(247,249,252,0.94)" sticky />
       <View style={{ padding: "8px 24px 40px" }}>
         <SLabel>共 {mockUsers.length} 位用户</SLabel>
         <View style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
