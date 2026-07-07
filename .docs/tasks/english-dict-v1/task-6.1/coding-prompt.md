@@ -1,0 +1,3 @@
+# Coding Prompt — Task 6.1: 缓存与搜索优化
+
+> ⏳ 待生成 — 使用 ai-master 继续推进，将自动生成 Coding Prompt。

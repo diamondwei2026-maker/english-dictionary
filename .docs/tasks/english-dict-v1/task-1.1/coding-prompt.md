@@ -1,0 +1,3 @@
+# Coding Prompt — Task 1.1: 数据库表创建与 Migration
+
+> ⏳ 待生成 — 使用 ai-master 继续推进，将自动生成 Coding Prompt。

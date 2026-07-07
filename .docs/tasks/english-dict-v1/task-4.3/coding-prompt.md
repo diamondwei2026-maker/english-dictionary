@@ -1,0 +1,3 @@
+# Coding Prompt — Task 4.3: 前端 AI 功能集成
+
+> ⏳ 待生成 — 使用 ai-master 继续推进，将自动生成 Coding Prompt。

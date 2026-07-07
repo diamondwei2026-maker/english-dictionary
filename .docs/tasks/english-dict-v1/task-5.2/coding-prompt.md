@@ -1,0 +1,3 @@
+# Coding Prompt — Task 5.2: 今日一词推荐与管理后台概览
+
+> ⏳ 待生成 — 使用 ai-master 继续推进，将自动生成 Coding Prompt。
