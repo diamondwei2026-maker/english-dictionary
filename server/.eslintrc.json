@@ -1,0 +1,21 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "quotes": ["error", "double"],
+    "semi": ["error", "always"],
+    "arrow-parens": ["error", "always"],
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/explicit-function-return-type": "off"
+  },
+  "env": {
+    "node": true,
+    "es2020": true
+  },
+  "ignorePatterns": ["dist/", "node_modules/"]
+}
