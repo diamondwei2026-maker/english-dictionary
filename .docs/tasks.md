@@ -17,7 +17,7 @@
 | 0.1 | 后端项目脚手架初始化 | 阶段0: 架构决策与项目初始化 | ✅ done | P0 | 无 | [task.md](./tasks/english-dict-v1/task-0.1/task.md) |
 | 0.2 | 数据库 Schema 设计 | 阶段0: 架构决策与项目初始化 | ✅ done | P0 | 0.1 | [task.md](./tasks/english-dict-v1/task-0.2/task.md) |
 | 1.1 | 数据库表创建与 Migration | 阶段1: 数据层 | ✅ done | P0 | 0.2 | [task.md](./tasks/english-dict-v1/task-1.1/task.md) |
-| 1.2 | ORM 模型定义 | 阶段1: 数据层 | ⏳ pending | P0 | 1.1 | [task.md](./tasks/english-dict-v1/task-1.2/task.md) |
+| 1.2 | ORM 模型定义 | 阶段1: 数据层 | ✅ done | P0 | 1.1 | [task.md](./tasks/english-dict-v1/task-1.2/task.md) |
 | 1.3 | Seed 数据脚本与连接池配置 | 阶段1: 数据层 | ⏳ pending | P0 | 1.2 | [task.md](./tasks/english-dict-v1/task-1.3/task.md) |
 | 2.1 | 用户注册与登录 API | 阶段2: 用户认证 | ⏳ pending | P0 | 1.3 | [task.md](./tasks/english-dict-v1/task-2.1/task.md) |
 | 2.2 | JWT 认证中间件与密码加密 | 阶段2: 用户认证 | ⏳ pending | P0 | 2.1 | [task.md](./tasks/english-dict-v1/task-2.2/task.md) |

@@ -3,6 +3,9 @@ import { config } from "../config";
 import { User } from "../models/User";
 import { WordBank } from "../models/WordBank";
 import { Word } from "../models/Word";
+import { Collocation } from "../models/Collocation";
+import { UserFavorite } from "../models/UserFavorite";
+import { LearningRecord } from "../models/LearningRecord";
 
 async function seed(): Promise<void> {
   console.log("Connecting to MongoDB...");
@@ -11,6 +14,9 @@ async function seed(): Promise<void> {
 
   // 清空旧数据（幂等：可重复执行）
   console.log("Clearing old data...");
+  await LearningRecord.deleteMany({});
+  await UserFavorite.deleteMany({});
+  await Collocation.deleteMany({});
   await Word.deleteMany({});
   await WordBank.deleteMany({});
   await User.deleteMany({});

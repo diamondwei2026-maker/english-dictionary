@@ -89,7 +89,9 @@
       "Bash(cd d:/Users/weij/english-dictionary/server && if [ ! -f .env ]; then cp .env.example .env; else echo \".env already exists\"; fi)",
       "Bash(mongosh --eval \"db.version\\(\\)\")",
       "Bash(mongod --version)",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(git commit -m 'feat: Task 1.1 数据库表创建与 Migration *)",
+      "Read(//d/Users/weij/.claude/**)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"
