@@ -217,7 +217,6 @@ export default function ProfilePage() {
                 Taro.navigateTo({ url: "/pages/admin/index?tab=overview" })
               }
               style={{
-                width: "100%",
                 padding: "20px 24px",
                 background: "#fff",
                 borderRadius: "20px",
@@ -395,7 +394,6 @@ export default function ProfilePage() {
         <View
           onClick={handleLogout}
           style={{
-            width: "100%",
             padding: "16px",
             background: "#FEF2F2",
             color: "#DC2626",

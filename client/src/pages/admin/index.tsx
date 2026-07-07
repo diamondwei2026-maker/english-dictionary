@@ -686,7 +686,7 @@ function WordEditForm({
       focusedField === fieldKey
         ? "1.5px solid #2563EB"
         : "1.5px solid transparent",
-    background: focusedField === fieldKey ? "#fff" : "transparent",
+    background: focusedField === fieldKey ? "#fff" : "#F1F5F9",
   });
 
   return (
