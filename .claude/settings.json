@@ -73,7 +73,11 @@
       "Bash(cd \"d:/Users/weij/english-dictionary/client\" && rm -rf dist && npx taro build --type h5 2>&1 | tail -5)",
       "Bash(node -e \"try{require.resolve\\('@babel/types',{paths:['.']}\\);console.log\\('@babel/types: AVAILABLE'\\)}catch\\(e\\){console.log\\('@babel/types: not found'\\)}\")",
       "Bash(npx babel *)",
-      "Bash(git diff *)"
+      "Bash(git diff *)",
+      "PowerShell(git add .docs/adr/ .docs/development-plan.md)",
+      "PowerShell(git commit -m \"docs: ���� ADR �ܹ����� + �����ƻ�\")",
+      "PowerShell(git add .claude/settings.json)",
+      "PowerShell(git commit -m \"chore: ���� ADR �ĵ��ύ��� Git Ȩ��\")"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"
