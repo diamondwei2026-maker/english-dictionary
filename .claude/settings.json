@@ -85,7 +85,11 @@
       "Bash(kill %1)",
       "Skill(code-review)",
       "Skill(code-review:*)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(cd d:/Users/weij/english-dictionary/server && if [ ! -f .env ]; then cp .env.example .env; else echo \".env already exists\"; fi)",
+      "Bash(mongosh --eval \"db.version\\(\\)\")",
+      "Bash(mongod --version)",
+      "Bash(npx tsx *)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"
