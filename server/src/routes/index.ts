@@ -1,13 +1,15 @@
 import { Router } from "express";
+import type { Router as RouterType } from "express";
 import { authRoutes } from "./auth.routes";
 import { userRoutes } from "./user.routes";
+import { wordbankRoutes } from "./wordbank.routes";
 
-export const routes = Router();
+export const routes: RouterType = Router();
 
 routes.use("/auth", authRoutes);
 routes.use("/users", userRoutes);
+routes.use("/wordbanks", wordbankRoutes);
 // 子路由占位（后续 Task 实现）
-// routes.use("/wordbanks", wordbankRoutes);
 // routes.use("/words", wordRoutes);
 
 // 兜底 404
