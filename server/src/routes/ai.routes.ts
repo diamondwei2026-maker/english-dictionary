@@ -14,4 +14,12 @@ router.post(
   aiController.generate
 );
 
+// AI 词条生成 SSE 流式 — 仅管理员
+router.post(
+  "/words/generate/stream",
+  authMiddleware,
+  adminMiddleware,
+  aiController.generateStream
+);
+
 export const aiRoutes: RouterType = router;

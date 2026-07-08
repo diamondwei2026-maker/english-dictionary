@@ -1,6 +1,6 @@
 import { config } from "../config";
 import { AppError } from "../utils/errors";
-import type { LLMProvider, LLMWordEntry } from "./llm";
+import type { LLMProvider, LLMWordEntry, SSEChunk } from "./llm";
 
 const TIMEOUT_MS = 30_000;
 
@@ -12,6 +12,7 @@ const TIMEOUT_MS = 30_000;
  */
 export class DeepSeekProvider implements LLMProvider {
   readonly name = "deepseek";
+  readonly supportsStreaming = true;
 
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -99,6 +100,118 @@ export class DeepSeekProvider implements LLMProvider {
         "LLM_SERVICE_ERROR",
         "AI 服务暂时不可用，请稍后重试"
       );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * Streaming 生成 — 返回 AsyncGenerator，逐事件 yield SSEChunk。
+   *
+   * 事件序列: thinking → content* → done | error
+   * 使用 DeepSeek Chat Completions API 的 stream: true 模式。
+   */
+  async *generateWordEntryStream(wordName: string): AsyncGenerator<SSEChunk> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      // 1. 立即发送 thinking 事件
+      yield { event: "thinking", data: { status: "generating", word: wordName } };
+
+      // 2. 发起 streaming fetch
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: `Please analyze the English word "${wordName}" using cognitive linguistics.`,
+            },
+          ],
+          temperature: 0.3,
+          stream: true,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        console.error(
+          `[DeepSeek] Streaming API returned ${response.status}: ${await response.text().catch(() => "<unreadable>")}`
+        );
+        yield {
+          event: "error",
+          data: { code: "LLM_SERVICE_ERROR", message: "AI 服务暂时不可用，请稍后重试" },
+        };
+        return;
+      }
+
+      // 3. 读取 SSE 流，逐块 yield content 事件
+      if (!response.body) {
+        yield {
+          event: "error",
+          data: { code: "LLM_SERVICE_ERROR", message: "AI 服务返回空响应体" },
+        };
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || ""; // 保留最后一个不完整行
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+          const jsonStr = trimmed.slice(6); // 去掉 "data: " 前缀
+          if (jsonStr === "[DONE]") continue;
+
+          try {
+            const chunk = JSON.parse(jsonStr);
+            const delta = chunk?.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullContent += delta;
+              yield { event: "content", data: { chunk: delta } };
+            }
+          } catch {
+            // 忽略无法解析的行（streaming 中偶有非 JSON 行）
+          }
+        }
+      }
+
+      // 4. 解析完整内容并发送 done
+      const llmEntry = parseLLMResponse(fullContent);
+      yield { event: "done", data: llmEntry };
+    } catch (err) {
+      if (err instanceof AppError) {
+        yield { event: "error", data: { code: err.code, message: err.message } };
+      } else if (err instanceof Error && err.name === "AbortError") {
+        yield {
+          event: "error",
+          data: { code: "LLM_TIMEOUT", message: "AI 服务响应超时，请稍后重试" },
+        };
+      } else {
+        console.error("[DeepSeek] Streaming unexpected error:", err);
+        yield {
+          event: "error",
+          data: { code: "LLM_SERVICE_ERROR", message: "AI 服务暂时不可用，请稍后重试" },
+        };
+      }
     } finally {
       clearTimeout(timeoutId);
     }

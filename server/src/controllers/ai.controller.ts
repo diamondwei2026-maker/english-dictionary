@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AppError } from "../utils/errors";
 import { validateGenerateWordInput } from "../validators/ai.validator";
 import * as aiService from "../services/ai.service";
+import * as aiStreamService from "../services/ai-stream.service";
+import type { SSEChunk } from "../providers/llm";
 
 /**
  * POST /api/v1/words/generate
@@ -20,5 +23,77 @@ export const generate = asyncHandler(
 
     // force=true 时为更新操作返回 200，新建返回 201
     res.status(force ? 200 : 201).json(word);
+  }
+);
+
+/**
+ * POST /api/v1/words/generate/stream
+ *
+ * SSE 流式 AI 词条生成 — 仅管理员可调用。
+ * Query 参数: ?force=true 强制重新生成已存在的单词。
+ *
+ * Response: text/event-stream
+ * 事件序列: thinking → content* → done | error
+ */
+export const generateStream = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    // SSE 事件写入辅助
+    const sendEvent = (chunk: SSEChunk): void => {
+      const lines = [
+        `event: ${chunk.event}`,
+        `data: ${JSON.stringify(chunk.data)}`,
+        "", // SSE 分隔空行
+      ];
+      res.write(lines.join("\n"));
+    };
+
+    // 1. 校验输入（在设置 SSE headers 之前，校验失败仍返回普通 JSON 错误）
+    const input = validateGenerateWordInput(req.body);
+    const force = req.query.force === "true";
+
+    try {
+      // 2. 设置 SSE Headers
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no", // 禁用 nginx/Render 反向代理缓冲
+      });
+
+      // 3. 客户端断开连接时取消 LLM 请求
+      req.on("close", () => {
+        if (!res.writableEnded) {
+          res.end();
+        }
+      });
+
+      // 4. 迭代 AsyncGenerator，逐事件推送
+      for await (const chunk of aiStreamService.generateWordStream(
+        input.wordName,
+        input.wordbankId,
+        { force }
+      )) {
+        sendEvent(chunk);
+      }
+    } catch (err) {
+      // 校验失败或未预期的错误，转为 SSE error 事件
+      if (err instanceof AppError) {
+        sendEvent({
+          event: "error",
+          data: { code: err.code, message: err.message },
+        });
+      } else {
+        console.error("[AI Controller] Unexpected SSE error:", err);
+        sendEvent({
+          event: "error",
+          data: { code: "INTERNAL_ERROR", message: "服务器内部错误" },
+        });
+      }
+    } finally {
+      // 5. 确保连接关闭
+      if (!res.writableEnded) {
+        res.end();
+      }
+    }
   }
 );

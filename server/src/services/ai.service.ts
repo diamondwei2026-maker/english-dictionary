@@ -26,7 +26,7 @@ function hasCompleteEntry(word: IWord): boolean {
 /**
  * 将 LLMWordEntry (snake_case) 映射为 IWord 创建数据 (camelCase)
  */
-function mapLLMEntryToWordData(
+export function mapLLMEntryToWordData(
   wordName: string,
   wordbankId: string,
   llmEntry: LLMWordEntry
