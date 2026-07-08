@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, Input } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import { mockWords, mockLibraries } from "../../data/mockData";
+import type { Word } from "../../data/types";
+import { fetchWords, fetchWordbanks } from "../../api";
 import { Icon } from "../../components/Icon";
 import { CustomTabBar } from "../../components/CustomTabBar";
 
@@ -9,26 +10,168 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const results = query.trim()
-    ? mockWords.filter(
-        (w) =>
-          w.word.toLowerCase().includes(query.toLowerCase()) ||
-          w.coreMeaning.includes(query),
-      )
-    : [];
+  // 数据状态
+  const [allWords, setAllWords] = useState<Word[]>([]);
+  const [todayWord, setTodayWord] = useState<Word | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const todayWord =
-    mockWords[Math.floor(Date.now() / 86400000) % mockWords.length];
+  // 搜索状态
+  const [searchResults, setSearchResults] = useState<Word[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // 词库名映射
+  const [libNames, setLibNames] = useState<Record<string, string>>({});
+
+  // 加载数据
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [wordResult, libResult] = await Promise.all([
+        fetchWords({ pageSize: 200 }),
+        fetchWordbanks({ pageSize: 100 }),
+      ]);
+      setAllWords(wordResult.words);
+      // 今日一词：按日期伪随机
+      if (wordResult.words.length > 0) {
+        const idx =
+          Math.floor(Date.now() / 86400000) % wordResult.words.length;
+        setTodayWord(wordResult.words[idx]);
+      }
+      // 构建 libraryId → name 映射
+      const nameMap: Record<string, string> = {};
+      libResult.libraries.forEach((l) => {
+        nameMap[l.id] = l.name;
+      });
+      setLibNames(nameMap);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "加载失败，请检查网络连接");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // 搜索防抖 300ms + 请求序列号防竞态
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchSeqRef = useRef(0);
+  useEffect(() => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setHasSearched(false);
+      return;
+    }
+    setHasSearched(true);
+    setSearchLoading(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const seq = ++searchSeqRef.current;
+    timerRef.current = setTimeout(async () => {
+      try {
+        const result = await fetchWords({ q: query.trim(), pageSize: 20 });
+        if (seq === searchSeqRef.current) {
+          setSearchResults(result.words);
+        }
+      } catch {
+        if (seq === searchSeqRef.current) {
+          setSearchResults([]);
+        }
+      } finally {
+        if (seq === searchSeqRef.current) {
+          setSearchLoading(false);
+        }
+      }
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [query]);
 
   const goToWordDetail = (wordId: string) => {
     Taro.navigateTo({ url: `/pages/word-detail/index?wordId=${wordId}` });
   };
 
+  // Loading 态
+  if (loading) {
+    return (
+      <View
+        style={{ padding: "0 0 24px", minHeight: "100vh", background: "#F7F9FC" }}
+      >
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "80vh",
+            color: "#9CA3AF",
+          }}
+        >
+          <Icon name="refresh" size={24} color="#9CA3AF" />
+          <Text style={{ fontSize: "15px", marginTop: "12px", display: "block" }}>
+            加载中...
+          </Text>
+        </View>
+        <CustomTabBar activeTab="home" />
+      </View>
+    );
+  }
+
+  // Error 态
+  if (error) {
+    return (
+      <View
+        style={{ padding: "0 0 24px", minHeight: "100vh", background: "#F7F9FC" }}
+      >
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "80vh",
+            padding: "0 24px",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: "15px",
+              color: "#DC2626",
+              textAlign: "center",
+              display: "block",
+              marginBottom: "20px",
+            }}
+          >
+            {error}
+          </Text>
+          <View
+            onClick={loadData}
+            style={{
+              padding: "12px 32px",
+              background: "#2563EB",
+              color: "#fff",
+              borderRadius: "20px",
+              fontSize: "14px",
+              fontWeight: "600",
+            }}
+          >
+            <Text style={{ color: "#fff" }}>重试</Text>
+          </View>
+        </View>
+        <CustomTabBar activeTab="home" />
+      </View>
+    );
+  }
+
   return (
     <View
       style={{ padding: "0 0 24px", minHeight: "100vh", background: "#F7F9FC" }}
     >
-      {/* Header — 毛玻璃降级 */}
+      {/* Header */}
       <View
         style={{
           padding: "56px 24px 24px",
@@ -113,7 +256,19 @@ export default function HomePage() {
       {/* Search results */}
       {query.trim() ? (
         <View style={{ padding: "16px 24px 0" }}>
-          {results.length === 0 ? (
+          {searchLoading ? (
+            <View
+              style={{
+                textAlign: "center",
+                padding: "40px 0",
+                color: "#9CA3AF",
+              }}
+            >
+              <Text style={{ fontSize: "14px", display: "block" }}>
+                搜索中...
+              </Text>
+            </View>
+          ) : hasSearched && searchResults.length === 0 ? (
             <View
               style={{
                 textAlign: "center",
@@ -134,7 +289,7 @@ export default function HomePage() {
             <View
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
-              {results.map((word) => (
+              {searchResults.map((word) => (
                 <View
                   key={word.id}
                   onClick={() => goToWordDetail(word.id)}
@@ -191,109 +346,111 @@ export default function HomePage() {
         /* Content when not searching */
         <View style={{ padding: "20px 24px 0" }}>
           {/* Today's word */}
-          <View style={{ marginBottom: "24px" }}>
-            <View
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "12px",
-              }}
-            >
-              <Icon name="sparkles" size={14} color="#2563EB" />
-              <Text
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: "#2563EB",
-                  letterSpacing: "1.5px",
-                  textTransform: "uppercase",
-                }}
-              >
-                今日一词
-              </Text>
-            </View>
-            <View
-              onClick={() => goToWordDetail(todayWord.id)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                background:
-                  "linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #3B82F6 100%)",
-                borderRadius: "24px",
-                padding: "28px 24px",
-                boxShadow: "0 8px 32px rgba(37,99,235,0.25)",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: "11px",
-                  opacity: "0.7",
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
-                核心物理意象
-              </Text>
-              <Text
-                style={{
-                  fontSize: "34px",
-                  fontWeight: "800",
-                  color: "#fff",
-                  display: "block",
-                  marginBottom: "6px",
-                  letterSpacing: "-0.5px",
-                }}
-              >
-                {todayWord.word}
-              </Text>
-              <Text
-                style={{
-                  fontSize: "14px",
-                  opacity: "0.8",
-                  color: "#fff",
-                  display: "block",
-                  marginBottom: "16px",
-                  fontStyle: "italic",
-                }}
-              >
-                {todayWord.phonetic}
-              </Text>
-              <Text
-                style={{
-                  fontSize: "14px",
-                  opacity: "0.9",
-                  lineHeight: "1.6",
-                  color: "#fff",
-                  display: "block",
-                }}
-              >
-                {todayWord.coreMeaning}
-              </Text>
+          {todayWord && (
+            <View style={{ marginBottom: "24px" }}>
               <View
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  marginTop: "20px",
+                  gap: "8px",
+                  marginBottom: "12px",
+                }}
+              >
+                <Icon name="sparkles" size={14} color="#2563EB" />
+                <Text
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#2563EB",
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  今日一词
+                </Text>
+              </View>
+              <View
+                onClick={() => goToWordDetail(todayWord.id)}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  background:
+                    "linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #3B82F6 100%)",
+                  borderRadius: "24px",
+                  padding: "28px 24px",
+                  boxShadow: "0 8px 32px rgba(37,99,235,0.25)",
                 }}
               >
                 <Text
-                  style={{ fontSize: "13px", opacity: "0.8", color: "#fff" }}
+                  style={{
+                    fontSize: "11px",
+                    opacity: "0.7",
+                    letterSpacing: "2px",
+                    textTransform: "uppercase",
+                    color: "#fff",
+                    display: "block",
+                    marginBottom: "8px",
+                  }}
                 >
-                  查看完整解析
+                  核心物理意象
                 </Text>
-                <Icon
-                  name="chevron-right"
-                  size={14}
-                  color="rgba(255,255,255,0.8)"
-                />
+                <Text
+                  style={{
+                    fontSize: "34px",
+                    fontWeight: "800",
+                    color: "#fff",
+                    display: "block",
+                    marginBottom: "6px",
+                    letterSpacing: "-0.5px",
+                  }}
+                >
+                  {todayWord.word}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: "14px",
+                    opacity: "0.8",
+                    color: "#fff",
+                    display: "block",
+                    marginBottom: "16px",
+                    fontStyle: "italic",
+                  }}
+                >
+                  {todayWord.phonetic}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: "14px",
+                    opacity: "0.9",
+                    lineHeight: "1.6",
+                    color: "#fff",
+                    display: "block",
+                  }}
+                >
+                  {todayWord.coreMeaning}
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginTop: "20px",
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: "13px", opacity: "0.8", color: "#fff" }}
+                  >
+                    查看完整解析
+                  </Text>
+                  <Icon
+                    name="chevron-right"
+                    size={14}
+                    color="rgba(255,255,255,0.8)"
+                  />
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* All words list */}
           <View>
@@ -317,85 +474,108 @@ export default function HomePage() {
                 全部词汇
               </Text>
               <Text style={{ fontSize: "13px", color: "#9CA3AF" }}>
-                {mockWords.length} 个
+                {allWords.length} 个
               </Text>
             </View>
-            <View
-              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-            >
-              {mockWords.map((word) => {
-                const lib = mockLibraries.find((l) => l.id === word.libraryId);
-                return (
-                  <View
-                    key={word.id}
-                    onClick={() => goToWordDetail(word.id)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "16px 20px",
-                      background: "#fff",
-                      borderRadius: "16px",
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-                    }}
-                  >
-                    <View style={{ flex: 1, minWidth: "0" }}>
-                      <View
-                        style={{
-                          display: "flex",
-                          alignItems: "baseline",
-                          gap: "10px",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        <Text
+            {allWords.length === 0 ? (
+              <View
+                style={{
+                  textAlign: "center",
+                  padding: "40px 0",
+                  color: "#9CA3AF",
+                }}
+              >
+                <Text style={{ fontSize: "15px", display: "block" }}>
+                  暂无词汇
+                </Text>
+                <Text
+                  style={{
+                    fontSize: "13px",
+                    marginTop: "6px",
+                    display: "block",
+                  }}
+                >
+                  可在管理后台添加新词汇
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+              >
+                {allWords.map((word) => {
+                  const libName = libNames[word.libraryId];
+                  return (
+                    <View
+                      key={word.id}
+                      onClick={() => goToWordDetail(word.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "16px 20px",
+                        background: "#fff",
+                        borderRadius: "16px",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      <View style={{ flex: 1, minWidth: "0" }}>
+                        <View
                           style={{
-                            fontSize: "17px",
-                            fontWeight: "700",
-                            color: "#111827",
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: "10px",
+                            marginBottom: "4px",
                           }}
                         >
-                          {word.word}
+                          <Text
+                            style={{
+                              fontSize: "17px",
+                              fontWeight: "700",
+                              color: "#111827",
+                            }}
+                          >
+                            {word.word}
+                          </Text>
+                          <Text style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                            {word.phonetic}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: "12px",
+                            color: "#6B7280",
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {word.coreMeaning}
                         </Text>
-                        <Text style={{ fontSize: "12px", color: "#9CA3AF" }}>
-                          {word.phonetic}
-                        </Text>
+                        {libName && (
+                          <Text
+                            style={{
+                              display: "inline-block",
+                              marginTop: "6px",
+                              fontSize: "11px",
+                              color: "#2563EB",
+                              background: "#EFF6FF",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                            }}
+                          >
+                            {libName}
+                          </Text>
+                        )}
                       </View>
-                      <Text
-                        style={{
-                          fontSize: "12px",
-                          color: "#6B7280",
-                          display: "block",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {word.coreMeaning}
-                      </Text>
-                      {lib && (
-                        <Text
-                          style={{
-                            display: "inline-block",
-                            marginTop: "6px",
-                            fontSize: "11px",
-                            color: "#2563EB",
-                            background: "#EFF6FF",
-                            padding: "2px 8px",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          {lib.name}
-                        </Text>
-                      )}
+                      <View style={{ flexShrink: 0, marginLeft: 12 }}>
+                        <Icon name="chevron-right" size={15} color="#D1D5DB" />
+                      </View>
                     </View>
-                    <View style={{ flexShrink: 0, marginLeft: 12 }}>
-                      <Icon name="chevron-right" size={15} color="#D1D5DB" />
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
         </View>
       )}

@@ -1,4 +1,4 @@
-import type { Word, WordLibrary, User } from './types';
+﻿import type { Word, WordLibrary, User } from './types';
 
 export const mockLibraries: WordLibrary[] = [
   {
@@ -39,6 +39,7 @@ export const mockWords: Word[] = [
     phonetic: '/fləʊ/',
     coreMeaning: '液体受重力与压差驱动，沿阻力最小的路径持续、平稳地移动',
     coreImageType: 'flow',
+    coreImageDescription: 'flow 的物理意象',
     coreExampleSentence: 'Water flows downhill through the valley.',
     coreExampleTranslation: '水沿山谷向低处流淌。',
     extendedMeanings: [
@@ -84,6 +85,7 @@ export const mockWords: Word[] = [
     phonetic: '/ɡrɑːsp/',
     coreMeaning: '手指主动弯曲，形成包围接触，通过多点摩擦力将物体牢固控制在手中',
     coreImageType: 'grasp',
+    coreImageDescription: 'grasp 的物理意象',
     coreExampleSentence: 'She grasped the rope with both hands to keep from falling.',
     coreExampleTranslation: '她双手紧握绳索以防落下。',
     extendedMeanings: [
@@ -121,6 +123,7 @@ export const mockWords: Word[] = [
     phonetic: '/breɪk/',
     coreMeaning: '外力超过物体内部结合力临界点，使连续的固体结构在应力集中处永久分离',
     coreImageType: 'break',
+    coreImageDescription: 'break 的物理意象',
     coreExampleSentence: 'The branch broke under the weight of the snow.',
     coreExampleTranslation: '树枝在积雪的重压下断裂了。',
     extendedMeanings: [
@@ -166,6 +169,7 @@ export const mockWords: Word[] = [
     phonetic: '/beər/',
     coreMeaning: '身体或结构通过自身强度和稳定性，将外部施加的重量向下传导至支撑基础',
     coreImageType: 'bear',
+    coreImageDescription: 'bear 的物理意象',
     coreExampleSentence: 'These steel columns bear the entire weight of the building.',
     coreExampleTranslation: '这些钢柱承载着整栋建筑的重量。',
     extendedMeanings: [
@@ -203,6 +207,7 @@ export const mockWords: Word[] = [
     phonetic: '/draɪv/',
     coreMeaning: '施加持续力量于物体或动物，迫使其沿特定方向不断前进',
     coreImageType: 'drive',
+    coreImageDescription: 'drive 的物理意象',
     coreExampleSentence: 'The farmer drove the cattle across the open field.',
     coreExampleTranslation: '农夫驱赶着牛群穿过开阔的田野。',
     extendedMeanings: [
@@ -248,6 +253,7 @@ export const mockWords: Word[] = [
     phonetic: '/ɪˈluːmɪneɪt/',
     coreMeaning: '光源发出的光子均匀照射在物体或空间表面，使其从黑暗不可见变为清晰可见',
     coreImageType: 'light',
+    coreImageDescription: 'light 的物理意象',
     coreExampleSentence: 'A single candle illuminated the dark room.',
     coreExampleTranslation: '一支蜡烛照亮了黑暗的房间。',
     extendedMeanings: [
@@ -277,6 +283,7 @@ export const mockWords: Word[] = [
     phonetic: '/ˈlevərɪdʒ/',
     coreMeaning: '利用杠杆的力学原理，以小力作用于力臂较长处，在支点另一侧产生成倍放大的力',
     coreImageType: 'leverage',
+    coreImageDescription: 'leverage 的物理意象',
     coreExampleSentence: 'A crowbar gives you enough leverage to lift a heavy stone.',
     coreExampleTranslation: '撬棍能给你足够的杠杆力来撬起一块重石。',
     extendedMeanings: [
@@ -314,6 +321,7 @@ export const mockWords: Word[] = [
     phonetic: '/jiːld/',
     coreMeaning: '材料或结构在外力超过其弹性极限时，停止抵抗并发生永久形变或弯曲',
     coreImageType: 'yield',
+    coreImageDescription: 'yield 的物理意象',
     coreExampleSentence: 'The metal beam yielded under the extreme pressure.',
     coreExampleTranslation: '金属梁在极端压力下屈服弯曲。',
     extendedMeanings: [
