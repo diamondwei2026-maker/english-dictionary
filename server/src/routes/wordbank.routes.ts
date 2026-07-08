@@ -2,12 +2,14 @@ import { Router } from "express";
 import type { Router as RouterType } from "express";
 import { authMiddleware, optionalAuth, adminMiddleware } from "../middleware";
 import * as wordbankController from "../controllers/wordbank.controller";
+import * as wordController from "../controllers/word.controller";
 
 const router = Router();
 
 // 公开路由 — optionalAuth 使已登录 admin 可看到私有词库
 router.get("/", optionalAuth, wordbankController.list);
 router.get("/:id", wordbankController.getById);
+router.get("/:id/words", optionalAuth, wordController.getByWordbank);
 
 // 管理员路由
 router.post("/", authMiddleware, adminMiddleware, wordbankController.create);

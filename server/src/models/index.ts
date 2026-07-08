@@ -2,7 +2,7 @@ export { User } from "./User";
 export type { IUser } from "./User";
 export { WordBank } from "./WordBank";
 export type { IWordBank } from "./WordBank";
-export { Word, PHYSICAL_IMAGE_TYPES } from "./Word";
+export { Word, PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "./Word";
 export type { IWord, IExtendedMeaning } from "./Word";
 export { Collocation } from "./Collocation";
 export type { ICollocation } from "./Collocation";

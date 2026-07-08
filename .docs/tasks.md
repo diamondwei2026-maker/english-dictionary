@@ -23,7 +23,7 @@
 | 2.2 | JWT 认证中间件与密码加密 | 阶段2: 用户认证 | ✅ done | P0 | 2.1 | [task.md](./tasks/english-dict-v1/task-2.2/task.md) |
 | 2.3 | 前端认证集成 | 阶段2: 用户认证 | ✅ done | P0 | 2.2 | [task.md](./tasks/english-dict-v1/task-2.3/task.md) |
 | 3.1 | 词库 CRUD API | 阶段3: 词库与单词 CRUD | ✅ done | P0 | 2.2 | [task.md](./tasks/english-dict-v1/task-3.1/task.md) |
-| 3.2 | 单词 CRUD API 与管理后台权限 | 阶段3: 词库与单词 CRUD | ⏳ pending | P0 | 3.1 | [task.md](./tasks/english-dict-v1/task-3.2/task.md) |
+| 3.2 | 单词 CRUD API 与管理后台权限 | 阶段3: 词库与单词 CRUD | ✅ done | P0 | 3.1 | [task.md](./tasks/english-dict-v1/task-3.2/task.md) |
 | 3.3 | 前端数据层集成 | 阶段3: 词库与单词 CRUD | ⏳ pending | P0 | 3.2 | [task.md](./tasks/english-dict-v1/task-3.3/task.md) |
 | 4.1 | AI 词条生成 API 与 LLM Provider | 阶段4: AI 词条生成 | ⏳ pending | P1 | 3.2 | [task.md](./tasks/english-dict-v1/task-4.1/task.md) |
 | 4.2 | SSE 流式响应支持 | 阶段4: AI 词条生成 | ⏳ pending | P2 | 4.1 | [task.md](./tasks/english-dict-v1/task-4.2/task.md) |

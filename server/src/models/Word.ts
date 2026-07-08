@@ -102,5 +102,8 @@ const WordSchema = new Schema<IWord>(
 // Text 索引（全文搜索 coreMeaning）
 WordSchema.index({ coreMeaning: "text" });
 
+// 复合唯一索引：同一词库内单词名唯一
+WordSchema.index({ wordbankId: 1, word: 1 }, { unique: true });
+
 export const Word = mongoose.model<IWord>("Word", WordSchema);
-export { PHYSICAL_IMAGE_TYPES };
+export { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES };
