@@ -2,6 +2,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// 警告：生产环境必须设置 JWT_SECRET
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    "[WARN] JWT_SECRET not set, using default 'dev-secret' — this is insecure in production"
+  );
+}
+
 function parseIntSafe(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const parsed = parseInt(value, 10);
@@ -14,7 +21,7 @@ export const config = {
   mongodbUri:
     process.env.MONGODB_URI || "mongodb://localhost:27017/english-dictionary",
   jwtSecret: process.env.JWT_SECRET || "dev-secret",
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "2h",
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   deepseekApiKey: process.env.DEEPSEEK_API_KEY || "",
   deepseekBaseUrl:

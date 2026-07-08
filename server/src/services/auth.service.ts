@@ -2,10 +2,10 @@ import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { User, IUser } from "../models";
 import { AppError } from "../utils/errors";
+import { signToken } from "../utils/jwt";
 import type { RegisterInput, LoginInput } from "../validators/auth.validator";
 
 const SALT_ROUNDS = 10;
-const TOKEN_PLACEHOLDER = "placeholder_token_v2.2";
 
 function desensitizePhone(phone: string): string {
   return phone.slice(0, 3) + "****" + phone.slice(-4);
@@ -58,5 +58,6 @@ export async function login(
     throw new AppError(401, "INVALID_CREDENTIALS", "手机号或密码错误");
   }
 
-  return { user, token: TOKEN_PLACEHOLDER };
+  const token = signToken({ userId: user._id.toString(), role: user.role });
+  return { user, token };
 }
