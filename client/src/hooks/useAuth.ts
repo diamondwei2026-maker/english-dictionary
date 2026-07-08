@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Taro from '@tarojs/taro';
 import type { AuthUser } from '../data/types';
 
 /**
@@ -37,4 +38,43 @@ export function useAuth() {
   }, []);
 
   return user;
+}
+
+// ============================================================
+// Token 持久化工具
+// ============================================================
+
+const TOKEN_KEY = 'auth_token';
+
+export { TOKEN_KEY };
+
+export function getToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    // localStorage 不可用时静默失败
+  }
+}
+
+export function removeToken(): void {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // 静默失败
+  }
+}
+
+/** 退出登录：清除 Token + 用户状态 + 跳转登录页 */
+export function logout(): void {
+  removeToken();
+  setGlobalUser(null);
+  Taro.redirectTo({ url: '/pages/auth/index?mode=login' });
 }

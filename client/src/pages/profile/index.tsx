@@ -5,7 +5,7 @@ import type { AuthUser } from "../../data/types";
 import {
   getGlobalUser,
   onUserChange,
-  setGlobalUser,
+  logout,
 } from "../../hooks/useAuth";
 import { PageHeader } from "../../components/PageHeader";
 import { Icon } from "../../components/Icon";
@@ -25,8 +25,10 @@ export default function ProfilePage() {
       content: "确定要退出登录吗？",
       success: (res) => {
         if (res.confirm) {
-          setGlobalUser(null);
           Taro.showToast({ title: "已退出", icon: "success" });
+          setTimeout(() => {
+            logout();
+          }, 800);
         }
       },
     });

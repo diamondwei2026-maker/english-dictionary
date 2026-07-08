@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { View, Text, Input } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
-import { mockUsers } from "../../data/mockData";
-import type { AuthUser } from "../../data/types";
-import { setGlobalUser } from "../../hooks/useAuth";
+import { setGlobalUser, setToken } from "../../hooks/useAuth";
+import { login, register } from "../../api/auth";
+import type { ApiRequestError } from "../../api/request";
 import { navigateBack } from "../../hooks/useNavigate";
 import { Icon } from "../../components/Icon";
 import { CustomTabBar } from "../../components/CustomTabBar";
@@ -32,10 +32,11 @@ export default function AuthPage() {
 
   const isLogin = mode === "login";
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     const cleanPhone = phone.replace(/\s/g, "");
 
+    // --- 前端校验 ---
     if (!cleanPhone || !password) {
       setError("请填写所有必填字段");
       return;
@@ -44,56 +45,62 @@ export default function AuthPage() {
       setError("请输入有效的手机号");
       return;
     }
-    if (!isLogin && !username.trim()) {
-      setError("请填写用户名");
-      return;
+    if (!isLogin) {
+      if (!username.trim()) {
+        setError("请填写用户名");
+        return;
+      }
+      if (password.length < 6) {
+        setError("密码至少需要6位");
+        return;
+      }
+      if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+        setError("密码必须包含字母和数字");
+        return;
+      }
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-
+    try {
       if (isLogin) {
-        // Login
-        const found = mockUsers.find((u) => u.phone === cleanPhone);
-        if (found && password === "123456") {
-          const user: AuthUser = {
-            id: found.id,
-            username: found.username,
-            phone: found.phone,
-            role: found.role,
-          };
-          setGlobalUser(user);
-          Taro.showToast({
-            title: "登录成功",
-            icon: "success",
-            duration: 1200,
-          });
-          setTimeout(() => {
-            if (user.role === "admin") {
-              Taro.redirectTo({ url: "/pages/admin/index?tab=overview" });
-            } else {
-              Taro.redirectTo({ url: "/pages/profile/index" });
-            }
-          }, 1300);
-        } else {
-          setError("手机号或密码不正确（演示：密码为 123456）");
-        }
+        // 登录 — POST /api/v1/auth/login
+        const result = await login({ phone: cleanPhone, password });
+        setToken(result.token);
+        setGlobalUser({
+          id: result.id,
+          username: result.username,
+          phone: result.phone,
+          role: result.role,
+        });
+        Taro.showToast({ title: "登录成功", icon: "success", duration: 1200 });
+        setTimeout(() => {
+          if (result.role === "admin") {
+            Taro.redirectTo({ url: "/pages/admin/index?tab=overview" });
+          } else {
+            Taro.redirectTo({ url: "/pages/profile/index" });
+          }
+        }, 1300);
       } else {
-        // Register
-        const user: AuthUser = {
-          id: "new",
-          username: username.trim(),
+        // 注册 — POST /api/v1/auth/register
+        await register({
           phone: cleanPhone,
-          role: "user",
-        };
-        setGlobalUser(user);
+          password,
+          username: username.trim(),
+        });
         Taro.showToast({ title: "注册成功", icon: "success", duration: 1200 });
         setTimeout(() => {
-          Taro.redirectTo({ url: "/pages/profile/index" });
+          setMode("login");
+          setPhone("");
+          setPassword("");
+          setUsername("");
         }, 1300);
       }
-    }, 800);
+    } catch (err) {
+      const apiErr = err as ApiRequestError;
+      setError(apiErr?.message || (isLogin ? "登录失败，请稍后重试" : "注册失败，请稍后重试"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ─── Style tokens ────────────────────────────────────────────
@@ -365,7 +372,7 @@ export default function AuthPage() {
                 onBlur={() => setPwdFocused(false)}
                 onConfirm={handleSubmit}
                 placeholder={
-                  isLogin ? "输入密码（演示：123456）" : "至少6位密码"
+                  isLogin ? "输入密码" : "至少6位，包含字母和数字"
                 }
                 style={{
                   ...inputBase,
@@ -452,7 +459,7 @@ export default function AuthPage() {
             >
               演示账号（管理员）：13800000001{"\n"}
               演示账号（普通用户）：13800000002{"\n"}
-              密码统一为：123456
+              密码需包含字母和数字，至少6位
             </Text>
           </View>
         )}
