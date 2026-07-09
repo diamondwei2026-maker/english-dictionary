@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { Word, WordBank, IWord } from "../models";
 import { AppError } from "../utils/errors";
 import type { CreateWordInput, UpdateWordInput } from "../validators/word.validator";
+import { tryCacheGet, tryCacheSet, tryCacheDel, tryCacheDelByPrefix } from "../cache";
+import { config } from "../config";
 
 // === 工具函数 ===
 
@@ -39,13 +41,21 @@ export async function listWords(options: {
 }> {
   const { page, pageSize, wordbankId, q, isAdmin } = options;
 
+  const cacheKey = `words:list:${wordbankId || "all"}:${page}:${pageSize}:${q || "none"}:${isAdmin ? "admin" : "public"}`;
+
+  // 读缓存
+  const cached = await tryCacheGet<{
+    data: IWord[];
+    pagination: { total: number; page: number; pageSize: number; totalPages: number };
+  }>(cacheKey);
+  if (cached) return cached;
+
   const filter: Record<string, unknown> = {};
 
   // 权限过滤：非管理员只能看到公开词库的单词
   if (!isAdmin) {
     const publicIds = await WordBank.find({ is_public: true }).distinct("_id");
     if (wordbankId) {
-      // 指定了词库但该词库不公开 → 返回空
       if (!publicIds.some((id) => id.toString() === wordbankId)) {
         return {
           data: [],
@@ -54,7 +64,6 @@ export async function listWords(options: {
       }
       filter.wordbankId = wordbankId;
     } else {
-      // 无指定词库 → 仅列出公开词库的单词
       if (publicIds.length === 0) {
         return {
           data: [],
@@ -68,12 +77,73 @@ export async function listWords(options: {
     filter.wordbankId = wordbankId;
   }
 
-  // 关键词模糊搜索（单词名，不区分大小写）
+  // ==========================================================
+  // 搜索分支：使用 aggregation pipeline 实现相关度排序
+  // 排序规则：精确匹配(0) > 前缀匹配(1) > 中间匹配(2) > 字母序
+  // ==========================================================
   if (q) {
-    // 转义正则特殊字符，防止注入
     const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    filter.word = { $regex: escaped, $options: "i" };
+
+    // 安全转义：处理 $regexMatch 中的 ^ 锚点
+    // 正则 filter 也需用于 $match（过滤非匹配文档）
+    const regexFilter = { ...filter, word: { $regex: escaped, $options: "i" } };
+
+    const pipeline: mongoose.PipelineStage[] = [
+      { $match: regexFilter },
+      {
+        $addFields: {
+          _sortScore: {
+            $cond: [
+              // 精确匹配（大小写不敏感）
+              { $eq: [{ $toLower: "$word" }, q.toLowerCase()] },
+              0,
+              {
+                $cond: [
+                  // 前缀匹配（以搜索词开头）
+                  {
+                    $regexMatch: {
+                      input: "$word",
+                      regex: `^${escaped}`,
+                      options: "i",
+                    },
+                  },
+                  1,
+                  // 中间匹配（包含搜索词但非前缀）
+                  2,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      { $sort: { _sortScore: 1, word: 1 } },
+      { $project: { _sortScore: 0 } },
+      { $skip: (page - 1) * pageSize },
+      { $limit: pageSize },
+    ];
+
+    const [data, total] = await Promise.all([
+      Word.aggregate<typeof Word.prototype>(pipeline),
+      Word.countDocuments(regexFilter),
+    ]);
+
+    const result = {
+      data,
+      pagination: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+
+    tryCacheSet(cacheKey, result, config.cacheTtlWordList);
+    return result;
   }
+
+  // ==========================================================
+  // 非搜索分支：使用原有 find 逻辑（无需相关度排序）
+  // ==========================================================
 
   const [data, total] = await Promise.all([
     Word.find(filter)
@@ -83,7 +153,7 @@ export async function listWords(options: {
     Word.countDocuments(filter),
   ]);
 
-  return {
+  const result = {
     data,
     pagination: {
       total,
@@ -92,10 +162,19 @@ export async function listWords(options: {
       totalPages: Math.ceil(total / pageSize),
     },
   };
+
+  tryCacheSet(cacheKey, result, config.cacheTtlWordList);
+  return result;
 }
 
 export async function getWordById(id: string, isAdmin?: boolean): Promise<IWord> {
   ensureValidId(id);
+
+  const cacheKey = `words:detail:${id}:${isAdmin ? "admin" : "public"}`;
+
+  // 读缓存
+  const cached = await tryCacheGet<IWord>(cacheKey);
+  if (cached) return cached;
 
   const word = await Word.findById(id);
   if (!word) {
@@ -110,6 +189,8 @@ export async function getWordById(id: string, isAdmin?: boolean): Promise<IWord>
     }
   }
 
+  tryCacheSet(cacheKey, word, config.cacheTtlWordDetail);
+
   return word;
 }
 
@@ -122,6 +203,12 @@ export async function createWord(data: CreateWordInput): Promise<IWord> {
 
   try {
     const word = await Word.create(data as unknown as Record<string, unknown>);
+
+    // 失效缓存
+    tryCacheDelByPrefix("words:list:");
+    tryCacheDel(`wordbanks:detail:${data.wordbankId}`);
+    tryCacheDelByPrefix("wordbanks:list:");
+
     return word;
   } catch (err) {
     if (err instanceof mongoose.mongo.MongoServerError && err.code === 11000) {
@@ -159,6 +246,10 @@ export async function updateWord(
       throw new AppError(404, "NOT_FOUND", "单词不存在");
     }
 
+    // 失效缓存
+    tryCacheDel(`words:detail:${id}`);
+    tryCacheDelByPrefix("words:list:");
+
     return word;
   } catch (err) {
     if (err instanceof AppError) throw err;
@@ -188,6 +279,11 @@ export async function deleteWord(id: string): Promise<void> {
   }
 
   // extendedMeanings 和 collocations 是内嵌子文档/数组，删除 Word 文档即自动级联删除
+
+  // 失效缓存
+  tryCacheDel(`words:detail:${id}`);
+  tryCacheDelByPrefix("words:list:");
+  tryCacheDel(`wordbanks:detail:${word.wordbankId}`);
 }
 
 export async function getWordsByWordbankId(
@@ -200,6 +296,15 @@ export async function getWordsByWordbankId(
   ensureValidId(wordbankId);
 
   const { page, pageSize, isAdmin } = options;
+
+  const cacheKey = `words:list:${wordbankId}:${page}:${pageSize}:${isAdmin ? "admin" : "public"}`;
+
+  // 读缓存
+  const cached = await tryCacheGet<{
+    data: IWord[];
+    pagination: { total: number; page: number; pageSize: number; totalPages: number };
+  }>(cacheKey);
+  if (cached) return cached;
 
   const [wordbank, data, total] = await Promise.all([
     WordBank.findById(wordbankId),
@@ -219,7 +324,7 @@ export async function getWordsByWordbankId(
     throw new AppError(404, "NOT_FOUND", "词库不存在");
   }
 
-  return {
+  const result = {
     data,
     pagination: {
       total,
@@ -228,4 +333,8 @@ export async function getWordsByWordbankId(
       totalPages: Math.ceil(total / pageSize),
     },
   };
+
+  tryCacheSet(cacheKey, result, config.cacheTtlWordList);
+
+  return result;
 }

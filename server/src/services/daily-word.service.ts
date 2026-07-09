@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { DailyWord, Word, LearningRecord, IWord } from "../models";
 import { AppError } from "../utils/errors";
+import { getCache, tryCacheGet, tryCacheSet } from "../cache";
+import { config } from "../config";
 
 // ============================================================
 // 今日一词推荐服务
@@ -43,6 +45,15 @@ export async function getDailyWord(
   isPinned: boolean;
 }> {
   const today = getToday();
+  const cacheKey = `daily-word:${today}`;
+
+  // 0. 尝试从缓存读取
+  const cached = await tryCacheGet<{
+    word: IWord | null;
+    date: string;
+    isPinned: boolean;
+  }>(cacheKey);
+  if (cached) return cached;
 
   // 1. 检查当天记录是否已存在
   const existing = await DailyWord.findOne({ date: today }).populate<{
@@ -50,17 +61,21 @@ export async function getDailyWord(
   }>("wordId");
 
   if (existing) {
-    return {
+    const result = {
       word: safePopulatedWord(existing),
       date: today,
       isPinned: existing.isPinned,
     };
+    tryCacheSet(cacheKey, result, config.cacheTtlDailyWord);
+    return result;
   }
 
   // 2. 当天无记录，运行推荐算法
   const allWords = await Word.find({});
   if (allWords.length === 0) {
-    return { word: null, date: today, isPinned: false };
+    const result = { word: null, date: today, isPinned: false };
+    tryCacheSet(cacheKey, result, config.cacheTtlDailyWord);
+    return result;
   }
 
   // 3. 收集已学单词 ID（仅登录用户）
@@ -139,21 +154,25 @@ export async function getDailyWord(
         wordId: IWord;
       }>("wordId");
       if (fallback) {
-        return {
+        const result = {
           word: safePopulatedWord(fallback),
           date: today,
           isPinned: fallback.isPinned,
         };
+        tryCacheSet(cacheKey, result, config.cacheTtlDailyWord);
+        return result;
       }
     }
     throw err;
   }
 
-  return {
+  const result = {
     word: picked,
     date: today,
     isPinned: false,
   };
+  tryCacheSet(cacheKey, result, config.cacheTtlDailyWord);
+  return result;
 }
 
 /**
@@ -186,6 +205,13 @@ export async function pinDailyWord(
     },
     { upsert: true, new: true }
   );
+
+  // 失效当日缓存
+  try {
+    await getCache().del(`daily-word:${today}`);
+  } catch {
+    /* cache del failed — degrade gracefully */
+  }
 
   return { success: true, wordId, pinnedAt };
 }

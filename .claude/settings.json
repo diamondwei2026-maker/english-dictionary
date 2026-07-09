@@ -131,7 +131,10 @@
       "Bash(git commit -m 'feat: Task 4.2 SSE 流式响应支持' -m '- LLMProvider 接口扩展 supportsStreaming + generateWordEntryStream \\(AsyncGenerator\\) *)",
       "Bash(ls -la \"$HOME/.claude/\" 2>/dev/null || echo \"no ~/.claude directory\")",
       "Read(//d/Users/weij/.claude/rules/**)",
-      "Bash(git commit -m 'feat: Task 4.3 前端 AI 功能集成 + Task 5.1 学习记录与收藏功能 *)"
+      "Bash(git commit -m 'feat: Task 4.3 前端 AI 功能集成 + Task 5.1 学习记录与收藏功能 *)",
+      "PowerShell(npx jest --passWithNoTests 2>&1)",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell(git add server/src/cache/ server/src/config/index.ts server/src/services/daily-word.service.ts server/src/services/word.service.ts server/src/services/wordbank.service.ts server/.env.example .docs/tasks.md .docs/tasks/english-dict-v1/task-6.1/ .claude/settings.json)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"

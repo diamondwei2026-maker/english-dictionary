@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { WordBank, Word, IWordBank } from "../models";
 import { AppError } from "../utils/errors";
 import type { CreateWordBankInput, UpdateWordBankInput } from "../validators/wordbank.validator";
+import { tryCacheGet, tryCacheSet, tryCacheDel, tryCacheDelByPrefix } from "../cache";
+import { config } from "../config";
 
 // === 工具函数 ===
 
@@ -33,6 +35,16 @@ export async function listWordbanks(options: {
   isAdmin: boolean;
 }): Promise<{ data: IWordBank[]; pagination: { total: number; page: number; pageSize: number } }> {
   const { page, pageSize, isAdmin } = options;
+
+  const cacheKey = `wordbanks:list:${page}:${pageSize}:${isAdmin ? "admin" : "public"}`;
+
+  // 读缓存
+  const cached = await tryCacheGet<{
+    data: IWordBank[];
+    pagination: { total: number; page: number; pageSize: number };
+  }>(cacheKey);
+  if (cached) return cached;
+
   const filter = isAdmin ? {} : { is_public: true };
 
   const [data, total] = await Promise.all([
@@ -43,16 +55,29 @@ export async function listWordbanks(options: {
     WordBank.countDocuments(filter),
   ]);
 
-  return {
+  const result = {
     data,
     pagination: { total, page, pageSize },
   };
+
+  tryCacheSet(cacheKey, result, config.cacheTtlWordbankList);
+
+  return result;
 }
 
 export async function getWordBankById(
   id: string
 ): Promise<{ wordbank: IWordBank; wordCount: number }> {
   ensureValidId(id);
+
+  const cacheKey = `wordbanks:detail:${id}`;
+
+  // 读缓存
+  const cached = await tryCacheGet<{
+    wordbank: IWordBank;
+    wordCount: number;
+  }>(cacheKey);
+  if (cached) return cached;
 
   const wordbank = await WordBank.findById(id);
   if (!wordbank) {
@@ -61,12 +86,20 @@ export async function getWordBankById(
 
   const wordCount = await Word.countDocuments({ wordbankId: id });
 
-  return { wordbank, wordCount };
+  const result = { wordbank, wordCount };
+
+  tryCacheSet(cacheKey, result, config.cacheTtlWordbankDetail);
+
+  return result;
 }
 
 export async function createWordBank(data: CreateWordBankInput): Promise<IWordBank> {
   try {
     const wordbank = await WordBank.create(data);
+
+    // 失效词库列表缓存
+    tryCacheDelByPrefix("wordbanks:list:");
+
     return wordbank;
   } catch (err) {
     if (err instanceof mongoose.mongo.MongoServerError && err.code === 11000) {
@@ -99,6 +132,10 @@ export async function updateWordBank(
       throw new AppError(404, "NOT_FOUND", "词库不存在");
     }
 
+    // 失效相关缓存
+    tryCacheDel(`wordbanks:detail:${id}`);
+    tryCacheDelByPrefix("wordbanks:list:");
+
     return wordbank;
   } catch (err) {
     if (err instanceof AppError) throw err;
@@ -127,4 +164,9 @@ export async function deleteWordBank(id: string): Promise<void> {
   // 级联删除关联单词后删除词库
   await Word.deleteMany({ wordbankId: id });
   await WordBank.findByIdAndDelete(id);
+
+  // 失效相关缓存
+  tryCacheDel(`wordbanks:detail:${id}`);
+  tryCacheDelByPrefix("wordbanks:list:");
+  tryCacheDelByPrefix(`words:list:${id}:`);
 }

@@ -31,4 +31,25 @@ export const config = {
   dbMaxPoolSize: parseIntSafe(process.env.DB_MAX_POOL_SIZE, 10),
   dbIdleTimeoutMs: parseIntSafe(process.env.DB_IDLE_TIMEOUT_MS, 30000),
   dbConnectTimeoutMs: parseIntSafe(process.env.DB_CONNECT_TIMEOUT_MS, 10000),
+
+  // 缓存配置
+  cacheEnabled: process.env.CACHE_ENABLED !== "false", // 默认启用
+  // TTL（秒）
+  cacheTtlDailyWord: parseIntSafe(
+    process.env.CACHE_TTL_DAILY_WORD,
+    86400,
+  ), // 一天
+  cacheTtlWordbankList: parseIntSafe(
+    process.env.CACHE_TTL_WORDBANK_LIST,
+    300,
+  ), // 5 分钟
+  cacheTtlWordbankDetail: parseIntSafe(
+    process.env.CACHE_TTL_WORDBANK_DETAIL,
+    300,
+  ),
+  cacheTtlWordDetail: parseIntSafe(
+    process.env.CACHE_TTL_WORD_DETAIL,
+    600,
+  ), // 10 分钟
+  cacheTtlWordList: parseIntSafe(process.env.CACHE_TTL_WORD_LIST, 300),
 };
