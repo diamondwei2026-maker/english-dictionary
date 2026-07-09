@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
-import { authMiddleware } from "../middleware";
-import { getMe } from "../controllers/user.controller";
+import { authMiddleware, adminMiddleware } from "../middleware";
+import { getMe, listUsers } from "../controllers/user.controller";
 import {
   getStats,
   getFavorites,
@@ -10,6 +10,8 @@ import {
 
 const router = Router();
 
+// 管理员 — 用户列表（必须在 /me 之前注册，避免 :id 误匹配）
+router.get("/", authMiddleware, adminMiddleware, listUsers);
 router.get("/me", authMiddleware, getMe);
 router.get("/stats", authMiddleware, getStats);
 router.get("/favorites", authMiddleware, getFavorites);

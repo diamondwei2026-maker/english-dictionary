@@ -20,3 +20,35 @@ export const getMe = asyncHandler(
     });
   }
 );
+
+/**
+ * GET /api/v1/users — 管理员分页查询所有用户
+ */
+export const listUsers = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(req.query.pageSize as string, 10) || 20)
+    );
+
+    const [data, total] = await Promise.all([
+      User.find({})
+        .select("-passwordHash")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize),
+      User.countDocuments({}),
+    ]);
+
+    res.json({
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
+  }
+);
