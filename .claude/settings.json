@@ -134,7 +134,18 @@
       "Bash(git commit -m 'feat: Task 4.3 前端 AI 功能集成 + Task 5.1 学习记录与收藏功能 *)",
       "PowerShell(npx jest --passWithNoTests 2>&1)",
       "PowerShell(npx tsc --noEmit 2>&1)",
-      "PowerShell(git add server/src/cache/ server/src/config/index.ts server/src/services/daily-word.service.ts server/src/services/word.service.ts server/src/services/wordbank.service.ts server/.env.example .docs/tasks.md .docs/tasks/english-dict-v1/task-6.1/ .claude/settings.json)"
+      "PowerShell(git add server/src/cache/ server/src/config/index.ts server/src/services/daily-word.service.ts server/src/services/word.service.ts server/src/services/wordbank.service.ts server/.env.example .docs/tasks.md .docs/tasks/english-dict-v1/task-6.1/ .claude/settings.json)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/docs)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/docs/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/docs/json)",
+      "Bash(curl -s -X POST http://localhost:3001/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}')",
+      "Bash(curl -s -o /dev/null -X POST http://localhost:3001/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"t@t.com\",\"password\":\"x\"}')",
+      "Bash(curl -sI -X POST http://localhost:3001/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"t@t.com\",\"password\":\"x\"}')",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(node -e \"const m = require\\('express-rate-limit'\\); console.log\\('exports:', Object.keys\\(m\\).filter\\(k => k.includes\\('ip'\\) || k.includes\\('key'\\)\\).join\\(', '\\)\\)\")",
+      "Bash(git commit -m 'feat: Task 6.3 API 文档与安全配置' -m '- 集成 Swagger UI \\(/api/docs\\)，覆盖全部 24 个 API 端点 + 8 个 Tag 分组 *)",
+      "Bash(git commit -m 'docs: 更新项目文档至已实现状态 \\(v1.0 完成\\)' -m '- ADR \\(client/server\\): v1.0→v1.1, 状态从\"已确认\"→\"已实现\", 补充实际架构细节 *)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"

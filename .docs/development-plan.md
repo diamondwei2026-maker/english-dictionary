@@ -5,13 +5,13 @@
 | 版本 | v1.0 |
 | 创建日期 | 2026-07-07 |
 | 关联 PRD | [PRD](./prd/prd.md) |
-| 关联 ADR | ⚠️ 待生成（后端/前端 ADR 均未创建） |
+| 关联 ADR | [后端 ADR](./adr/server.md) · [前端 ADR](./adr/client.md) |
 
 ## 1. 项目概述
 
 面向中文母语者的认知语言学英语词典 APP。以物理意象（Physical Image）为切入点，帮助用户从原初的物理感知理解英语词汇，再沿逻辑演化路径掌握引申义。
 
-**当前状态**：前端 Client（Taro H5）已完成 MVP 开发，所有页面使用内存 mock 数据运行。**本轮开发目标是构建后端 API + 数据库**，将 mock 数据替换为真实持久化数据，并接入真实 AI 词条生成能力。
+**当前状态**：✅ 全部 6 个阶段已完成。后端 API + 数据库（MongoDB + Mongoose）已建成，前端已接入真实 API，DeepSeek AI 词条生成已上线，Docker 容器化部署就绪，API 文档（Swagger）完整。完成日期：2026-07-09。
 
 ## 2. 技术栈概要
 
@@ -44,90 +44,90 @@
 **目标**：确定后端技术栈，搭建后端项目脚手架
 
 **预计产出**：
-- [ ] 后端 ADR（`.docs/adr/server.md`）— 技术选型决策
-- [ ] 前端 ADR（`.docs/adr/client.md`）— 确认现有架构
-- [ ] 后端项目初始化（目录结构、依赖安装、TS 配置）
-- [ ] 数据库 Schema 设计（基于 PRD 业务模型）
+- [x] 后端 ADR（`.docs/adr/server.md`）— 技术选型决策
+- [x] 前端 ADR（`.docs/adr/client.md`）— 确认现有架构
+- [x] 后端项目初始化（目录结构、依赖安装、TS 配置）
+- [x] 数据库 Schema 设计（基于 PRD 业务模型）
 
 ### 阶段 1：数据层 — 数据库 + ORM
 
 **目标**：建立数据库表结构，实现数据持久化
 
 **预计产出**：
-- [ ] 数据库建表：users、wordbanks（词库）、words（单词）、extended_meanings（引申义）、collocations（搭配）
-- [ ] ORM 模型定义 + Migration
-- [ ] Seed 脚本：导入现有 mock 数据到数据库
-- [ ] 数据库连接池与配置
+- [x] 数据库建表：users、wordbanks（词库）、words（单词）、extended_meanings（引申义）、collocations（搭配）
+- [x] ORM 模型定义 + Migration
+- [x] Seed 脚本：导入现有 mock 数据到数据库
+- [x] 数据库连接池与配置
 
 ### 阶段 2：核心 API — 用户认证
 
 **目标**：实现用户注册/登录后端接口，替换前端 mock 登录
 
 **预计产出**：
-- [ ] POST /api/auth/register — 手机号注册
-- [ ] POST /api/auth/login — 手机号+密码登录，返回 JWT Token
-- [ ] JWT 认证中间件
-- [ ] 密码加密存储（bcrypt）
-- [ ] 前端接入真实认证 API（替换 mock 登录逻辑）
+- [x] POST /api/auth/register — 手机号注册
+- [x] POST /api/auth/login — 手机号+密码登录，返回 JWT Token
+- [x] JWT 认证中间件
+- [x] 密码加密存储（bcrypt）
+- [x] 前端接入真实认证 API（替换 mock 登录逻辑）
 
 ### 阶段 3：核心 API — 词库与单词 CRUD
 
 **目标**：实现词库和单词的后端 CRUD 接口
 
 **预计产出**：
-- [ ] GET/POST /api/wordbanks — 词库列表 + 新增
-- [ ] PUT/DELETE /api/wordbanks/:id — 词库编辑 + 删除
-- [ ] GET /api/wordbanks/:id/words — 词库下单词列表
-- [ ] GET/POST /api/words — 单词列表（支持搜索） + 新增
-- [ ] PUT/DELETE /api/words/:id — 单词编辑 + 删除
-- [ ] GET /api/words/:id — 单词详情（含引申义、搭配）
-- [ ] 管理后台权限中间件（role=admin）
-- [ ] 前端 API 层替换 mock 数据
+- [x] GET/POST /api/wordbanks — 词库列表 + 新增
+- [x] PUT/DELETE /api/wordbanks/:id — 词库编辑 + 删除
+- [x] GET /api/wordbanks/:id/words — 词库下单词列表
+- [x] GET/POST /api/words — 单词列表（支持搜索） + 新增
+- [x] PUT/DELETE /api/words/:id — 单词编辑 + 删除
+- [x] GET /api/words/:id — 单词详情（含引申义、搭配）
+- [x] 管理后台权限中间件（role=admin）
+- [x] 前端 API 层替换 mock 数据
 
 ### 阶段 4：AI 词条生成
 
 **目标**：接入真实 LLM API，替换前端 setTimeout 模拟
 
 **预计产出**：
-- [ ] POST /api/words/generate — AI 词条生成接口
-- [ ] LLM Provider 抽象层（支持切换模型）
-- [ ] Prompt 工程：根据单词名生成物理意象、核心义、引申义链、例句、搭配
-- [ ] 流式响应（SSE）支持（可选）
-- [ ] 前端 AI 生成按钮接入真实接口
+- [x] POST /api/words/generate — AI 词条生成接口
+- [x] LLM Provider 抽象层（支持切换模型）
+- [x] Prompt 工程：根据单词名生成物理意象、核心义、引申义链、例句、搭配
+- [x] 流式响应（SSE）支持
+- [x] 前端 AI 生成按钮接入真实接口
 
 ### 阶段 5：增强功能
 
 **目标**：实现 P1 优先级功能
 
 **预计产出**：
-- [ ] 用户学习记录（已学单词、学习天数统计）
-- [ ] 单词收藏功能（用户生词本）
-- [ ] 今日一词服务端推荐算法（替换前端取模）
-- [ ] 管理后台数据概览（词库/单词/用户实时统计）
+- [x] 用户学习记录（已学单词、学习天数统计）
+- [x] 单词收藏功能（用户生词本）
+- [x] 今日一词服务端推荐算法（替换前端取模）
+- [x] 管理后台数据概览（词库/单词/用户实时统计）
 
 ### 阶段 6：优化与上线
 
 **目标**：性能优化、部署配置、文档完善
 
 **预计产出**：
-- [ ] API 响应缓存（Redis 可选）
-- [ ] 搜索优化（数据库索引 + 全文搜索 / LIKE）
-- [ ] Docker 容器化
-- [ ] 部署脚本 + CI/CD 配置
-- [ ] API 文档（Swagger / OpenAPI）
-- [ ] 生产环境安全配置（HTTPS、CORS、Rate Limit）
+- [x] API 响应缓存（内存 LRU Cache）
+- [x] 搜索优化（数据库索引 + 正则匹配）
+- [x] Docker 容器化
+- [x] 部署脚本 + CI/CD 配置
+- [x] API 文档（Swagger / OpenAPI）
+- [x] 生产环境安全配置（Helmet、CORS、Rate Limit）
 
 ## 4. 里程碑
 
 | 里程碑 | 阶段 | 验收标准 | 预计完成 |
 |--------|------|---------|---------|
-| M1 | 阶段 0 | ADR 通过评审，后端项目可启动 | - |
-| M2 | 阶段 1 | 数据库表创建完成，Seed 数据可查询 | - |
-| M3 | 阶段 2 | 用户可注册/登录，JWT 认证生效 | - |
-| M4 | 阶段 3 | 管理后台 CRUD 操作持久化到数据库 | - |
-| M5 | 阶段 4 | AI 词条生成真实可用 | - |
-| M6 | 阶段 5 | 学习记录 + 收藏功能上线 | - |
-| M7 | 阶段 6 | 生产环境部署，API 文档齐全 | - |
+| M1 | 阶段 0 | ADR 通过评审，后端项目可启动 | 2026-07-07 |
+| M2 | 阶段 1 | 数据库表创建完成，Seed 数据可查询 | 2026-07-08 |
+| M3 | 阶段 2 | 用户可注册/登录，JWT 认证生效 | 2026-07-08 |
+| M4 | 阶段 3 | 管理后台 CRUD 操作持久化到数据库 | 2026-07-08 |
+| M5 | 阶段 4 | AI 词条生成真实可用 | 2026-07-08 |
+| M6 | 阶段 5 | 学习记录 + 收藏功能上线 | 2026-07-09 |
+| M7 | 阶段 6 | 生产环境部署，API 文档齐全 | 2026-07-09 |
 
 ## 5. 依赖关系
 

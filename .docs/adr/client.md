@@ -2,10 +2,11 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.0 |
-| 状态 | 已确认 |
+| 版本 | v1.1 |
+| 状态 | 已实现 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
+| 最后更新 | 2026-07-09 |
 | 关联文档 | [后端 ADR](./server.md) |
 
 ## 1. 需求概述
@@ -85,9 +86,22 @@ client/src/
 ├── app.scss                   # 全局样式
 ├── data/
 │   ├── types.ts               # TypeScript 类型定义（Word, WordBank, User 等）
-│   └── mockData.ts            # Mock 数据（待替换为 API 层）
+│   └── mockData.ts            # 开发 Mock 数据（API 不可用时的降级方案）
+├── api/                       # 🆕 API 请求层
+│   ├── index.ts               # 统一导出
+│   ├── request.ts             # 请求封装（fetch + JWT 注入 + 错误处理）
+│   ├── adapters.ts            # 后端↔前端数据格式适配器
+│   ├── auth.ts                # 登录/注册
+│   ├── words.ts               # 单词 CRUD
+│   ├── wordbanks.ts           # 词库 CRUD
+│   ├── ai.ts                  # AI 生成 + SSE 流式
+│   ├── users.ts               # 用户信息
+│   ├── learning.ts            # 学习记录
+│   ├── favorites.ts           # 单词收藏
+│   ├── daily-word.ts          # 今日一词
+│   └── dashboard.ts           # 管理后台概览
 ├── hooks/
-│   ├── useAuth.ts             # 认证状态 hook
+│   ├── useAuth.ts             # 认证状态 hook（集成真实 API）
 │   └── useNavigate.ts         # 视图路由 hook
 ├── components/
 │   ├── PageHeader.tsx         # 页头（sticky + 返回按钮）
@@ -106,27 +120,33 @@ client/src/
 └── assets/tabbar/             # 底部导航图标
 ```
 
-### 4.2 数据流（现状 → 目标）
+### 4.2 数据流（已实现）
 
 ```
-当前（Mock）：
-  mockData.ts 数组 ──→ 页面导入直接使用 ──→ UI 渲染
-
-目标（API）：
-  API 层 (fetch) ──→ 页面 state ──→ UI 渲染
+API 层 (fetch + JWT) ──→ adapters（字段映射）──→ 页面 state ──→ UI 渲染
        ↑
   localStorage (Token)
+       │
+  useAuth hook (全局认证状态)
 ```
 
-### 4.3 待改造项
+- 所有页面已从 `mockData.ts` 切换到真实 API 调用
+- `api/adapters.ts` 统一处理后端 `snake_case` ↔ 前端 `camelCase` 字段转换
+- `api/request.ts` 自动注入 JWT Token，401 时清除 Token 并跳转登录页
 
-| 改造点 | 当前状态 | 目标状态 |
-|--------|---------|---------|
-| 数据源 | `mockData.ts` 内存数组 | `/api/v1/*` REST API |
+### 4.3 已完成的改造项
+
+| 改造点 | 改造前 | 改造后 |
+|--------|--------|--------|
+| 数据源 | `mockData.ts` 内存数组 | `/api/v1/*` REST API（已全部切换） |
 | 登录验证 | 前端 mock 比对 `123456` | `POST /api/v1/auth/login` JWT |
-| AI 生成 | `setTimeout` 1.8s 模拟 | `POST /api/v1/words/generate` |
-| 路由 | `useNavigate` 自定义 ViewState | 保持为主，管理后台入口加入 Token 角色校验 |
+| AI 生成 | `setTimeout` 1.8s 模拟 | `POST /api/v1/words/generate` + SSE 流式 |
+| 路由 | `useNavigate` 自定义 ViewState | 保持不变，管理后台入口加入 Token 角色校验 |
 | 数据持久化 | 页面刷新重置 | API 持久化到 MongoDB |
+| 🆕 学习记录 | 仅静态 mock 数值 | `POST /api/v1/words/:id/learn` + 统计 API |
+| 🆕 单词收藏 | 不存在 | `POST/DELETE /api/v1/words/:id/favorite` + 收藏列表 |
+| 🆕 今日一词 | 前端日期取模 | 服务端加权随机推荐算法 |
+| 🆕 管理后台概览 | 静态 mock 计数 | 实时 API 统计（词库/单词/用户/收藏/学习） |
 
 ## 5. 接口设计
 
@@ -154,15 +174,21 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 ```
 
-### 5.2 前端 API 模块划分
+### 5.2 前端 API 模块划分（已实现）
 
 | 模块 | 文件 | 接口 |
 |------|------|------|
+| request | `api/request.ts` | 通用请求封装（fetch + JWT 注入 + 401 处理） |
+| adapters | `api/adapters.ts` | 后端 snake_case ↔ 前端 camelCase 字段映射 |
 | auth | `api/auth.ts` | login, register |
-| wordbank | `api/wordbanks.ts` | list, getById, getWords, create, update, delete |
-| word | `api/words.ts` | list, search, getById, create, update, delete |
-| ai | `api/ai.ts` | generate |
-| user | `api/users.ts` | getMe, list (admin) |
+| wordbank | `api/wordbanks.ts` | fetchWordbanks, fetchWordbankById, fetchWordsByWordbank, create, update, delete |
+| word | `api/words.ts` | fetchWords, fetchWordById, fetchWordDetail, create, update, delete |
+| ai | `api/ai.ts` | generateWord (JSON), generateWordStream (SSE) |
+| user | `api/users.ts` | fetchUsers (admin), fetchCurrentUser |
+| learning | `api/learning.ts` | recordLearn, fetchLearningRecords, fetchUserStats |
+| favorites | `api/favorites.ts` | favoriteWord, unfavoriteWord, fetchFavorites |
+| daily-word | `api/daily-word.ts` | fetchDailyWord |
+| dashboard | `api/dashboard.ts` | fetchDashboard |
 
 ## 6. 非功能性设计
 
@@ -191,11 +217,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 | 前端类型与后端不实时同步 | 字段不一致 | 提取 `types.ts` 到根目录 `packages/types/` 共享 |
 | CustomTabBar 与 Taro 原生导航冲突 | 路由行为异常 | 保持当前自定义 ViewState 路由，不混用 Taro 原生导航 |
 
-## 8. 实施建议
+## 8. 实施结果
 
-本轮前端改动集中在 **API 接入层**，不涉及 UI 重构：
+本轮前端改动集中在 **API 接入层**，不涉及 UI 重构，所有改造已完成：
 
-1. 新建 `api/` 目录，封装 request 方法和各模块调用
-2. 新建 `types.ts` 同步后端字段命名（当前用 camelCase，后端 Mongoose 也是 camelCase，一致）
-3. 在 `src/data/mockData.ts` 同目录新建 `apiDataAdapter.ts`，逐步切换各页面数据源
-4. 认证改造：`useAuth` hook 登录成功后调 API 获取 Token，Token 中有 user role
+1. ✅ 新建 `api/` 目录（12 个模块），封装 request 方法和各模块调用
+2. ✅ `api/adapters.ts` 统一后端/前端字段映射（snake_case ↔ camelCase）
+3. ✅ 所有页面已从 `mockData.ts` 切换到真实 API 调用
+4. ✅ 认证改造：`useAuth` hook 集成 JWT 登录 + Token 持久化 + 角色识别
+5. ✅ SSE 流式 AI 生成：`generateWordStream` 支持实时逐字段推送
+6. ✅ 新增功能：学习记录、单词收藏、今日一词 API、管理后台概览

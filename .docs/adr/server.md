@@ -2,8 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.0 |
-| 状态 | 已确认 |
+| 版本 | v1.1 |
+| 状态 | 已实现 |
+| 最后更新 | 2026-07-09 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [前端 ADR](./client.md)（待生成） |
@@ -100,32 +101,76 @@ server/
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
+├── Dockerfile
+├── .dockerignore
 ├── src/
 │   ├── index.ts              # 入口，Express 启动
-│   ├── app.ts                # Express 配置（中间件、路由挂载）
+│   ├── app.ts                # Express 配置（中间件、路由挂载、Swagger）
 │   ├── config/
-│   │   └── index.ts          # 环境变量 + 配置
+│   │   ├── index.ts          # 环境变量 + 配置
+│   │   ├── database.ts       # MongoDB 连接池管理
+│   │   └── swagger.ts        # Swagger/OpenAPI 规范定义
 │   ├── middleware/
-│   │   ├── auth.ts           # JWT 验证中间件
-│   │   ├── adminGuard.ts     # 管理员角色守卫
-│   │   └── errorHandler.ts   # 全局错误处理
+│   │   ├── auth.ts           # JWT 验证 + optionalAuth + adminMiddleware
+│   │   ├── rateLimit.ts      # 登录限流 + AI 生成限流
+│   │   └── index.ts          # 导出 + errorHandler
 │   ├── models/
 │   │   ├── User.ts
 │   │   ├── WordBank.ts
-│   │   └── Word.ts
+│   │   ├── Word.ts
+│   │   ├── Collocation.ts
+│   │   ├── UserFavorite.ts
+│   │   ├── LearningRecord.ts
+│   │   ├── DailyWord.ts
+│   │   └── index.ts
 │   ├── routes/
 │   │   ├── auth.routes.ts
 │   │   ├── wordbank.routes.ts
 │   │   ├── word.routes.ts
-│   │   └── user.routes.ts
+│   │   ├── ai.routes.ts
+│   │   ├── user.routes.ts
+│   │   ├── daily-word.routes.ts
+│   │   ├── dashboard.routes.ts
+│   │   └── index.ts
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── wordbank.controller.ts
+│   │   ├── word.controller.ts
+│   │   ├── ai.controller.ts
+│   │   ├── user.controller.ts
+│   │   ├── learning.controller.ts
+│   │   ├── daily-word.controller.ts
+│   │   ├── dashboard.controller.ts
+│   │   └── index.ts
 │   ├── services/
 │   │   ├── auth.service.ts
 │   │   ├── wordbank.service.ts
 │   │   ├── word.service.ts
-│   │   └── ai.service.ts
+│   │   ├── ai.service.ts
+│   │   ├── ai-stream.service.ts    # SSE 流式响应
+│   │   ├── daily-word.service.ts
+│   │   ├── dashboard.service.ts
+│   │   ├── favorite.service.ts
+│   │   ├── learning.service.ts
+│   │   └── index.ts
 │   ├── providers/
 │   │   ├── llm.ts            # LLM Provider 抽象层
 │   │   └── deepseek.ts       # DeepSeek 实现
+│   ├── validators/
+│   │   ├── auth.validator.ts
+│   │   ├── word.validator.ts
+│   │   ├── wordbank.validator.ts
+│   │   └── ai.validator.ts
+│   ├── cache/
+│   │   ├── cache.ts          # LRU 内存缓存
+│   │   └── index.ts
+│   ├── utils/
+│   │   ├── jwt.ts
+│   │   ├── errors.ts
+│   │   ├── asyncHandler.ts
+│   │   └── index.ts
+│   ├── types/
+│   │   └── express.d.ts      # Express 类型扩展
 │   └── seed/
 │       └── index.ts          # mock 数据迁移脚本
 ```
@@ -134,11 +179,15 @@ server/
 
 | 模块 | 职责 |
 |------|------|
-| auth | 注册、登录、JWT 签发、手机号格式校验 |
-| wordbank | 词库 CRUD、按词库查询单词列表 |
-| word | 单词 CRUD、搜索（单词名 + 核心义模糊匹配）、详情（含引申义/搭配） |
-| ai | 词条生成、Prompt 模板渲染、结果缓存 |
-| user | 用户列表查看（管理后台）、学习记录 |
+| auth | 注册、登录、JWT 签发、手机号格式校验、密码 bcrypt 加密 |
+| wordbank | 词库 CRUD、按词库查询单词列表、用户词库收藏 |
+| word | 单词 CRUD、搜索（单词名 + 核心义模糊匹配）、详情（含引申义/搭配）、分页 |
+| ai | 词条生成（DeepSeek）、Prompt 模板渲染、结果缓存（LRU）、SSE 流式响应 |
+| user | 用户列表查看（管理后台）、当前用户信息 |
+| learning | 学习记录（标记已学、学习统计、连续天数） |
+| favorite | 单词收藏/取消收藏、收藏列表查询 |
+| daily-word | 今日一词推荐算法（加权随机，避免重复）、强制刷新 |
+| dashboard | 管理后台数据概览（词库/单词/用户/收藏/学习记录实时统计） |
 
 ## 5. 接口设计
 
@@ -184,6 +233,30 @@ server/
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
 | POST | /api/v1/words/generate | AI 词条生成（传入单词名，返回完整词条 JSON） | Admin |
+| POST | /api/v1/words/generate-stream | AI 词条生成（SSE 流式响应） | Admin |
+
+#### 今日一词
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/v1/daily-word | 获取今日一词（加权随机推荐） | 无 |
+| POST | /api/v1/daily-word/refresh | 强制刷新今日一词 | Admin |
+
+#### 学习记录
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/v1/words/:id/learn | 标记单词为已学 | User |
+| GET | /api/v1/users/me/learning | 学习记录列表 | User |
+| GET | /api/v1/users/me/stats | 学习统计（已学数、连续天数） | User |
+
+#### 收藏
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/v1/words/:id/favorite | 收藏单词 | User |
+| DELETE | /api/v1/words/:id/favorite | 取消收藏 | User |
+| GET | /api/v1/users/me/favorites | 收藏列表 | User |
 
 #### 用户/管理
 
@@ -191,7 +264,7 @@ server/
 |------|------|------|------|
 | GET | /api/v1/users | 用户列表 | Admin |
 | GET | /api/v1/users/me | 当前用户信息 | User |
-| GET | /api/v1/stats | 数据概览（词库数/单词数/用户数） | Admin |
+| GET | /api/v1/admin/dashboard | 数据概览（词库/单词/用户/收藏/学习记录统计） | Admin |
 
 ## 6. 数据模型
 
@@ -204,7 +277,9 @@ WordBank (词库)
         └── Collocation (搭配，嵌套字符串数组)
 
 User (用户)
-  └── learnedWords (已学单词 ID 数组)
+  ├── UserFavorite (收藏，用户-单词多对多关联)
+  ├── LearningRecord (学习记录，记录已学单词和时间)
+  └── DailyWord (今日一词，记录每日推荐单词)
 ```
 
 ### 6.2 Mongoose Schema 设计
@@ -261,6 +336,38 @@ User (用户)
 }
 ```
 
+#### UserFavorite
+
+```typescript
+{
+  userId: ObjectId;            // 用户引用
+  wordId: ObjectId;            // 单词引用
+  createdAt: Date;
+}
+// 联合唯一索引：(userId, wordId)
+```
+
+#### LearningRecord
+
+```typescript
+{
+  userId: ObjectId;            // 用户引用
+  wordId: ObjectId;            // 单词引用
+  learnedAt: Date;             // 学习时间
+}
+// 索引：userId + learnedAt（用于学习统计和时间范围查询）
+```
+
+#### DailyWord
+
+```typescript
+{
+  wordId: ObjectId;            // 今日推荐单词引用
+  date: Date;                  // 推荐日期（唯一索引）
+  reason: string;              // 推荐理由
+}
+```
+
 ### 6.3 索引策略
 
 | 集合 | 索引 | 类型 |
@@ -270,33 +377,42 @@ User (用户)
 | words | `word` | normal (搜索) |
 | words | `wordbankId` | normal (按词库查询) |
 | words | `coreMeaning` | text (全文搜索) |
+| userfavorites | `(userId, wordId)` | unique compound |
+| learningrecords | `(userId, learnedAt)` | compound |
+| dailywords | `date` | unique |
 
 ## 7. 非功能性设计
 
 ### 安全
 
-- 密码：bcrypt + salt（10 rounds）加密存储
-- JWT：Access Token 2h 有效期，Refresh Token 7d
-- 手机号校验：`^1[3-9]\d{9}$` 正则
-- CORS：白名单限 Vercel 域名 + 开发 localhost
-- 请求限流：`express-rate-limit`，AI 生成接口单独限制（每分钟 10 次）
+- **Helmet**：HTTP 安全头（CSP、X-Frame-Options、HSTS 等），开发环境放行 unsafe-inline/eval 供 Swagger UI 使用
+- **密码**：bcrypt + salt（10 rounds）加密存储
+- **JWT**：Access Token 2h 有效期，无 Refresh Token（当前版本）
+- **手机号校验**：`^1[3-9]\d{9}$` 正则 + 长度校验
+- **CORS**：白名单限 Vercel 域名 + 开发 localhost:10086
+- **请求限流**：`express-rate-limit`，登录接口 15min/10次，AI 生成接口按用户 1min/10次
+- **输入验证**：express-validator 校验所有写操作输入
 
 ### 性能
 
-- MongoDB 连接池：默认 5-100 连接
-- AI 生成结果缓存：内存 Map，相同学名 24h 内不重复调用
-- 搜索：优先精确匹配单词名索引，其次正则匹配
+- MongoDB 连接池：maxPoolSize 可配置，默认 10，idleTimeout 30s
+- AI 生成结果缓存：LRU 内存缓存（max 500 条），相同单词 24h 内不重复调用
+- 搜索：优先精确匹配单词名索引，其次正则模糊匹配，分页默认 20 条/页
+- 数据库查询优化：`lean()` 查询返回普通 JS 对象，减少 Mongoose 开销
 
 ### 可扩展性
 
 - 无状态服务：JWT 认证确保实例可水平扩展
 - LLM Provider 抽象层：`providers/llm.ts` 定义接口，切换模型只需新增 Provider 实现
 - API 版本前缀 `/api/v1`：后续可引入 v2 不改动旧路由
+- Controller-Service-Route 三层分离：业务逻辑集中在 Service 层
 
 ### 可观测性
 
-- 日志：`morgan` HTTP 请求日志（开发） + `winston` 结构化日志
-- 健康检查：`GET /api/v1/health` 返回 DB 连接状态
+- 日志：`morgan` HTTP 请求日志（dev/combined 模式）
+- 健康检查：`GET /api/v1/health` 返回状态 + 时间戳
+- API 文档：Swagger UI（`/api/docs`）+ OpenAPI JSON Spec（`/api/docs/json`）
+- 开发调试：`mongoose.set('debug', true)` 输出查询日志
 
 ## 8. 风险与权衡
 
@@ -315,25 +431,22 @@ User (用户)
 
 ## 9. 实施建议
 
-### 分阶段实施
+### 实际实施阶段（已完成）
 
-| 阶段 | 内容 | 预计产出 |
+| 阶段 | 内容 | 实际产出 |
 |------|------|---------|
-| 1 | 项目脚手架 + DB 连接 | Express 启动、MongoDB 连接、配置管理 |
-| 2 | Mongoose Models + Seed | 3 个 Model 定义 + mock 数据迁移脚本 |
-| 3 | Auth 模块 | 注册/登录接口 + JWT 中间件 + 角色守卫 |
-| 4 | WordBank + Word CRUD | 词库/单词完整 API + 搜索 |
-| 5 | AI 生成 | DeepSeek Provider + Prompt + 缓存 |
-| 6 | 前端 API 接入 | 替换 mock 为真实 fetch 调用 |
-| 7 | 部署 | Vercel + Render 配置 + 上线 |
+| 0 | 架构决策 + 项目脚手架 | ADR 确认、Express 启动、MongoDB 连接、配置管理 |
+| 1 | 数据层 | 7 个 Model（User/WordBank/Word/Collocation/UserFavorite/LearningRecord/DailyWord）+ Seed 脚本 |
+| 2 | 用户认证 | 注册/登录接口 + JWT 中间件 + adminMiddleware + 登录限流 |
+| 3 | 词库/单词 CRUD | 完整 CRUD API + 搜索 + 分页 + 输入验证 |
+| 4 | AI 词条生成 | DeepSeek Provider + Prompt 模板 + LRU 缓存 + SSE 流式响应 |
+| 5 | 增强功能 | 学习记录 + 收藏 + 今日一词推荐算法 + 管理后台概览 |
+| 6 | 优化与上线 | 缓存 + Docker + CI/CD + Swagger API 文档 + Helmet 安全配置 |
 
-### 关键依赖
+### 实施依赖链
 
 ```
-项目初始化 ─→ DB 连接 ─→ Models/Seed
-                              ├─→ Auth 模块 ─→ Admin 权限
-                              │                    ├─→ WordBank CRUD
-                              │                    ├─→ Word CRUD
-                              │                    └─→ AI 生成
-                              └─→ 前端 API 接入 ─→ 部署
+阶段0 (ADR+脚手架) → 阶段1 (数据层) → 阶段2 (认证)
+                                           ├─→ 阶段3 (CRUD) → 阶段4 (AI)
+                                           └─→ 阶段5 (增强功能) → 阶段6 (优化上线)
 ```
