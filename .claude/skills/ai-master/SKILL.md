@@ -23,6 +23,18 @@ description: >-
 
 接到"继续推进项目"指令后，按以下优先级依次检查：
 
+### 步骤 0：Bug 修复模式 🔴
+
+```
+检查用户输入是否包含 bug 报告特征：
+  （"XX 不工作"、"报错"、"bug"、"fix"、"修"、"有问题"、"异常"、"出错"）
+  → 是：调用 Skill("bug-fixer")，将用户描述的 bug 信息作为上下文传入
+  → bug-fixer 完成后，输出修复报告，然后回到步骤 7（Code Review）
+  → 否：进入步骤 1
+```
+
+注意：步骤 0 优先级最高——如果用户是在报告 bug，不进入项目推进流水线。
+
 ### 步骤 1：检查开发计划
 
 ```
@@ -120,6 +132,7 @@ Task 进度：
 | Task 详情 | `.docs/tasks/<slug>/task-X.Y/task.md` | task-planner |
 | 测试用例 | `.docs/tasks/<slug>/task-X.Y/test-cases.md` | test-case-generator |
 | Coding Prompt | `.docs/tasks/<slug>/task-X.Y/coding-prompt.md` | coding-prompt-generator |
+| Bug 修复报告 | `.docs/bugfix/<slug>/report.md` | bug-fixer |
 
 ### tasks.md 格式约定（总览表）
 
@@ -153,6 +166,7 @@ Task 进度：
 - **用户想跳过某阶段**：如果用户明确说"跳过 XX"，则标记跳过并继续下一步
 - **用户想回退某阶段**：如果用户说"重新生成 XX"，则删除对应文件，下次调用时自动重新生成
 - **Task 执行失败需要重试**：将该 Task 状态保持为 pending，下次自动选中
-- **用户直接调用子 skill**（如直接说"写 PRD"）：不拦截，但执行完后提醒"可通过 ai-master 继续推进项目"
+- **用户直接调用子 skill**（如直接说"写 PRD"、"修 bug"）：不拦截，但执行完后提醒"可通过 ai-master 继续推进项目"
 - **所有阶段都已完成**：汇报"项目开发已全部完成 🎉"，列出成果清单，提示可执行 `rm -rf .docs/tasks/<slug>/` 清理 Task 目录
 - **多轮需求迭代**：每轮新的需求对应新的 slug，tasks.md 中保留历史需求记录。旧 slug 的 Task 全部 done 后可删除对应目录
+- **Bug 修复模式**：用户描述 bug 时，通过步骤 0 自动路由到 bug-fixer skill，走独立于功能开发的修复流程
