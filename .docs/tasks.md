@@ -27,8 +27,8 @@
 | 3.3 | 前端数据层集成 | 阶段3: 词库与单词 CRUD | ✅ done | P0 | 3.2 | [task.md](./tasks/english-dict-v1/task-3.3/task.md) |
 | 4.1 | AI 词条生成 API 与 LLM Provider | 阶段4: AI 词条生成 | ✅ done | P1 | 3.2 | [task.md](./tasks/english-dict-v1/task-4.1/task.md) |
 | 4.2 | SSE 流式响应支持 | 阶段4: AI 词条生成 | ✅ done | P2 | 4.1 | [task.md](./tasks/english-dict-v1/task-4.2/task.md) |
-| 4.3 | 前端 AI 功能集成 | 阶段4: AI 词条生成 | ⏳ pending | P1 | 4.1 | [task.md](./tasks/english-dict-v1/task-4.3/task.md) |
-| 5.1 | 学习记录与收藏功能 | 阶段5: 增强功能 | ⏳ pending | P1 | 3.3 | [task.md](./tasks/english-dict-v1/task-5.1/task.md) |
+| 4.3 | 前端 AI 功能集成 | 阶段4: AI 词条生成 | ✅ done | P1 | 4.1 | [task.md](./tasks/english-dict-v1/task-4.3/task.md) |
+| 5.1 | 学习记录与收藏功能 | 阶段5: 增强功能 | ✅ done | P1 | 3.3 | [task.md](./tasks/english-dict-v1/task-5.1/task.md) |
 | 5.2 | 今日一词推荐与管理后台概览 | 阶段5: 增强功能 | ⏳ pending | P1 | 5.1 | [task.md](./tasks/english-dict-v1/task-5.2/task.md) |
 | 6.1 | 缓存与搜索优化 | 阶段6: 优化与上线 | ⏳ pending | P2 | 5.2 | [task.md](./tasks/english-dict-v1/task-6.1/task.md) |
 | 6.2 | Docker 容器化与部署配置 | 阶段6: 优化与上线 | ⏳ pending | P2 | 6.1 | [task.md](./tasks/english-dict-v1/task-6.2/task.md) |

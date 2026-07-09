@@ -5,6 +5,7 @@ import {
   validateUpdateWordInput,
 } from "../validators/word.validator";
 import * as wordService from "../services/word.service";
+import { UserFavorite, LearningRecord } from "../models";
 
 export const list = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
@@ -31,7 +32,19 @@ export const getById = asyncHandler(
     const isAdmin = req.user?.role === "admin";
     const word = await wordService.getWordById(req.params.id, isAdmin);
 
-    res.json(word);
+    // 附加当前用户相关的收藏和学习状态
+    let isFavorited = false;
+    let learnCount = 0;
+    if (req.user?.userId) {
+      const [fav, lr] = await Promise.all([
+        UserFavorite.findOne({ userId: req.user.userId, wordId: req.params.id }),
+        LearningRecord.findOne({ userId: req.user.userId, wordId: req.params.id }),
+      ]);
+      isFavorited = !!fav;
+      learnCount = lr?.learnCount ?? 0;
+    }
+
+    res.json({ ...word.toObject(), isFavorited, learnCount });
   }
 );
 
@@ -83,3 +96,5 @@ export const getByWordbank = asyncHandler(
     });
   }
 );
+
+export { learn, favorite, unfavorite } from "./learning.controller";

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { View, Text, Input, Textarea, Picker } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import type { Word, WordLibrary, ExtendedMeaning } from "../../data/types";
-import { AI_GENERATED_TEMPLATES } from "../../data/mockData";
 import {
   fetchWords,
   fetchWordbanks,
@@ -14,6 +13,8 @@ import {
   updateWord as apiUpdateWord,
   deleteWord as apiDeleteWord,
   mapPosToBackend,
+  generateWord,
+  generateWordStream,
 } from "../../api";
 import { PhysicalImage } from "../../components/PhysicalImage";
 import { PageHeader } from "../../components/PageHeader";
@@ -30,30 +31,6 @@ function genId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// ---- AI 生成（保留 mock，待 Task 4.1 替换） ----
-function generateAIContent(word: string): Partial<Word> {
-  const t = AI_GENERATED_TEMPLATES[word.toLowerCase()];
-  if (t && Object.keys(t).length > 0) return t as Partial<Word>;
-  return {
-    phonetic: `/${word.slice(0, 2)}/`,
-    coreMeaning: `物体在外力作用下产生与"${word}"相关的物理状态或运动`,
-    coreImageType: IMAGE_TYPES[Math.floor(Math.random() * IMAGE_TYPES.length)],
-    coreImageDescription: `物体在外力作用下产生与"${word}"相关的物理状态或运动`,
-    coreExampleSentence: `The ${word} demonstrates its core physical meaning.`,
-    coreExampleTranslation: `该例句展示了"${word}"的核心物理义。`,
-    extendedMeanings: [
-      {
-        id: genId(),
-        logicalEvolution: "物理意义 → 抽象延伸至日常语境",
-        meaning: "（引申义一）抽象延伸含义",
-        partOfSpeech: "v.",
-        exampleSentence: `They ${word}ed their way through the challenge.`,
-        exampleTranslation: `他们以"${word}"的方式应对了这一挑战。`,
-      },
-    ],
-    collocations: [`${word} up`, `${word} out`, `${word} away`, `well-${word}ed`],
-  };
-}
 
 // ---- Style tokens ----
 const BG = "#F7F9FC";
@@ -363,17 +340,81 @@ function WordEditForm({
 
   const set = (key: keyof Word, val: unknown) => setForm((f) => ({ ...f, [key]: val }));
 
-  const handleAI = () => {
-    if (!form.word) return;
+  const handleAI = async () => {
+    // 防止重复点击
+    if (aiLoading) return;
+    // 前端校验
+    if (!form.word) {
+      Taro.showToast({ title: "请先输入单词", icon: "none" });
+      return;
+    }
+    if (!form.libraryId) {
+      Taro.showToast({ title: "请先选择词库", icon: "none" });
+      return;
+    }
+    if (form.word.length > 100) {
+      Taro.showToast({ title: "单词过长，请控制在 100 字以内", icon: "none" });
+      return;
+    }
+
+    const force = !!form.coreMeaning;
     setAiLoading(true);
     setAiDone(false);
-    setTimeout(() => {
-      const g = generateAIContent(form.word!);
-      setForm((f) => ({ ...f, ...g }));
-      setColInput((g.collocations || []).join("、"));
+
+    try {
+      // 优先尝试 SSE 流式接口
+      await generateWordStream(form.word, form.libraryId, force, {
+        onThinking(_message: string) {
+          // 进度消息，流式模式下可在此更新 UI 进度文本
+        },
+        onDone(adaptedWord: Word) {
+          setForm((f) => ({
+            ...f,
+            id: f.id,
+            libraryId: f.libraryId,
+            phonetic: adaptedWord.phonetic,
+            coreMeaning: adaptedWord.coreMeaning,
+            coreImageType: adaptedWord.coreImageType,
+            coreImageDescription: adaptedWord.coreImageDescription,
+            coreExampleSentence: adaptedWord.coreExampleSentence,
+            coreExampleTranslation: adaptedWord.coreExampleTranslation,
+            extendedMeanings: adaptedWord.extendedMeanings,
+            collocations: adaptedWord.collocations,
+          }));
+          setColInput((adaptedWord.collocations || []).join("、"));
+          setAiDone(true);
+        },
+        onError(code: string, message: string) {
+          Taro.showToast({ title: message, icon: "none", duration: 2500 });
+        },
+      });
+    } catch {
+      // SSE 异常，降级为非流式接口
+      try {
+        const result = await generateWord(form.word, form.libraryId, force);
+        setForm((f) => ({
+          ...f,
+          id: f.id,
+          libraryId: f.libraryId,
+          phonetic: result.phonetic,
+          coreMeaning: result.coreMeaning,
+          coreImageType: result.coreImageType,
+          coreImageDescription: result.coreImageDescription,
+          coreExampleSentence: result.coreExampleSentence,
+          coreExampleTranslation: result.coreExampleTranslation,
+          extendedMeanings: result.extendedMeanings,
+          collocations: result.collocations,
+        }));
+        setColInput((result.collocations || []).join("、"));
+        setAiDone(true);
+      } catch (e) {
+        const msg =
+          e instanceof Error ? e.message : "AI 生成失败，请稍后再试";
+        Taro.showToast({ title: msg, icon: "none", duration: 2500 });
+      }
+    } finally {
       setAiLoading(false);
-      setAiDone(true);
-    }, 1800);
+    }
   };
 
   const handleRegenImg = () => {

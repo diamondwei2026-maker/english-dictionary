@@ -114,7 +114,24 @@
       "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\\\\n\" -X POST http://localhost:3001/api/v1/auth/register -H \"Content-Type: application/json\" -d '{\"phone\":\"13800138013\",\"password\":\"123\"}')",
       "Bash(node -e \"const mongoose = require\\('mongoose'\\); mongoose.connect\\('mongodb://localhost:27017/english-dictionary'\\).then\\(async \\(\\) => { const u = await mongoose.connection.collection\\('users'\\).findOne\\({phone:'13800138001'}\\); console.log\\('passwordHash starts with \\\\$2b\\\\$:', u.passwordHash.startsWith\\('\\\\$2b\\\\$'\\)\\); console.log\\('No plain password field:', !u.password\\); await mongoose.disconnect\\(\\); }\\).catch\\(e => console.error\\(e.message\\)\\)\")",
       "PowerShell(Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } 2>&1; Write-Output \"Server stopped\")",
-      "PowerShell(npx tsc --noEmit)"
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(git commit -m 'feat: Task 2.2 JWT 认证中间件与密码加密 *)",
+      "Read(//dev/**)",
+      "Bash(find . -name \"CLAUDE.md\" -o -name \"CLAUDE.md\")",
+      "Bash(ls -la CLAUDE.md)",
+      "Bash(ls -la .claude/)",
+      "Bash(ls -la server/CLAUDE.md)",
+      "Bash(find . -name \"CLAUDE.md\" -o -name \"CLAUDE.yaml\" -o -name \"CLAUDE.yml\" -o -name \"CLAUDE\" -o -name \".clauderc\" -o -name \".claude.yaml\")",
+      "Bash(find ~/.claude -name \"CLAUDE.md\")",
+      "Bash(find ~/.claude -type f -name \"*.md\")",
+      "PowerShell(\\(Get-Content -Path \"client/src/data/mockData.ts\" -Raw -Encoding UTF8\\) -replace \"    coreImageType: '\\(\\\\w+\\)',\", \"    coreImageType: '`$1',`n    coreImageDescription: '`$1 的物理意象',\" | Set-Content -Path \"client/src/data/mockData.ts\" -Encoding UTF8 -NoNewline)",
+      "PowerShell(\\(Get-Content -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\client\\\\src\\\\data\\\\mockData.ts\" -Raw -Encoding UTF8\\) -replace \"    coreImageType: '\\(\\\\w+\\)',\", \"    coreImageType: '`$1',`n    coreImageDescription: '`$1 的物理意象',\" | Set-Content -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\client\\\\src\\\\data\\\\mockData.ts\" -Encoding UTF8 -NoNewline)",
+      "Bash(git commit -m 'feat: Task 3.3 前端数据层集成 — mock→API 替换' -m '10 个文件改动，将 5 个页面组件的 mock 数据替换为真实 API 调用。 *)",
+      "Read(//d/Users/weij/**)",
+      "Bash(git commit -m 'feat: Task 4.2 SSE 流式响应支持' -m '- LLMProvider 接口扩展 supportsStreaming + generateWordEntryStream \\(AsyncGenerator\\) *)",
+      "Bash(ls -la \"$HOME/.claude/\" 2>/dev/null || echo \"no ~/.claude directory\")",
+      "Read(//d/Users/weij/.claude/rules/**)",
+      "Bash(git commit -m 'feat: Task 4.3 前端 AI 功能集成 + Task 5.1 学习记录与收藏功能 *)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"

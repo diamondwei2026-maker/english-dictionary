@@ -6,11 +6,12 @@ export type { ApiError, RequestOptions } from "./request";
 export {
   fetchWords,
   fetchWordById,
+  fetchWordDetail,
   createWord,
   updateWord,
   deleteWord,
 } from "./words";
-export type { CreateWordInput, UpdateWordInput } from "./words";
+export type { CreateWordInput, UpdateWordInput, WordDetail } from "./words";
 
 export {
   fetchWordbanks,
@@ -22,6 +23,14 @@ export {
 } from "./wordbanks";
 
 export { fetchUsers, fetchCurrentUser } from "./users";
+
+export { generateWord, generateWordStream } from "./ai";
+export type { GenerateWordStreamCallbacks } from "./ai";
+
+export { recordLearn, fetchLearningRecords, fetchUserStats } from "./learning";
+export type { UserStats } from "./learning";
+
+export { favoriteWord, unfavoriteWord, fetchFavorites } from "./favorites";
 
 export {
   adaptWord,

@@ -1,23 +1,100 @@
 import { useState, useEffect } from "react";
 import { View, Text } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import type { AuthUser } from "../../data/types";
+import type { AuthUser, Word } from "../../data/types";
 import {
   getGlobalUser,
   onUserChange,
   logout,
 } from "../../hooks/useAuth";
+import { fetchUserStats, fetchFavorites, type UserStats } from "../../api";
 import { PageHeader } from "../../components/PageHeader";
 import { Icon } from "../../components/Icon";
 import { CustomTabBar } from "../../components/CustomTabBar";
 
+// 收藏列表视图（内嵌在 profile 页面中）
+function FavoritesView({ onBack }: { onBack: () => void }) {
+  const [favs, setFavs] = useState<Word[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFavorites({ pageSize: 50 })
+      .then((res) => setFavs(res.data))
+      .catch(() => Taro.showToast({ title: "加载失败", icon: "none" }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const BG = "#F7F9FC";
+  const CARD = {
+    background: "#fff",
+    borderRadius: "20px",
+    boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+  };
+
+  if (loading) {
+    return (
+      <View style={{ minHeight: "100vh", background: BG }}>
+        <PageHeader showBack backLabel="个人中心" title="我的收藏" onBack={onBack} bgColor="rgba(247,249,252,0.94)" sticky />
+        <View style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+          <Icon name="refresh" size={24} color="#9CA3AF" />
+          <Text style={{ fontSize: "15px", color: "#9CA3AF", marginTop: "12px", display: "block" }}>加载中...</Text>
+        </View>
+        <CustomTabBar activeTab="profile" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ minHeight: "100vh", background: BG }}>
+      <PageHeader showBack backLabel="个人中心" title="我的收藏" onBack={onBack} bgColor="rgba(247,249,252,0.94)" sticky />
+      <View style={{ padding: "8px 24px 40px" }}>
+        {favs.length === 0 ? (
+          <View style={{ textAlign: "center", padding: "64px 0", color: "#9CA3AF" }}>
+            <Icon name="star" size={32} color="rgba(156,163,175,0.3)" />
+            <Text style={{ fontSize: "14px", display: "block", marginTop: "12px" }}>暂无收藏，去词库看看吧</Text>
+          </View>
+        ) : (
+          <View style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {favs.map((word) => (
+              <View key={word.id} onClick={() => Taro.navigateTo({ url: `/pages/word-detail/index?wordId=${word.id}` })}
+                style={{ ...CARD, padding: "16px 20px" }}>
+                <View style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "4px" }}>
+                  <Text style={{ fontSize: "18px", fontWeight: "700", color: "#111827" }}>{word.word}</Text>
+                  <Text style={{ fontSize: "12px", color: "#9CA3AF" }}>{word.phonetic}</Text>
+                </View>
+                <Text style={{ fontSize: "12px", color: "#6B7280", display: "block",
+                  lineHeight: "1.5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {word.coreMeaning}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      <CustomTabBar activeTab="profile" />
+    </View>
+  );
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState<AuthUser | null>(getGlobalUser());
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     const unsub = onUserChange((u) => setUser(u));
     return unsub;
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserStats()
+        .then((s) => setStats(s))
+        .catch(() => {
+          // 静默失败，保持旧 UI
+        });
+    }
+  }, [user]);
 
   const handleLogout = () => {
     Taro.showModal({
@@ -136,6 +213,10 @@ export default function ProfilePage() {
   }
 
   const isAdmin = user.role === "admin";
+
+  if (showFavorites) {
+    return <FavoritesView onBack={() => setShowFavorites(false)} />;
+  }
 
   return (
     <View style={{ minHeight: "100vh", background: "#F7F9FC" }}>
@@ -283,14 +364,14 @@ export default function ProfilePage() {
               {
                 icon: "book",
                 label: "已学单词",
-                value: "156 个",
+                value: stats ? `${stats.totalWordsLearned} 个` : "--",
                 color: "#2563EB",
                 bg: "#EFF6FF",
               },
               {
                 icon: "target",
-                label: "今日目标",
-                value: "3/5 个",
+                label: "今日已学",
+                value: stats ? `${stats.todayLearnedCount} 个` : "--",
                 color: "#16A34A",
                 bg: "#F0FDF4",
               },
@@ -342,6 +423,41 @@ export default function ProfilePage() {
             ))}
           </View>
         )}
+
+        {/* Favorites entry (for all users) */}
+        <View style={{ marginBottom: "14px" }}>
+          <View
+            onClick={() => setShowFavorites(true)}
+            style={{
+              padding: "20px 24px",
+              background: "#fff",
+              borderRadius: "20px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <View style={{
+                width: "44px", height: "44px", borderRadius: "12px",
+                background: "#FEF3C7",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon name="star" size={20} color="#EAB308" />
+              </View>
+              <View>
+                <Text style={{ fontSize: "16px", fontWeight: "600", color: "#111827", display: "block", marginBottom: "2px" }}>
+                  我的收藏
+                </Text>
+                <Text style={{ fontSize: "12px", color: "#9CA3AF", display: "block" }}>
+                  收藏的单词列表
+                </Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={18} color="#D1D5DB" />
+          </View>
+        </View>
 
         {/* Settings */}
         <View

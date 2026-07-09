@@ -124,3 +124,24 @@ export async function deleteWord(id: string): Promise<void> {
     method: "DELETE",
   });
 }
+
+/** 单词详情（含用户相关状态） */
+export interface WordDetail extends Word {
+  isFavorited: boolean;
+  learnCount: number;
+}
+
+/**
+ * 单词详情（含当前用户的收藏状态和学习次数）。
+ * GET /api/v1/words/:id
+ */
+export async function fetchWordDetail(id: string): Promise<WordDetail> {
+  const raw = await request<BackendWordResponse & { isFavorited?: boolean; learnCount?: number }>(
+    `/api/v1/words/${id}`,
+  );
+  return {
+    ...adaptWord(raw),
+    isFavorited: raw.isFavorited ?? false,
+    learnCount: raw.learnCount ?? 0,
+  };
+}

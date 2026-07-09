@@ -1,8 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import type { Word, WordLibrary } from "../../data/types";
-import { fetchWordById, fetchWordbanks, ApiRequestError } from "../../api";
+import {
+  fetchWordDetail,
+  fetchWordbanks,
+  ApiRequestError,
+  recordLearn,
+  favoriteWord,
+  unfavoriteWord,
+} from "../../api";
+import { getGlobalUser } from "../../hooks/useAuth";
 import { PhysicalImage } from "../../components/PhysicalImage";
 import { PageHeader } from "../../components/PageHeader";
 import { Icon } from "../../components/Icon";
@@ -35,6 +43,9 @@ export default function WordDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+  const learnedRef = useRef<string | null>(null);
 
   const loadWord = async () => {
     if (!wordId) {
@@ -46,14 +57,22 @@ export default function WordDetailPage() {
     setError(null);
     setNotFound(false);
     try {
-      const w = await fetchWordById(wordId);
+      const w = await fetchWordDetail(wordId);
       setWord(w);
+      setIsFavorited(w.isFavorited);
       // 获取词库名
       try {
         const { libraries } = await fetchWordbanks({ pageSize: 100 });
         setLibrary(libraries.find((l) => l.id === w.libraryId) || null);
       } catch {
         // 词库获取失败不影响详情展示
+      }
+      // 自动记录学习（去重）
+      if (learnedRef.current !== wordId) {
+        learnedRef.current = wordId;
+        recordLearn(wordId).catch(() => {
+          // 静默忽略——学习记录失败不影响浏览
+        });
       }
     } catch (e) {
       if (e instanceof ApiRequestError && e.statusCode === 404) {
@@ -69,6 +88,35 @@ export default function WordDetailPage() {
   useEffect(() => {
     loadWord();
   }, [wordId]);
+
+  const handleToggleFavorite = async () => {
+    if (favLoading) return;
+    const loggedIn = !!getGlobalUser();
+    if (!loggedIn) {
+      Taro.showToast({ title: "请先登录", icon: "none" });
+      setTimeout(() => {
+        Taro.navigateTo({ url: "/pages/auth/index?mode=login" });
+      }, 800);
+      return;
+    }
+    setFavLoading(true);
+    try {
+      if (isFavorited) {
+        await unfavoriteWord(wordId);
+        setIsFavorited(false);
+        Taro.showToast({ title: "已取消收藏", icon: "success" });
+      } else {
+        await favoriteWord(wordId);
+        setIsFavorited(true);
+        Taro.showToast({ title: "已收藏", icon: "success" });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "操作失败";
+      Taro.showToast({ title: msg, icon: "none" });
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   // Loading
   if (loading) {
@@ -181,9 +229,25 @@ export default function WordDetailPage() {
       <View style={{ padding: "8px 24px 40px" }}>
         {/* Word heading */}
         <View style={{ marginBottom: "24px" }}>
-          <Text style={{ fontSize: "42px", fontWeight: "800", color: "#111827", display: "block", marginBottom: "4px", letterSpacing: "-1px", lineHeight: "1.1" }}>
-            {word.word}
-          </Text>
+          <View style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "4px" }}>
+            <Text style={{ fontSize: "42px", fontWeight: "800", color: "#111827", display: "block", letterSpacing: "-1px", lineHeight: "1.1" }}>
+              {word.word}
+            </Text>
+            <View onClick={handleToggleFavorite} style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: isFavorited ? "#FEF3C7" : "#F9FAFB",
+              flexShrink: 0,
+              marginLeft: "12px",
+              opacity: favLoading ? 0.6 : 1,
+            }}>
+              <Icon name="star" size={20} color={isFavorited ? "#EAB308" : "#D1D5DB"} />
+            </View>
+          </View>
           <Text style={{ fontSize: "16px", color: "#9CA3AF", display: "block", letterSpacing: "0.5px" }}>
             {word.phonetic}
           </Text>
