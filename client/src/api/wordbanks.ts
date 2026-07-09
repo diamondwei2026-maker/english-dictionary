@@ -137,7 +137,7 @@ export async function createWordbank(data: {
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "")
     .replace(/^-+|-+$/g, "")
-    || data.name.toLowerCase();
+    || `wb-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
   const res = await request<BackendWordbankResponse>("/api/v1/wordbanks", {
     method: "POST",
