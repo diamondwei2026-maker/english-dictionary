@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/errors";
 
 export { authMiddleware, optionalAuth, adminMiddleware } from "./auth";
+export { loginLimiter, aiLimiter } from "./rateLimit";
 
 export function errorHandler(
   err: Error,

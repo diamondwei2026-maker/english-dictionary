@@ -52,4 +52,13 @@ export const config = {
     600,
   ), // 10 分钟
   cacheTtlWordList: parseIntSafe(process.env.CACHE_TTL_WORD_LIST, 300),
+
+  // CORS 配置
+  corsOrigins: process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+    : [],
+
+  // Rate Limit 配置
+  loginRateMax: parseIntSafe(process.env.LOGIN_RATE_MAX, 10),
+  aiRateMax: parseIntSafe(process.env.AI_RATE_MAX, 10),
 };
