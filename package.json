@@ -1,0 +1,24 @@
+{
+  "name": "english-dictionary-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "英语母语者词典 — 前后端 Monorepo",
+  "scripts": {
+    "dev:client": "cd client && pnpm dev:h5",
+    "dev:client:weapp": "cd client && pnpm dev:weapp",
+    "build:client": "cd client && pnpm build:h5",
+    "build:client:weapp": "cd client && pnpm build:weapp",
+    "dev:server": "cd server && pnpm dev",
+    "build:server": "cd server && pnpm build",
+    "start:server": "cd server && pnpm start",
+    "test:server": "cd server && pnpm test",
+    "lint:server": "cd server && pnpm lint",
+    "db:init": "cd server && pnpm db:init",
+    "db:seed": "cd server && pnpm db:seed",
+    "db:clean": "cd server && pnpm db:clean",
+    "install:all": "cd client && pnpm install && cd ../server && pnpm install",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build"
+  }
+}

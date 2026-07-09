@@ -97,7 +97,10 @@ export default function AuthPage() {
       }
     } catch (err) {
       const apiErr = err as ApiRequestError;
-      setError(apiErr?.message || (isLogin ? "登录失败，请稍后重试" : "注册失败，请稍后重试"));
+      setError(
+        apiErr?.message ||
+          (isLogin ? "登录失败，请稍后重试" : "注册失败，请稍后重试"),
+      );
     } finally {
       setLoading(false);
     }
@@ -371,9 +374,7 @@ export default function AuthPage() {
                 onFocus={() => setPwdFocused(true)}
                 onBlur={() => setPwdFocused(false)}
                 onConfirm={handleSubmit}
-                placeholder={
-                  isLogin ? "输入密码" : "至少6位，包含字母和数字"
-                }
+                placeholder={isLogin ? "输入密码" : "至少6位，包含字母和数字"}
                 style={{
                   ...inputBase,
                   paddingRight: "48px",
@@ -439,7 +440,7 @@ export default function AuthPage() {
         </View>
 
         {/* Demo hint — login only */}
-        {isLogin && (
+        {/* {isLogin && (
           <View
             style={{
               marginTop: "20px",
@@ -462,7 +463,7 @@ export default function AuthPage() {
               密码需包含字母和数字，至少6位
             </Text>
           </View>
-        )}
+        )} */}
       </View>
 
       <CustomTabBar activeTab="profile" />

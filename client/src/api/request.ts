@@ -65,6 +65,15 @@ export async function request<T = unknown>(
 
     // Taro.request 在 H5 环境返回 statusCode，小程序环境也类似
     if (res.statusCode >= 200 && res.statusCode < 300) {
+      // 防御：当响应体为空/非 JSON 时 Taro 可能返回 null data，
+      // 此时应抛出错误而非让上层 adapter 因 null.data 崩溃
+      if (res.data == null) {
+        throw new ApiRequestError(
+          res.statusCode,
+          "EMPTY_RESPONSE",
+          "服务器返回了空的响应数据，请检查后端服务是否正常运行"
+        );
+      }
       return res.data;
     }
 

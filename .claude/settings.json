@@ -145,7 +145,20 @@
       "Bash(taskkill //F //IM node.exe)",
       "Bash(node -e \"const m = require\\('express-rate-limit'\\); console.log\\('exports:', Object.keys\\(m\\).filter\\(k => k.includes\\('ip'\\) || k.includes\\('key'\\)\\).join\\(', '\\)\\)\")",
       "Bash(git commit -m 'feat: Task 6.3 API 文档与安全配置' -m '- 集成 Swagger UI \\(/api/docs\\)，覆盖全部 24 个 API 端点 + 8 个 Tag 分组 *)",
-      "Bash(git commit -m 'docs: 更新项目文档至已实现状态 \\(v1.0 完成\\)' -m '- ADR \\(client/server\\): v1.0→v1.1, 状态从\"已确认\"→\"已实现\", 补充实际架构细节 *)"
+      "Bash(git commit -m 'docs: 更新项目文档至已实现状态 \\(v1.0 完成\\)' -m '- ADR \\(client/server\\): v1.0→v1.1, 状态从\"已确认\"→\"已实现\", 补充实际架构细节 *)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\" -Directory | Where-Object { $_.Name -ne \"node_modules\" -and $_.Name -ne \".git\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\client\" -Directory | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\server\" -Directory | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\client\\\\src\" -Recurse -File | Where-Object { $_.Extension -match '\\\\.\\(ts|js|vue|jsx|tsx|json\\)$' } | Select-Object -First 80 FullName)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Users\\\\weij\\\\english-dictionary\\\\server\\\\src\" -Recurse -File | Where-Object { $_.Extension -match '\\\\.\\(ts|js\\)$' } | Select-Object -First 80 FullName)",
+      "Bash(curl -s http://localhost:3001/api/v1/words?pageSize=10)",
+      "Bash(curl -s http://localhost:3001/api/v1/wordbanks?pageSize=10)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:10086/)",
+      "Bash(curl -s http://localhost:10086/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\nContent-Type: %{content_type}\\\\n\" http://localhost:10086/api/v1/health)",
+      "Bash(taskkill //F //IM \"node.exe\")",
+      "Bash(pnpm dev *)",
+      "Bash(curl -s http://localhost:10086/api/v1/words?pageSize=5)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"

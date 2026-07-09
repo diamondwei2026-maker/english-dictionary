@@ -71,9 +71,15 @@ const config = {
   },
 };
 
+// 解包 TypeScript export default → CJS require：无 esModuleInterop 时
+// TS 会将 export default 编译为 exports.default，导致 merge 丢失整个 dev/prod 配置
+function unwrapDefault(m: Record<string, unknown>): Record<string, unknown> {
+  return (m.default as Record<string, unknown>) || m;
+}
+
 module.exports = function (merge) {
   if (process.env.NODE_ENV === 'development') {
-    return merge({}, config, require('./dev'));
+    return merge({}, config, unwrapDefault(require('./dev')));
   }
-  return merge({}, config, require('./prod'));
+  return merge({}, config, unwrapDefault(require('./prod')));
 };
