@@ -31,7 +31,7 @@
 | 5.1 | 学习记录与收藏功能 | 阶段5: 增强功能 | ✅ done | P1 | 3.3 | [task.md](./tasks/english-dict-v1/task-5.1/task.md) |
 | 5.2 | 今日一词推荐与管理后台概览 | 阶段5: 增强功能 | ✅ done | P1 | 5.1 | [task.md](./tasks/english-dict-v1/task-5.2/task.md) |
 | 6.1 | 缓存与搜索优化 | 阶段6: 优化与上线 | ✅ done | P2 | 5.2 | [task.md](./tasks/english-dict-v1/task-6.1/task.md) |
-| 6.2 | Docker 容器化与部署配置 | 阶段6: 优化与上线 | ⏳ pending | P2 | 6.1 | [task.md](./tasks/english-dict-v1/task-6.2/task.md) |
+| 6.2 | Docker 容器化与部署配置 | 阶段6: 优化与上线 | ✅ done | P2 | 6.1 | [task.md](./tasks/english-dict-v1/task-6.2/task.md) |
 | 6.3 | API 文档与安全配置 | 阶段6: 优化与上线 | ⏳ pending | P2 | 6.2 | [task.md](./tasks/english-dict-v1/task-6.3/task.md) |
 
 ---

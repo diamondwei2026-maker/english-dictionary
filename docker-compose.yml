@@ -1,0 +1,39 @@
+services:
+  # ---- MongoDB 7 ----
+  mongodb:
+    image: mongo:7
+    container_name: english-dict-mongo
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # ---- Express API Server ----
+  app:
+    build:
+      context: ./server
+    container_name: english-dict-server
+    ports:
+      - "3001:3001"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/english-dictionary
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      - CACHE_ENABLED=${CACHE_ENABLED:-true}
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+    name: english-dict-mongo-data
