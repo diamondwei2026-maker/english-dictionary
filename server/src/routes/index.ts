@@ -5,6 +5,8 @@ import { userRoutes } from "./user.routes";
 import { wordbankRoutes } from "./wordbank.routes";
 import { wordRoutes } from "./word.routes";
 import { aiRoutes } from "./ai.routes";
+import { dailyWordRoutes } from "./daily-word.routes";
+import { dashboardRoutes } from "./dashboard.routes";
 
 export const routes: RouterType = Router();
 
@@ -15,6 +17,8 @@ routes.use("/wordbanks", wordbankRoutes);
 // 避免被 wordRoutes 的 catch-all 捕获
 routes.use("/", aiRoutes);
 routes.use("/words", wordRoutes);
+routes.use("/daily-word", dailyWordRoutes);
+routes.use("/admin/dashboard", dashboardRoutes);
 
 // 兜底 404
 routes.all("*", (_req, res) => {

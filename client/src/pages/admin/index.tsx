@@ -6,6 +6,7 @@ import {
   fetchWords,
   fetchWordbanks,
   fetchUsers,
+  fetchDashboard,
   createWordbank as apiCreateWordbank,
   updateWordbank as apiUpdateWordbank,
   deleteWordbank as apiDeleteWordbank,
@@ -16,6 +17,7 @@ import {
   generateWord,
   generateWordStream,
 } from "../../api";
+import type { DashboardResponse } from "../../api";
 import { PhysicalImage } from "../../components/PhysicalImage";
 import { PageHeader } from "../../components/PageHeader";
 import { Icon } from "../../components/Icon";
@@ -73,12 +75,14 @@ function SLabel({ children }: { children: React.ReactNode }) {
 
 // ---- Overview ----
 function Overview({
+  dashboard,
   libraries,
   words,
   users,
   onNavigate,
   onExit,
 }: {
+  dashboard: DashboardResponse | null;
   libraries: WordLibrary[];
   words: Word[];
   users: { id: string; username: string; phone: string; role: string; joinedAt: string; learnedWords: number }[];
@@ -128,9 +132,9 @@ function Overview({
           </Text>
           <View style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "4px" }}>
             {[
-              { label: "词库", value: libraries.length },
-              { label: "单词", value: words.length },
-              { label: "用户", value: users.length },
+              { label: "词库", value: dashboard?.wordbankCount ?? "--" },
+              { label: "单词", value: dashboard?.wordCount ?? "--" },
+              { label: "用户", value: dashboard?.userCount ?? "--" },
             ].map((s, i) => (
               <View key={i} style={{ textAlign: "center" }}>
                 <Text style={{ fontSize: "30px", fontWeight: "800", color: "#fff", display: "block", marginBottom: "2px", letterSpacing: "-0.5px" }}>
@@ -852,6 +856,7 @@ export default function AdminPage() {
   const [libraries, setLibraries] = useState<WordLibrary[]>([]);
   const [words, setWords] = useState<Word[]>([]);
   const [users, setUsers] = useState<{ id: string; username: string; phone: string; role: string; joinedAt: string; learnedWords: number }[]>([]);
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -860,14 +865,16 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const [libResult, wordResult, userList] = await Promise.all([
+      const [libResult, wordResult, userList, dashboardResult] = await Promise.all([
         fetchWordbanks({ pageSize: 100 }),
         fetchWords({ pageSize: 999 }),
         fetchUsers(),
+        fetchDashboard().catch(() => null), // Dashboard 失败不影响管理后台其他功能
       ]);
       setLibraries(libResult.libraries);
       setWords(wordResult.words);
       setUsers(userList);
+      setDashboard(dashboardResult);
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败，请检查网络连接");
     } finally {
@@ -993,7 +1000,7 @@ export default function AdminPage() {
   return (
     <View style={{ fontFamily: "Inter, system-ui, -apple-system, sans-serif", minHeight: "100vh", background: BG }}>
       {section === "overview" && (
-        <Overview libraries={libraries} words={words} users={users}
+        <Overview dashboard={dashboard} libraries={libraries} words={words} users={users}
           onNavigate={setSection}
           onExit={() => Taro.redirectTo({ url: "/pages/profile/index" })} />
       )}

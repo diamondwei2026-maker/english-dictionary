@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { View, Text, Input } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import type { Word } from "../../data/types";
-import { fetchWords, fetchWordbanks } from "../../api";
+import { fetchWords, fetchWordbanks, fetchDailyWord } from "../../api";
 import { Icon } from "../../components/Icon";
 import { CustomTabBar } from "../../components/CustomTabBar";
 
@@ -29,16 +29,17 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const [wordResult, libResult] = await Promise.all([
+      const [wordResult, libResult, dailyResult] = await Promise.all([
         fetchWords({ pageSize: 200 }),
         fetchWordbanks({ pageSize: 100 }),
+        fetchDailyWord().catch(() => null), // 今日一词 API 失败不影响页面其余功能
       ]);
       setAllWords(wordResult.words);
-      // 今日一词：按日期伪随机
-      if (wordResult.words.length > 0) {
-        const idx =
-          Math.floor(Date.now() / 86400000) % wordResult.words.length;
-        setTodayWord(wordResult.words[idx]);
+      // 今日一词：从服务端推荐算法获取
+      if (dailyResult && dailyResult.word) {
+        setTodayWord(dailyResult.word);
+      } else {
+        setTodayWord(null);
       }
       // 构建 libraryId → name 映射
       const nameMap: Record<string, string> = {};

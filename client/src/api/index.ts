@@ -32,6 +32,11 @@ export type { UserStats } from "./learning";
 
 export { favoriteWord, unfavoriteWord, fetchFavorites } from "./favorites";
 
+export { fetchDailyWord } from "./daily-word";
+export type { DailyWordResponse } from "./daily-word";
+export { fetchDashboard } from "./dashboard";
+export type { DashboardResponse } from "./dashboard";
+
 export {
   adaptWord,
   adaptWordList,

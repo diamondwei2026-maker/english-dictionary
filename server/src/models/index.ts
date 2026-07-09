@@ -10,3 +10,5 @@ export { UserFavorite } from "./UserFavorite";
 export type { IUserFavorite } from "./UserFavorite";
 export { LearningRecord } from "./LearningRecord";
 export type { ILearningRecord } from "./LearningRecord";
+export { DailyWord } from "./DailyWord";
+export type { IDailyWord } from "./DailyWord";
