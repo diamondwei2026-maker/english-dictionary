@@ -16,7 +16,7 @@ services:
     type: web
     runtime: node
     region: singapore                     # 新加坡（低延迟覆盖亚太），可改为 oregon / frankfurt
-    plan: starter                         # starter | standard | pro
+    plan: free                           # free | starter | standard | pro
     repo: https://github.com/diamondwei2026-maker/english-dictionary
     branch: develop
     rootDir: server
