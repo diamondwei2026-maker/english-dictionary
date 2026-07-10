@@ -158,7 +158,18 @@
       "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\nContent-Type: %{content_type}\\\\n\" http://localhost:10086/api/v1/health)",
       "Bash(taskkill //F //IM \"node.exe\")",
       "Bash(pnpm dev *)",
-      "Bash(curl -s http://localhost:10086/api/v1/words?pageSize=5)"
+      "Bash(curl -s http://localhost:10086/api/v1/words?pageSize=5)",
+      "Bash(ls -la \"D:\\\\Users\\\\weij\\\\.claude\\\\skills\\\\\")",
+      "Edit(/.claude/skills/bug-fixer/**)",
+      "Edit(/.claude/skills/ai-master/**)",
+      "Bash(npm test *)",
+      "Bash(git commit -m 'fix: 管理后台用户列表显示 0 用户 — 缺少 GET /api/v1/users 路由 *)",
+      "Edit(/.claude/skills/test-case-generator/**)",
+      "Edit(/.claude/skills/coding-prompt-generator/**)",
+      "Edit(/.claude/skills/task-planner/**)",
+      "Edit(/.claude/skills/project-planner/**)",
+      "Bash(git commit -m 'fix: 修复 AI 生成词条数据格式 + 管理后台保存逻辑 *)",
+      "Bash(git remote *)"
     ],
     "additionalDirectories": [
       "D:\\Users\\weij\\english-dictionary\\client"
