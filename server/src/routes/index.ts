@@ -1,12 +1,12 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
-import { authRoutes } from "./auth.routes";
-import { userRoutes } from "./user.routes";
-import { wordbankRoutes } from "./wordbank.routes";
-import { wordRoutes } from "./word.routes";
-import { aiRoutes } from "./ai.routes";
-import { dailyWordRoutes } from "./daily-word.routes";
-import { dashboardRoutes } from "./dashboard.routes";
+import { authRoutes } from "./auth.routes.js";
+import { userRoutes } from "./user.routes.js";
+import { wordbankRoutes } from "./wordbank.routes.js";
+import { wordRoutes } from "./word.routes.js";
+import { aiRoutes } from "./ai.routes.js";
+import { dailyWordRoutes } from "./daily-word.routes.js";
+import { dashboardRoutes } from "./dashboard.routes.js";
 
 export const routes: RouterType = Router();
 

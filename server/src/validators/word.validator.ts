@@ -1,4 +1,4 @@
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 import { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models";
 
 // === 输入类型 ===

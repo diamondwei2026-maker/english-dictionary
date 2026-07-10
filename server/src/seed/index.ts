@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 import { config } from "../config";
-import { User } from "../models/User";
-import { WordBank } from "../models/WordBank";
-import { Word } from "../models/Word";
-import { Collocation } from "../models/Collocation";
-import { UserFavorite } from "../models/UserFavorite";
-import { LearningRecord } from "../models/LearningRecord";
+import { User } from "../models/User.js";
+import { WordBank } from "../models/WordBank.js";
+import { Word } from "../models/Word.js";
+import { Collocation } from "../models/Collocation.js";
+import { UserFavorite } from "../models/UserFavorite.js";
+import { LearningRecord } from "../models/LearningRecord.js";
 import {
   mockLibraries,
   mockWords,
   mockUsers,
-} from "../../../client/src/data/mockData";
+} from "../../../client/src/data/mockData.js";
 
 // mock 数据中缺少 physicalImageDescription，按 physicalImageType 提供默认描述
 const DEFAULT_IMAGE_DESCRIPTIONS: Record<string, string> = {

@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { AppError } from "../utils/errors";
-import { validateGenerateWordInput } from "../validators/ai.validator";
-import * as aiService from "../services/ai.service";
-import * as aiStreamService from "../services/ai-stream.service";
-import type { SSEChunk } from "../providers/llm";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AppError } from "../utils/errors.js";
+import { validateGenerateWordInput } from "../validators/ai.validator.js";
+import * as aiService from "../services/ai.service.js";
+import * as aiStreamService from "../services/ai-stream.service.js";
+import type { SSEChunk } from "../providers/llm.js";
 
 /**
  * POST /api/v1/words/generate

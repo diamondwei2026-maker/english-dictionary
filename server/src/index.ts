@@ -1,6 +1,6 @@
-import { createApp } from "./app";
+import { createApp } from "./app.js";
 import { config } from "./config";
-import { connectDatabase } from "./config/database";
+import { connectDatabase } from "./config/database.js";
 
 async function main(): Promise<void> {
   await connectDatabase();

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import * as dailyWordService from "../services/daily-word.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import * as dailyWordService from "../services/daily-word.service.js";
 
 /**
  * GET /api/v1/daily-word

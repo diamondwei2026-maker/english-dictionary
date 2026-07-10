@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { WordBank, Word, IWordBank } from "../models";
-import { AppError } from "../utils/errors";
-import type { CreateWordBankInput, UpdateWordBankInput } from "../validators/wordbank.validator";
+import { AppError } from "../utils/errors.js";
+import type { CreateWordBankInput, UpdateWordBankInput } from "../validators/wordbank.validator.js";
 import { tryCacheGet, tryCacheSet, tryCacheDel, tryCacheDelByPrefix } from "../cache";
 import { config } from "../config";
 

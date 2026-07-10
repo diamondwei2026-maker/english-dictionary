@@ -1,4 +1,4 @@
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
 /**
  * LLM 返回的词条结构化数据（snake_case，匹配 AI 响应 JSON）

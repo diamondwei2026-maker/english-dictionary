@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Word, LearningRecord, User } from "../models";
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
 // ============================================================
 // 学习记录服务

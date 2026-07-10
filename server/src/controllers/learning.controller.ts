@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import * as learningService from "../services/learning.service";
-import * as favoriteService from "../services/favorite.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import * as learningService from "../services/learning.service.js";
+import * as favoriteService from "../services/favorite.service.js";
 
 // ============================================================
 // 学习与收藏控制器

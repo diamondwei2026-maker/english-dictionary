@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { TokenExpiredError } from "jsonwebtoken";
-import { verifyToken } from "../utils/jwt";
-import { AppError } from "../utils/errors";
+import { verifyToken } from "../utils/jwt.js";
+import { AppError } from "../utils/errors.js";
 
 /**
  * 从 Authorization Header 提取 Bearer Token。

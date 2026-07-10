@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import * as dashboardService from "../services/dashboard.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import * as dashboardService from "../services/dashboard.service.js";
 
 /**
  * GET /api/v1/admin/dashboard

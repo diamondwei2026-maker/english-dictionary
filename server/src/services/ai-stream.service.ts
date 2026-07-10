@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import { Word, WordBank } from "../models";
-import { AppError } from "../utils/errors";
-import { createLLMProvider } from "../providers/llm";
-import type { SSEChunk, LLMWordEntry } from "../providers/llm";
-import { mapLLMEntryToWordData } from "./ai.service";
+import { AppError } from "../utils/errors.js";
+import { createLLMProvider } from "../providers/llm.js";
+import type { SSEChunk, LLMWordEntry } from "../providers/llm.js";
+import { mapLLMEntryToWordData } from "./ai.service.js";
 
 /**
  * 流式生成词条 — 返回 AsyncGenerator 供 Controller 逐事件推送给客户端。

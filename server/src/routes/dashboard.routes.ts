@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
 import { authMiddleware, adminMiddleware } from "../middleware";
-import { getDashboard } from "../controllers/dashboard.controller";
+import { getDashboard } from "../controllers/dashboard.controller.js";
 
 const router = Router();
 

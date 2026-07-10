@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
-export { authMiddleware, optionalAuth, adminMiddleware } from "./auth";
-export { loginLimiter, aiLimiter } from "./rateLimit";
+export { authMiddleware, optionalAuth, adminMiddleware } from "./auth.js";
+export { loginLimiter, aiLimiter } from "./rateLimit.js";
 
 export function errorHandler(
   err: Error,

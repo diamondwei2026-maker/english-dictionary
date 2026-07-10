@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { DailyWord, Word, LearningRecord, IWord } from "../models";
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 import { getCache, tryCacheGet, tryCacheSet } from "../cache";
 import { config } from "../config";
 

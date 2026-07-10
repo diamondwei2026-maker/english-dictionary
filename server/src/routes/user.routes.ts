@@ -1,12 +1,12 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
 import { authMiddleware, adminMiddleware } from "../middleware";
-import { getMe, listUsers } from "../controllers/user.controller";
+import { getMe, listUsers } from "../controllers/user.controller.js";
 import {
   getStats,
   getFavorites,
   getLearningRecords,
-} from "../controllers/learning.controller";
+} from "../controllers/learning.controller.js";
 
 const router = Router();
 

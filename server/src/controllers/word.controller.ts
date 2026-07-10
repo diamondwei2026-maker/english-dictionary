@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   validateCreateWordInput,
   validateUpdateWordInput,
-} from "../validators/word.validator";
-import * as wordService from "../services/word.service";
+} from "../validators/word.validator.js";
+import * as wordService from "../services/word.service.js";
 import { UserFavorite, LearningRecord } from "../models";
 
 export const list = asyncHandler(
@@ -97,4 +97,4 @@ export const getByWordbank = asyncHandler(
   }
 );
 
-export { learn, favorite, unfavorite } from "./learning.controller";
+export { learn, favorite, unfavorite } from "./learning.controller.js";

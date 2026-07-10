@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import { User, IUser } from "../models";
-import { AppError } from "../utils/errors";
-import { signToken } from "../utils/jwt";
-import type { RegisterInput, LoginInput } from "../validators/auth.validator";
+import { AppError } from "../utils/errors.js";
+import { signToken } from "../utils/jwt.js";
+import type { RegisterInput, LoginInput } from "../validators/auth.validator.js";
 
 const SALT_ROUNDS = 10;
 

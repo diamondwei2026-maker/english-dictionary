@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { validateRegisterInput, validateLoginInput } from "../validators/auth.validator";
-import * as authService from "../services/auth.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateRegisterInput, validateLoginInput } from "../validators/auth.validator.js";
+import * as authService from "../services/auth.service.js";
 
 export const register = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {

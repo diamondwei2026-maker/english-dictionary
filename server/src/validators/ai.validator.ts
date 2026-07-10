@@ -1,4 +1,4 @@
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
 /** ObjectId 格式：24 位 hex 字符串 */
 const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/;

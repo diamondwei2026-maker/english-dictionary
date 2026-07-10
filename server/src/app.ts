@@ -5,7 +5,7 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { routes } from "./routes";
 import { errorHandler, loginLimiter } from "./middleware";
-import { swaggerSpec } from "./config/swagger";
+import { swaggerSpec } from "./config/swagger.js";
 import { config } from "./config";
 
 export function createApp(): Express {

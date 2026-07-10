@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   validateCreateWordBankInput,
   validateUpdateWordBankInput,
-} from "../validators/wordbank.validator";
-import * as wordbankService from "../services/wordbank.service";
+} from "../validators/wordbank.validator.js";
+import * as wordbankService from "../services/wordbank.service.js";
 
 export const list = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {

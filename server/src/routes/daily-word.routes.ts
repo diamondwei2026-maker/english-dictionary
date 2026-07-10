@@ -4,7 +4,7 @@ import { optionalAuth, authMiddleware, adminMiddleware } from "../middleware";
 import {
   getDailyWord,
   pinDailyWord,
-} from "../controllers/daily-word.controller";
+} from "../controllers/daily-word.controller.js";
 
 const router = Router();
 

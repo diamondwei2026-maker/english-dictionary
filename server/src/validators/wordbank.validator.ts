@@ -1,4 +1,4 @@
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
 // slug 格式：小写字母+数字+连字符，不能以连字符开头或结尾
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

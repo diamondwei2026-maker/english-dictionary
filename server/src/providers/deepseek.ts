@@ -1,6 +1,6 @@
 import { config } from "../config";
-import { AppError } from "../utils/errors";
-import type { LLMProvider, LLMWordEntry, SSEChunk } from "./llm";
+import { AppError } from "../utils/errors.js";
+import type { LLMProvider, LLMWordEntry, SSEChunk } from "./llm.js";
 
 const TIMEOUT_MS = 30_000;
 

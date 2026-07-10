@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { config } from "./index";
+import { config } from "./index.js";
 
 export async function connectDatabase(): Promise<void> {
   // 事件监听器必须在 mongoose.connect() 之前注册，

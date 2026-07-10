@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Word, UserFavorite, User } from "../models";
-import { AppError } from "../utils/errors";
+import { AppError } from "../utils/errors.js";
 
 // ============================================================
 // 收藏服务
