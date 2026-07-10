@@ -17,8 +17,8 @@ services:
     runtime: node
     region: singapore                     # 新加坡（低延迟覆盖亚太），可改为 oregon / frankfurt
     plan: starter                         # starter | standard | pro
-    repo: https://github.com/your-org/english-dictionary  # 替换为实际仓库地址
-    branch: main
+    repo: https://github.com/diamondwei2026-maker/english-dictionary
+    branch: develop
     rootDir: server
     buildCommand: npm ci && npm run build
     startCommand: npm start
