@@ -315,13 +315,13 @@ Return a JSON object with the following structure:
 
 {
   "physical_image": "<one of: FLOW, GRASP, BREAK, BEAR, DRIVE, LIGHT, LEVERAGE, YIELD>",
-  "physical_image_description": "<English description of the physical image this word evokes, 1-2 sentences>",
-  "core_meaning": "<the core spatial/physical meaning in English, 1 sentence>",
+  "physical_image_description": "<Chinese description of the physical image this word evokes, 1-2 sentences>",
+  "core_meaning": "<the core spatial/physical meaning in Chinese, 1 sentence>",
   "core_example_en": "<an English example sentence showing the core meaning>",
   "core_example_zh": "<Chinese translation of the core example>",
   "extended_meanings": [
     {
-      "evolution_description": "<explain the cognitive logic of how this meaning extends from the physical image, in English>",
+      "evolution_description": "<explain the cognitive logic of how this meaning extends from the physical image, in Chinese>",
       "meaning": "<the extended meaning, in Chinese>",
       "part_of_speech": "<noun|verb|adj|adv|prep|conj|pron|other>",
       "example_en": "<an English example sentence>",
@@ -349,6 +349,8 @@ Return a JSON object with the following structure:
 
 4. **collocations**: 3-5 common phrases containing this word.
 
-5. All text content should be in English except "meaning" and "example_zh" which should be in Chinese.
+5. Language requirements:
+   - Chinese (面向中文母语者): core_meaning, physical_image_description, evolution_description, meaning, core_example_zh, example_zh
+   - English: core_example_en, example_en, collocations
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no additional text.`;

@@ -361,7 +361,9 @@ function WordEditForm({
       return;
     }
 
-    const force = !!form.coreMeaning;
+    // 「AI自动生成词条」是明确的用户操作，始终走 force=true，
+    // 跳过服务端幂等检查，直接生成/覆盖 — 冲突保护应在点击「保存」时处理。
+    const force = true;
     setAiLoading(true);
     setAiDone(false);
 
@@ -374,7 +376,7 @@ function WordEditForm({
         onDone(adaptedWord: Word) {
           setForm((f) => ({
             ...f,
-            id: f.id,
+            id: adaptedWord.id,
             libraryId: f.libraryId,
             phonetic: adaptedWord.phonetic,
             coreMeaning: adaptedWord.coreMeaning,
@@ -398,7 +400,7 @@ function WordEditForm({
         const result = await generateWord(form.word, form.libraryId, force);
         setForm((f) => ({
           ...f,
-          id: f.id,
+          id: result.id,
           libraryId: f.libraryId,
           phonetic: result.phonetic,
           coreMeaning: result.coreMeaning,
@@ -678,7 +680,8 @@ function WordManager({
   const handleSave = async (w: Word) => {
     setSaving(true);
     try {
-      if (words.find((x) => x.id === w.id)) await onEdit(w.id, w);
+      // MongoDB ObjectId 为 24 位 hex；genId() 随机 8 位 — 已持久化则 update，否则 create
+      if (/^[0-9a-f]{24}$/i.test(w.id)) await onEdit(w.id, w);
       else await onAdd(w);
       setEditWord(null);
     } catch {

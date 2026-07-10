@@ -84,21 +84,23 @@ export async function* generateWordStream(
   let llmEntry: LLMWordEntry | null = null;
 
   if (provider.supportsStreaming && provider.generateWordEntryStream) {
-    // A. Streaming 路径：逐事件转发给客户端
+    // A. Streaming 路径：转发 thinking/content，捕获 done 但不直转
     for await (const chunk of provider.generateWordEntryStream(wordName.trim())) {
-      yield chunk;
       if (chunk.event === "done") {
         llmEntry = chunk.data as LLMWordEntry;
-      }
-      if (chunk.event === "error") {
+        // 不直接 yield Provider 的 done — LLMWordEntry 是 snake_case，
+        // 客户端 adaptWord() 需要 camelCase 的持久化文档格式
+      } else if (chunk.event === "error") {
+        yield chunk;
         return; // Provider 已 yield error，不再继续
+      } else {
+        yield chunk; // thinking / content 事件直转客户端
       }
     }
   } else {
     // B. Fallback 路径：非 streaming Provider 一次性返回
     try {
       llmEntry = await provider.generateWordEntry(wordName.trim());
-      yield { event: "done", data: llmEntry };
     } catch (err) {
       if (err instanceof AppError) {
         yield {
@@ -116,7 +118,7 @@ export async function* generateWordStream(
     }
   }
 
-  // === 5. 存储结果（fire-and-forget：存储失败不影响已发送的 done 事件） ===
+  // === 5. 持久化 + 发送 done（持久化后的文档格式与客户端 adaptWord 兼容） ===
   if (llmEntry) {
     try {
       const wordData = mapLLMEntryToWordData(
@@ -124,18 +126,23 @@ export async function* generateWordStream(
         wordbankId,
         llmEntry
       );
-      await Word.findOneAndUpdate(
+      const word = await Word.findOneAndUpdate(
         { wordbankId, word: wordName.trim() },
         { $set: wordData },
         { new: true, upsert: true, runValidators: true }
       );
       console.log(`[AI Stream] Persisted generated word "${wordName.trim()}"`);
+      // 发送持久化后的文档（camelCase），而非原始 LLMWordEntry（snake_case）
+      yield { event: "done", data: word };
     } catch (err) {
       console.error(
         `[AI Stream] Failed to persist generated word "${wordName.trim()}":`,
         err
       );
-      // 不重新 yield error — done 已发送给客户端
+      yield {
+        event: "error",
+        data: { code: "INTERNAL_ERROR", message: "AI 生成成功但保存失败，请重试" },
+      };
     }
   }
 }
