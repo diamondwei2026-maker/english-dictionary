@@ -6,11 +6,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://english-dictionary-api.onrender.com/api/:path*"
+      "destination": "https://english-dictionary-api-q9e3.onrender.com/api/:path*"
     },
     {
       "source": "/api/docs/:path*",
-      "destination": "https://english-dictionary-api.onrender.com/api/docs/:path*"
+      "destination": "https://english-dictionary-api-q9e3.onrender.com/api/docs/:path*"
     },
     {
       "source": "/((?!api/).*)",
