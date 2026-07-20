@@ -63,6 +63,13 @@ function normalizePartOfSpeech(raw: string): string {
   return "other";
 }
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9一-鿿]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function getImageDescription(imageType: string): string {
   return (
     DEFAULT_IMAGE_DESCRIPTIONS[imageType] ??
@@ -95,6 +102,7 @@ async function seed(): Promise<void> {
   const wordbanks = await WordBank.insertMany(
     mockLibraries.map((lib) => ({
       name: lib.name,
+      slug: slugify(lib.name),
       description: lib.description,
       gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     })),

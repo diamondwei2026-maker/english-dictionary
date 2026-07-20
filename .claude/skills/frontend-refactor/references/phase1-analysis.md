@@ -510,6 +510,57 @@ App.tsx
 > 最常见的退化行为是用 emoji 替代——这是最难在 Phase 4 修复的保真度损失。
 > 图标资产清单是 Phase 2 图标迁移策略和 Phase 3 图标约束的数据来源。
 
+### 文档 6：API 资产清单 🆕
+
+> **适用条件**：仅当 SKILL.md 决策树步骤 4k 检测到源项目有真实 API 对接时生成此文档。
+> 纯静态/纯 mock 项目跳过。
+
+API 层是最容易被 Phase 3 Agent 遗漏的模块——Agent 擅长生成 UI 和样式，但 API 客户端配置、
+认证 Token 管理、请求拦截器等"看不见"的基础设施层容易被忽略。必须单独建立清单。
+
+```markdown
+# API 资产清单
+
+## API 客户端配置
+
+| 配置项 | 源值 | 说明 |
+|--------|------|------|
+| 基础 URL | `https://api.example.com/v1` | 或 `import.meta.env.VITE_API_BASE` |
+| HTTP 客户端 | `axios` / `fetch` / `ky` | 源使用的 HTTP 库 |
+| 超时设置 | `10000ms` | |
+| 重试策略 | 3 次 / 无 | |
+
+## 认证机制
+
+| 维度 | 源实现 | 目标可行性 |
+|------|--------|----------|
+| Token 存储 | `localStorage.getItem('token')` | H5 ✅ / 小程序 ⚠️ 需改为 `uni.getStorageSync` |
+| Token 传递 | `Authorization: Bearer ${token}` Header | 全平台 ✅ |
+| Token 刷新 | 响应拦截器 401 → `/refresh` → 重试 | 需保留逻辑 |
+| 角色权限 | `user.role === 'admin'` 前端判断 | 同源保留 |
+| Cookie-based session | 浏览器自动管理 | 小程序 ❌ 不支持 Cookie → 必须改为 Token Header |
+
+## API 端点清单
+
+| ID | 方法 | 路径 | 参数 | 响应类型 | 调用位置 | 错误处理 |
+|----|------|------|------|---------|---------|---------|
+| API-01 | GET | `/words?q={query}` | query: string | `Word[]` | HomeView.tsx:42 | toast "搜索失败" |
+| API-02 | GET | `/words/{id}` | id: string | `WordDetail` | WordDetailView.tsx:18 | 404 → 显示"单词不存在" |
+| API-03 | POST | `/auth/login` | {phone, password} | `{token, user}` | AuthView.tsx:55 | toast 错误信息 |
+| ... | ... | ... | ... | ... | ... | ... |
+
+## 请求/响应拦截器
+
+| 拦截器类型 | 源逻辑 | 目标实现 |
+|-----------|--------|---------|
+| 请求拦截器 | 自动附加 `Authorization` Header | 同逻辑，适配目标 HTTP 客户端 API |
+| 响应拦截器 | 401 → 清除 token → 跳转登录页 | 同逻辑 |
+| 响应拦截器 | 网络错误 → toast "网络不可用" | 同逻辑 |
+| 响应拦截器 | 500 → toast "服务器错误" | 同逻辑 |
+```
+
+> **说明**：API 资产清单是 Phase 2 第七类映射（API 与服务端）和 Phase 4 Step 4.3h（API 层验证）的数据来源。
+
 ---
 
 ## 进入第二阶段前的验证

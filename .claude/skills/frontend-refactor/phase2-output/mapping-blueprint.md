@@ -1,654 +1,550 @@
-# Phase 2 迁移蓝图：React (inline-style) → Vue 3 + uni-app + uni-ui + Vite + Formily
+# Phase 2 — 迁移映射蓝图
 
-> 源项目：`figma-prototype`（英语母语者词典APP）
-> 目标技术栈：Vue 3 + uni-app + uni-ui + Vite + Formily
-> 日期：2026-07-16
-> 迁移规则来源：`references/migrations/react→uniapp.md`（已验证）
+> **源**：Taro 3.6 + React 18 + TypeScript（english-dictionary/client/）
+> **目标**：uni-app (Vue 3) + Vite + TypeScript + SCSS（english-dictionary/client-uni/）
+> **日期**：2026-07-20
 
 ---
 
-## 一、文件映射表
+## 一、逐文件映射表
+
+### 数据层（Layer 0-1）
 
 | # | 源文件 | 目标文件 | 难度 | 关键说明 |
 |---|--------|---------|------|---------|
-| 0 | — (框架要求) | `index.html` | 🟢 低 | **[REQUIRED]** 根目录，使用 uni-app 已验证模板 |
-| 1 | `src/main.tsx` | `src/main.ts` | 🟢 低 | 入口点：createSSRApp + 自挂载 |
-| 2 | `src/app/App.tsx` | `src/App.vue` | 🔴 关键 | 路由重写：useState → pages.json + store；根组件 |
-| 3 | `src/app/data/types.ts` | `src/data/types.ts` | 🟢 低 | 直接保留，无 React 特定类型 |
-| 4 | `src/app/data/mockData.ts` | `src/data/mockData.ts` | 🟢 低 | 直接保留，AI_GENERATED_TEMPLATES 保留 |
-| 5 | `src/app/components/BottomNav.tsx` | — (原生 tabBar) | 🟢 低 | 由 `pages.json` tabBar 配置取代 |
-| 6 | `src/app/components/HomeView.tsx` | `src/pages/home/home.vue` | 🟡 中 | 搜索+列表+焦点样式 |
-| 7 | `src/app/components/WordDetailView.tsx` | `src/pages/word-detail/word-detail.vue` | 🔴 高 | 复杂布局；SVG → 条件编译保留；滚动行为 |
-| 8 | `src/app/components/LibrariesView.tsx` | `src/pages/libraries/libraries.vue` + `src/pages/library-words/library-words.vue` | 🟡 中 | 拆为两个路由页面 |
-| 9 | `src/app/components/ProfileView.tsx` | `src/pages/profile/profile.vue` | 🟡 中 | 未登录/已登录双态；条件渲染 |
-| 10 | `src/app/components/AuthView.tsx` | `src/pages/auth/auth.vue` | 🟡 中 | 表单验证 + Formily 可选增强 |
-| 11 | `src/app/components/AdminView.tsx` | `src/pages/admin/admin.vue` + 4 个子组件（见下方拆分） | 🔴 高 | 🔴 拆为6个文件：admin主入口 + 5个子视图 |
-| 11a | AdminView:Overview | `src/pages/admin/components/OverviewSection.vue` | 🟡 中 | 数据概览 |
-| 11b | AdminView:LibraryManager | `src/pages/admin/components/LibraryManager.vue` | 🟡 中 | 词库 CRUD |
-| 11c | AdminView:WordManager | `src/pages/admin/components/WordManager.vue` | 🟡 中 | 单词 CRUD + 搜索 |
-| 11d | AdminView:WordEditForm | `src/pages/admin/components/WordEditForm.vue` | 🔴 高 | AI 生成 + 复杂表单 → Formily 候选 |
-| 11e | AdminView:UserManager | `src/pages/admin/components/UserManager.vue` | 🟢 低 | 用户列表（只读） |
-| 12 | `src/app/components/PhysicalImage.tsx` | `src/components/PhysicalImage.vue` | 🟡 中 | 8 个 SVG → H5 条件编译保留；小程序 PNG 回退 |
-| 13 | `src/app/components/figma/ImageWithFallback.tsx` | `src/components/ImageWithFallback.vue` | 🟢 低 | 图片兜底组件 |
-| — | (复用分析新增) | `src/components/PageHeader.vue` | 🟡 中 | 🔴 共享组件：9 个页面复用 |
-| — | (复用分析新增) | `src/components/SectionLabel.vue` | 🟢 低 | 🔴 共享组件 |
-| — | (复用分析新增) | `src/components/PrimaryButton.vue` | 🟢 低 | 🔴 共享组件 |
-| — | (复用分析新增) | `src/components/WordCard.vue` | 🟡 中 | 🔴 共享组件 |
-| — | (复用分析新增) | `src/components/EmptyState.vue` | 🟢 低 | 🔴 共享组件 |
-| — | (复用分析新增) | `src/components/SearchBar.vue` | 🟡 中 | 🔴 共享组件：focus/blur 状态 |
-| — | (逻辑复用新增) | `src/utils/helpers.ts` | 🟢 低 | getWordById, getLibraryById, getPosColor, filterWords |
-| — | (逻辑复用新增) | `src/composables/useInputFocus.ts` | 🟡 中 | focus/blur :class 切换 |
-| — | (状态复用新增) | `src/store/user.ts` | 🟢 低 | 全局 user 状态（reactive store） |
-| — | (框架要求) | `src/pages.json` | 🔴 关键 | **[REQUIRED]** src/ 下 |
-| — | (框架要求) | `src/manifest.json` | 🟢 低 | **[REQUIRED]** src/ 下 |
-| — | (框架要求) | `src/uni.scss` | 🟡 中 | **[REQUIRED]** 全局 SCSS 变量 |
-| — | (框架要求) | `src/shims-vue.d.ts` | 🟢 低 | **[REQUIRED]** TypeScript 声明 |
-| — | (框架要求) | `vite.config.ts` | 🔴 关键 | **[REQUIRED]** 根目录，uni 插件 |
-| — | (框架要求) | `tsconfig.json` | 🟢 低 | **[REQUIRED]** 根目录 |
-| — | (框架要求) | `package.json` | 🔴 关键 | **[REQUIRED]** 根目录 |
+| 1 | `data/types.ts` | `src/types/index.ts` | 🟢 低 | 直接迁移；`React.ReactNode` → `string | VNode` |
+| 2 | `data/mockData.ts` | —（不移植） | — | 目标不使用 mock 模式 |
+| 3 | `api/request.ts` | `src/utils/request.ts` | 🟡 中 | `Taro.request` → `uni.request`；Token 适配 uni.getStorageSync |
+| 4 | `api/index.ts` | `src/api/index.ts` | 🟢 低 | 统一导出 |
+| 5 | `api/auth.ts` | `src/api/auth.ts` | 🟡 中 | API 函数签名保留，HTTP 客户端改为 `request()` |
+| 6 | `api/users.ts` | `src/api/users.ts` | 🟡 中 | 同上 |
+| 7 | `api/words.ts` | `src/api/words.ts` | 🟡 中 | 同上 |
+| 8 | `api/wordbanks.ts` | `src/api/wordbanks.ts` | 🟡 中 | 同上 |
+| 9 | `api/dashboard.ts` | `src/api/dashboard.ts` | 🟡 中 | 同上 |
+| 10 | `api/learning.ts` | `src/api/learning.ts` | 🟡 中 | 同上 |
+| 11 | `api/favorites.ts` | `src/api/favorites.ts` | 🟡 中 | 同上 |
+| 12 | `api/daily-word.ts` | `src/api/daily-word.ts` | 🟡 中 | 同上 |
+| 13 | `api/ai.ts` | `src/api/ai.ts` | 🔴 高 | SSE 流式需重写——uni-app 无原生 ReadableStream |
+| 14 | `api/adapters.ts` | `src/utils/adapters.ts` | 🟢 低 | 纯函数，直接迁移 |
+| 15 | `hooks/useAuth.ts` | `src/composables/useAuth.ts` | 🟡 中 | 全局单例 + 发布订阅 → `reactive` + `provide/inject`；localStorage → uni.getStorageSync |
+| 16 | `hooks/useNavigate.ts` | `src/utils/navigation.ts` | 🟢 低 | `Taro.navigateTo` → `uni.navigateTo` 等 |
+
+### 共享组件（Layer 2）
+
+| # | 源文件 | 目标文件 | 难度 | 关键说明 |
+|---|--------|---------|------|---------|
+| 17 | `components/Icon.tsx` | `src/components/Icon.vue` | 🔴 高 | **阻塞项**：20 种图标全部来自 @taroify/icons，必须用 iconfont 重写 |
+| 18 | `components/PageHeader.tsx` | `src/components/PageHeader.vue` | 🟡 中 | 10 props → Vue props；DOM 结构映射；sticky/blur 条件编译 |
+| 19 | `components/PrimaryBtn.tsx` | `src/components/PrimaryButton.vue` | 🟢 低 | 3 变体 + loading/disabled |
+| 20 | `components/PhysicalImage.tsx` | `src/components/PhysicalImage.vue` | 🟡 中 | 9 种 SVG 插图；H5 用 SVG，小程序用 PNG 回退 |
+| 21 | `components/CustomTabBar/index.tsx` | `src/components/CustomTabBar.vue` | 🟡 中 | 自定义 TabBar → 优先用 pages.json 原生 tabBar；若保留自定义版需要 uni.switchTab |
+
+### 页面（Layer 3-4）
+
+| # | 源文件 | 目标文件 | 难度 | 关键说明 |
+|---|--------|---------|------|---------|
+| 22 | `pages/home/index.tsx` | `src/pages/home/home.vue` | 🟡 中 | 搜索+今日一词+全部词汇；300ms 防抖 |
+| 23 | `pages/auth/index.tsx` | `src/pages/auth/auth.vue` | 🟡 中 | 登录/注册双模式；3 个 input focus 管理 |
+| 24 | `pages/word-detail/index.tsx` | `src/pages/word-detail/word-detail.vue` | 🟡 中 | 收藏切换+学习记录+PhysicalImage |
+| 25 | `pages/libraries/index.tsx` | `src/pages/libraries/libraries.vue` | 🟢 低 | 词库列表 |
+| 26 | `pages/library-words/index.tsx` | `src/pages/library-words/library-words.vue` | 🟢 低 | 词库内单词列表 |
+| 27 | `pages/profile/index.tsx` | `src/pages/profile/profile.vue` | 🟡 中 | 未登录/已登录双态；收藏子视图；admin入口 |
+
+### Admin 拆分（Layer 4 — 源文件 > 200 行，强制拆分）
+
+| # | 源范围 | 目标文件 | 难度 | 关键说明 |
+|---|--------|---------|------|---------|
+| 28 | `admin/index.tsx`[1-100] Overview | `src/pages/admin/admin.vue` | 🟡 中 | 子模块1/5：概览仪表盘 |
+| 29 | `admin/index.tsx`[200-330] LibraryManager | `src/pages/admin/libraries.vue` | 🟡 中 | 子模块2/5：词库CRUD |
+| 30 | `admin/index.tsx`[330-700] WordEditForm | `src/pages/admin/word-edit.vue` | 🔴 高 | 子模块3/5：AI生成+15+字段表单+2处Picker |
+| 31 | `admin/index.tsx`[700-800] WordManager | `src/pages/admin/words.vue` | 🟡 中 | 子模块4/5：单词列表+搜索 |
+| 32 | `admin/index.tsx`[800-900] UserManager | `src/pages/admin/users.vue` | 🟢 低 | 子模块5/5：用户只读列表 |
+
+### 入口与配置（Layer 5-6）
+
+| # | 源文件 | 目标文件 | 难度 | 关键说明 |
+|---|--------|---------|------|---------|
+| 33 | `app.tsx` | `src/App.vue` | 🟡 中 | useLaunch → onLaunch |
+| 34 | `app.config.ts` | `src/pages.json` | 🟡 中 | 路由配置转换 |
+| 35 | `app.scss` | `src/uni.scss` | 🟡 中 | CSS变量体系 + 条件编译 |
+| 36 | `index.html` | `index.html` | 🟢 低 | **[REQUIRED]** H5 入口模板 |
+| 37 | —（框架要求） | `vite.config.ts` | 🟢 低 | **[REQUIRED]** 从框架模板生成 |
+| 38 | —（框架要求） | `src/manifest.json` | 🟢 低 | **[REQUIRED]** 框架必备 |
+| 39 | —（框架要求） | `tsconfig.json` | 🟢 低 | **[REQUIRED]** 框架必备 |
+| 40 | —（框架要求） | `package.json` | 🟡 中 | **[REQUIRED]** 从 npm view 获取真实版本号 |
+| 41 | —（框架要求） | `src/shims-vue.d.ts` | 🟢 低 | **[REQUIRED]** TypeScript 声明 |
+| 42 | `pages/*/index.config.ts` | 合并到 `pages.json` | 🟢 低 | 页面级配置 → pages.json style |
 
 ### 不移植的文件
 
 | 源文件 | 原因 |
 |--------|------|
-| `src/app/components/BottomNav.tsx` | 由 uni-app 原生 tabBar 取代 |
-| `vite.config.ts` | 由 uni-app 的 vite.config.ts 替代 |
-| `postcss.config.mjs` | uni-app 内置 PostCSS 处理 |
-| `pnpm-workspace.yaml` | 目标项目不使用 pnpm workspace |
-| `src/styles/index.css` / `tailwind.css` / `fonts.css` / `theme.css` / `globals.css` | 由 uni.scss + App.vue 全局样式替代 |
-| `default_shadcn_theme.css` | 不使用 shadcn/ui |
-| `guidelines/Guidelines.md` | 空模板，无需迁移 |
-| `src/app/components/ui/*.tsx` (49 files) | shadcn/ui 样板，由 uni-ui 替代 |
-
-### 📋 最终目标目录结构（总计 ~38 文件）
-
-```
-target-project/
-├── index.html                     → 根目录
-├── package.json                   → 根目录
-├── vite.config.ts                 → 根目录
-├── tsconfig.json                  → 根目录
-└── src/
-    ├── main.ts                    → 入口
-    ├── App.vue                    → 根组件
-    ├── pages.json                 → 路由配置
-    ├── manifest.json              → 应用清单
-    ├── uni.scss                   → 全局 SCSS 变量
-    ├── shims-vue.d.ts             → TS 类型声明
-    ├── data/
-    │   ├── types.ts               → 类型定义
-    │   └── mockData.ts            → 模拟数据
-    ├── store/
-    │   └── user.ts                → 全局用户状态
-    ├── composables/
-    │   └── useInputFocus.ts       → 输入框 focus 管理
-    ├── utils/
-    │   └── helpers.ts             → 工具函数
-    ├── components/
-    │   ├── PageHeader.vue         → 共享页头
-    │   ├── SectionLabel.vue       → 区块标签
-    │   ├── PrimaryButton.vue      → 主按钮
-    │   ├── WordCard.vue           → 单词卡片
-    │   ├── EmptyState.vue         → 空状态
-    │   ├── SearchBar.vue          → 搜索栏
-    │   ├── PhysicalImage.vue      → 物理意象图
-    │   └── ImageWithFallback.vue  → 图片兜底
-    ├── pages/
-    │   ├── home/home.vue          → 首页
-    │   ├── word-detail/word-detail.vue → 单词详情
-    │   ├── libraries/libraries.vue     → 词库列表
-    │   ├── library-words/library-words.vue → 词库单词
-    │   ├── profile/profile.vue    → 个人中心
-    │   ├── auth/auth.vue          → 登录注册
-    │   └── admin/
-    │       ├── admin.vue          → 管理主页
-    │       └── components/
-    │           ├── OverviewSection.vue
-    │           ├── LibraryManager.vue
-    │           ├── WordManager.vue
-    │           ├── WordEditForm.vue
-    │           └── UserManager.vue
-    └── static/
-        ├── fonts/
-        │   └── iconfont.ttf       → 图标字体占位
-        └── images/
-            ├── tab-home.png
-            ├── tab-home-active.png
-            ├── tab-libraries.png
-            ├── tab-libraries-active.png
-            ├── tab-profile.png
-            └── tab-profile-active.png
-```
+| `data/mockData.ts` | 目标仅真实 API |
+| `pages/home/index.config.ts` | 合并到 pages.json |
+| `pages/auth/index.config.ts` | 合并到 pages.json |
+| （其他 5 个 `*.config.ts`） | 合并到 pages.json |
 
 ---
 
 ## 二、六大类映射规则
 
-### 2.1 组件模型映射
+### 2.1 组件模型
 
-| 源模式 (React) | 目标模式 (uni-app Vue 3) | 代码示例 |
-|---------------|------------------------|---------|
-| `function C(props: I)` | `<script setup>` + `defineProps<I>()` | — |
-| `<div style={...}>` | `<view class="c">` | 静态值进 scoped class |
-| `<h1>`~`<h4>` | `<view class="h1">` | 无原生语义标签 |
-| `<span>` | `<text>` | 🔴 NC-14: 必须 `display: block` 替代块级 |
-| `<p>` | `<text>` 或 `<view>` | 🔴 NC-14: 截断场景必须 `display: block` |
-| `<input onChange>` | `<input v-model @input>` | v-model 自动处理值绑定 |
-| `<button>` | `<view class="btn" @click>` | 避免小程序 button 默认样式 |
-| `<select>` | `<picker mode="selector">` 条件编译 | 🔴 见 2.4c |
-| `useState(x)` | `ref(x)` | `import { ref } from 'vue'` **不从 @dcloudio** |
-| `useMemo(fn, deps)` | `computed(fn)` | — |
-| `useEffect(fn, [])` | `onMounted(fn)` | — |
-| `window.confirm()` | `uni.showModal({...})` | 异步回调替代同步阻塞 |
-| `<React.Fragment>` / `<>` | `<template>` 或 `<block>` | — |
-| `{view.name === 'home' && <C/>}` | `pages.json` 路由 → 无需条件渲染 | — |
+| 源（Taro + React） | 目标（uni-app + Vue 3） |
+|-------------------|------------------------|
+| `<View>` | `<view>` |
+| `<Text>` | `<text>`（注意 NC-14：默认 display:inline） |
+| `<Input>` | `<input>`（需显式 height + 闭合标签 NC-01/02） |
+| `<Textarea>` | `<textarea>`（需 auto-height NC-03） |
+| `<Image>` | `<image>` |
+| `<Picker mode="selector" range={arr}>` | `<picker mode="selector" :range="arr" @change="...">` |
+| `function C(props: I)` | `<script setup>` + `defineProps<I>()` |
+| `useState(x)` | `ref(x)` / `reactive({...})` |
+| `useMemo(fn, deps)` | `computed(fn)` |
+| `useEffect(fn, [])` | `onMounted(fn)` |
+| `useEffect(fn, [dep])` | `watch(dep, fn)` |
+| `<>{children}</>`（Fragment） | `<template>` / `<block>` |
+| `{cond && <X/>}` | `<X v-if="cond" />` |
+| `{cond ? <A/> : <B/>}` | `<A v-if="cond" />` `<B v-else />` |
+| `{items.map(i => <X key={i.id}/>)}` | `<X v-for="i in items" :key="i.id" />` |
+| `style={{padding:'16px'}}` | 静态 → scoped CSS class；动态 → `:style` |
 
-### 2.2 事件系统映射
+### 2.2 事件系统
 
-| 源 (React) | 目标 (uni-app) | 说明 |
-|-----------|---------------|------|
-| `onClick={...}` | `@click` / `@tap` | 小程序端优先 `@tap` |
-| `onChange={e => setX(e.target.value)}` | `@input` + `v-model` | v-model 自动处理 |
-| `onFocus={e => e.target.style.xxx=...}` | `@focus` + `:class` 绑定 | 🔴 **关键**：DOM 操作 → 声明式 class |
-| `onBlur={e => e.target.style.xxx=...}` | `@blur` + `:class` 绑定 | 🔴 同上 |
-| `onKeyDown={e => e.key==='Enter' && fn()}` | `@confirm`（input）/ `@keydown.enter`（H5） | 小程序端 input 用 `@confirm` |
-| `onSubmit` | `@submit` / 按钮 `@click` | — |
+| 源（React） | 目标（Vue 3） |
+|------------|-------------|
+| `onClick={fn}` | `@click="fn"` |
+| `onInput={e => fn(e.detail.value)}`（Taro Input） | `@input="fn"` + `v-model` |
+| `onChange={e => ...}` | `@change="..."` |
+| `onFocus={fn}` | `@focus="fn"` |
+| `onBlur={fn}` | `@blur="fn"` |
+| `onConfirm={fn}`（Taro Input） | `@confirm="fn"` |
+| `e.stopPropagation()` | `@click.stop="fn"` |
+| `setTimeout(()=>{}, ms)` | 直接保留（`setTimeout`） |
+| `setInterval(()=>{}, ms)` | 直接保留（`setInterval`） |
+| `useRef(x)` | `ref(x)` — 从 `vue` 导入，不是 `@dcloudio/uni-app` |
 
-### 2.3 样式系统映射
-
-| 源 (React inline-style) | 目标 (uni-app) | 规则 |
-|-------------------------|---------------|------|
-| `style={{padding:'16px',...}}` | scoped CSS `.class { padding: 32rpx; ... }` | 静态值进 class |
-| `style={{color: isX ? '#A' : '#B'}}` | `:style="{ color: isX ? '#A' : '#B' }"` | 动态值留 :style |
-| `e.target.style.borderColor = '...'` | `:class="{ 'input--focused': isFocused }"` | 🔴 命令式 → 声明式 |
-| `backdropFilter: 'blur(16px)'` | `/* #ifdef H5 */ backdrop-filter: blur(32rpx); /* #endif */` | 🔴 必须条件编译 |
-| `transition: 'border-color 0.2s...'` | `/* #ifdef H5 */ transition: ...; /* #endif */` | 🔴 NC-04 |
-| `position: 'fixed'` BottomNav | `pages.json` 原生 tabBar | 移除自定义 BottomNav |
-| px → rpx | `1px = 2rpx`（375px → 750rpx 基准） | 所有静态值 ×2 |
-| `boxShadow: '0 2px 16px...'` | `box-shadow: 0 4rpx 32rpx rgba(0,0,0,0.05)` | 数值 ×2 |
-| `resize: 'vertical'` textarea | 移除 → 小程序用 `auto-height` | 🔴 NC-08 |
-
-### 2.4 路由与导航映射
-
-| 源 (useState 手动路由) | 目标 (uni-app pages.json) |
-|------------------------|--------------------------|
-| `setView({name:'home'})` | `uni.switchTab({url:'/pages/home/home'})` |
-| `setView({name:'wordDetail', wordId})` | `uni.navigateTo({url:'/pages/word-detail/word-detail?wordId='+id})` |
-| `setView({name:'libraries'})` | `uni.switchTab({url:'/pages/libraries/libraries'})` |
-| `setView({name:'libraryWords', libraryId})` | `uni.navigateTo({url:'/pages/library-words/library-words?libraryId='+id})` |
-| `setView({name:'profile'})` | `uni.switchTab({url:'/pages/profile/profile'})` |
-| `setView({name:'login'})` | `uni.navigateTo({url:'/pages/auth/auth?mode=login'})` |
-| `setView({name:'register'})` | `uni.navigateTo({url:'/pages/auth/auth?mode=register'})` |
-| `setView({name:'admin', tab})` | `uni.navigateTo({url:'/pages/admin/admin?tab='+tab})` |
-| 返回上一页 (ArrowLeft) | `uni.navigateBack()` |
-| 参数获取 | `onLoad((options) => { options.wordId })` |
-
-### 🔴 回调内闭合的 navigate → 内联到页面（PM-M1）
-
-| 源模式 | 问题 | 正确做法 |
-|--------|------|---------|
-| App.tsx `handleLogin` 内含 `navigate()` → 传给 AuthView.onAuth | AuthView emit('auth',u) → 但无人接收 | auth.vue 的 handleSubmit 成功后直接 `uni.switchTab/uni.navigateTo` |
-| App.tsx `handleLogout` 内含 `navigate({name:'home'})` → 传给 ProfileView.onLogout | ProfileView emit → 无人接收 | profile.vue 的退出按钮直接 `uni.switchTab({url:'/pages/home/home'})` |
-
-### 2.5 状态管理映射
-
-| 源 (React) | 目标 (uni-app Vue 3) |
-|-----------|---------------------|
-| App.tsx `useState<ViewState>` + `setView()` | `pages.json` 路由 — 移除手动视图 |
-| App.tsx `useState<AuthUser>` + props 传递 | `src/store/user.ts` → `reactive({user:null})` |
-| 组件内 `useState` | `ref()` / `reactive()` |
-| 派生状态 | `computed()` |
-| 回调 prop (`onAuth`, `onLogout`) | defineEmits + 页面内联 navigater |
-
-### 2.6 数据获取映射
+### 2.3 样式系统
 
 | 源 | 目标 |
 |----|------|
-| `import { mockWords } from '../data/mockData'` | 相同 — 保留 import |
-| `mockWords.find(w => w.id === id)` | 提取为 `helpers.ts` → `getWordById(id)` |
-| `mockLibraries.find(...)` | 提取为 `helpers.ts` → `getLibraryById(id)` |
-| `setTimeout(() => {...}, ms)` | 保留 |
-| `AI_GENERATED_TEMPLATES[word]` | 保留 |
+| 内联 `style={{...}}` | scoped CSS class（静态值）+ `:style`（动态值） |
+| `backdropFilter: 'blur(16px)'` | `/* #ifdef H5 */ backdrop-filter: blur(32rpx); /* #endif */` |
+| `transition: '...'` on input | `/* #ifdef H5 */ transition: ...; /* #endif */`（NC-04） |
+| `position: 'fixed'` CustomTabBar | 优先用 pages.json 原生 tabBar |
+| `overflow: 'hidden'` 容器 | `/* #ifdef H5 */ overflow: hidden; /* #endif */`（NC-05） |
+| Sass SCSS | 直接保留（uni.scss） |
+| CSS 变量 `--primary` | 移至 `uni.scss` 的 `page` 选择器 |
+| px → rpx | `rpx = px × 2`（375px 设计基准 → 750rpx） |
+
+### 2.4 路由与导航
+
+| 源（Taro） | 目标（uni-app） |
+|-----------|----------------|
+| `Taro.switchTab({url})` | `uni.switchTab({url})` |
+| `Taro.navigateTo({url})` | `uni.navigateTo({url})` |
+| `Taro.redirectTo({url})` | `uni.redirectTo({url})` |
+| `Taro.navigateBack()` | `uni.navigateBack()` |
+| `Taro.showModal({...})` | `uni.showModal({...})` |
+| `Taro.showToast({...})` | `uni.showToast({...})` |
+| `router.params.xxx`（useRouter） | `onLoad((options) => { options.xxx })` |
+| `app.config.ts` 路由表 | `pages.json` |
+| CustomTabBar 组件 | 优先用 `pages.json.tabBar` 原生配置 |
+
+### 2.5 状态管理
+
+| 源（React） | 目标（Vue 3） |
+|------------|-------------|
+| `useState<AuthUser\|null>`（全局单例） | `reactive({ user: null })` + `provide/inject` |
+| 发布-订阅 `listeners: Set<>` | `watch` + `reactive` 自动追踪 |
+| `localStorage` 存储 token | H5 `localStorage` / 小程序 `uni.getStorageSync` |
+| 组件内 `useState` | `ref()` / `reactive()` |
+| 计算属性 | `computed()` |
+| 回调 prop | `defineEmits` 或直接调用 store 方法 |
+
+### 2.6 数据获取
+
+| 源（Taro） | 目标（uni-app） |
+|-----------|---------------|
+| `Taro.request<T>({...})` | `uni.request<T>({...})` — API 签名略有不同 |
+| `request.ts` 拦截器 | 保留：Token 注入 + 401 自动清除 |
+| `fetch()`（ai.ts SSE） | H5 `fetch()` 保留 / 小程序 `uni.request` 非流式降级 |
+| `import { mockData }` | 不保留 — 仅真实 API |
 
 ---
 
-## 三、图标迁移映射（icongont 方案）
+## 三、图标迁移策略
 
-> **决策**：uni-icons 无法覆盖全部 20 个图标，选择 iconfont 字体图标全端方案。
-> **🔴 红线**：禁止使用任何 emoji 字符替代图标。
+### 决策：uni-icons（优先） + iconfont（补充）
 
-| 源图标 (lucide-react) | 目标实现 | 代码片段 | 说明 |
-|----------------------|---------|---------|------|
-| Search | iconfont | `<text class="iconfont">&#xe001;</text>` | 搜索放大镜 |
-| ArrowRight | iconfont | `<text class="iconfont">&#xe002;</text>` | 列表项右箭头 |
-| ArrowLeft | iconfont | `<text class="iconfont">&#xe003;</text>` | 返回左箭头 |
-| Sparkles | iconfont | `<text class="iconfont">&#xe004;</text>` | 今日一词装饰 |
-| BookOpen | iconfont | `<text class="iconfont">&#xe005;</text>` | 词库书本 |
-| User | iconfont | `<text class="iconfont">&#xe006;</text>` | 用户头像 |
-| Eye | iconfont | `<text class="iconfont">&#xe007;</text>` | 密码可见 |
-| EyeOff | iconfont | `<text class="iconfont">&#xe008;</text>` | 密码隐藏 |
-| Check | iconfont | `<text class="iconfont">&#xe009;</text>` | AI 完成标记 |
-| X | iconfont | `<text class="iconfont">&#xe00a;</text>` | 关闭/清除 |
-| Shield | iconfont | `<text class="iconfont">&#xe00b;</text>` | 管理员盾牌 |
-| LogOut | iconfont | `<text class="iconfont">&#xe00c;</text>` | 退出登录 |
-| Settings | iconfont | `<text class="iconfont">&#xe00d;</text>` | 设置齿轮 |
-| Target | iconfont | `<text class="iconfont">&#xe00e;</text>` | 学习目标 |
-| Plus | iconfont | `<text class="iconfont">&#xe00f;</text>` | 新增加号 |
-| RefreshCw | iconfont | `<text class="iconfont">&#xe010;</text>` | 重新生成 |
-| Loader | CSS animation | `<view class="spinner">` | @keyframes spin |
-| Type | iconfont | `<text class="iconfont">&#xe012;</text>` | 文字/类型 |
-| Users | iconfont | `<text class="iconfont">&#xe013;</text>` | 用户组 |
-| ChevronRight | iconfont | `<text class="iconfont">&#xe014;</text>` | 展开引导 |
+20 种源图标，分两类：
 
-**图标基础设施**：
-1. `src/static/fonts/iconfont.ttf` — 字体文件占位（Phase 3 Layer 2.5）
-2. `App.vue` 非 scoped style — `@font-face` + `.iconfont` 工具类
-3. Unicode 码点：`\e001` ~ `\e014`
+| 实现方式 | 图标列表 | 数量 |
+|---------|---------|------|
+| **uni-icons** | search, arrow-left, arrow-right/chevron-right, eye, plus, close, check, refresh, settings | 10 |
+| **iconfont** | book, user, eye-off, trash, shield, sparkles, target, fire, font, friends, logout | 10 |
 
----
+### 图标代码映射表（Phase 3 Agent 直接引用）
 
-## 四、不可直接映射的特性及多平台决策
-
-| # | 源特性 | 问题 | 替代方案 | 保真度差距 | 多平台影响 |
-|----|--------|------|---------|-----------|-----------|
-| D1 | `maxWidth: '430px'` 中央窄栏 | 小程序无此概念 | H5 条件编译保留 | 🟡 | 见 D1 矩阵 |
-| D2 | 自定义 BottomNav 组件 | 无原生 tabBar 体验 | `pages.json` 原生 tabBar | 🟡 可接受 | 见 D2 矩阵 |
-| D3 | `backdropFilter: blur(16px)` | 小程序不支持 | H5 保留 blur，小程序纯色背景 | 🟡 | 见 D3 矩阵 |
-| D4 | `transition: 'border-color 0.2s'` | 小程序原生组件不支持 | H5 保留 transition，小程序 `:class` 突变 | 🟡 | 见 D8 矩阵 |
-| D5 | 内联 SVG PhysicalImage | 小程序不支持内联 SVG | H5 保留 SVG；小程序 PNG 回退 | 🟡 | 见 D5 矩阵 |
-| D6 | `<select>` 词库/词性选择 | 小程序无原生 select | `<picker mode="selector">` | 🟢 | 见 §2.4c |
-| D7 | `window.confirm()` 同步阻塞 | 小程序不支持 | `uni.showModal()` 异步 | 🟢 | AdminView 删除确认 |
-| D8 | Input focus CSS transition | 小程序原生层冲突（NC-04） | H5 保留 transition；小程序 :class 突变 | 🟡 | 见 D8 矩阵 |
-
-### 多平台影响矩阵
-
-#### D1：移除页面级 maxWidth
-
-| 评估维度 | H5 桌面端 | H5 移动端 | 微信小程序 |
-|---------|----------|----------|-----------|
-| 视觉影响 | 🔴 严重：宽屏拉伸 | 🟢 无影响 | 🟢 无影响 |
-| 判定 | 🔴 不可接受 → 条件编译保留 | 🟢 | 🟢 |
-
-**决策**：`/* #ifdef H5 */` 包裹 `max-width: 860rpx; margin: 0 auto`（App.vue 根容器）
-
-#### D3：header backdrop-filter blur
-
-| 评估维度 | H5 | 微信小程序 |
-|---------|----|-----------|
-| 视觉影响 | 🔴 blur 丢失 → 视觉降级 | 🟡 小程序不支持 → 纯色背景可接受 |
-| 判定 | 🔴 不可接受 → 条件编译保留 | 🟡 可接受 |
-
-**决策**：`/* #ifdef H5 */ backdrop-filter: blur(32rpx); -webkit-backdrop-filter: blur(32rpx); /* #endif */`
-
-#### D8：input focus CSS transition
-
-| 评估维度 | H5 | 微信小程序 |
-|---------|----|-----------|
-| 视觉影响 | 🟢 平滑过渡 | 🟡 :class 突变仍可见 |
-| 判定 | 🟢 保留 | 🟡 可接受 |
-
-**决策**：H5 端 `transition` 保留；小程序端靠 `:class` 切换背景色突变表达 focus 状态。
-
-### H5 专属条件编译属性清单
-
-| 属性 | 条件编译语法 | 关联决策 |
-|------|------------|---------|
-| `max-width` + `margin: 0 auto` | `/* #ifdef H5 */` | D1 |
-| `backdrop-filter` + `-webkit-backdrop-filter` | `/* #ifdef H5 */` | D3 |
-| `transition` 在 input/textarea 上 | `/* #ifdef H5 */` | D8 |
-| `cursor: pointer` | `/* #ifdef H5 */` | — |
-| 内联 SVG（PhysicalImage） | `<!-- #ifdef H5 -->` | D5 |
-| `@import url()` Google Fonts | `/* #ifdef H5 */` | NC-09 |
-| `*` 通配选择器 | `/* #ifdef H5 */` | NC-10 |
-| `html, body` 选择器 | `/* #ifdef H5 */` | NC-11 |
-
----
-
-## 五、输入框样式模式分类（Step 4b — 完整）
-
-> **触发**：源用 `e.target.style.xxx = '...'` 命令式 DOM 操作 + 不同页面有不同默认值 +
-> 目标是 uni-app → 完整执行。
-
-### 5.1 模式枚举
-
-| 模式 ID | blur border | blur bg | focus border | focus bg | 出现位置 |
-|---------|-----------|---------|-------------|---------|---------|
-| INPUT-A | `transparent` | `#F1F5F9` | `#2563EB` | `#FFFFFF` | HomeView 搜索框、AdminView 全部（搜索框+表单+textarea+select） |
-| INPUT-B | `#E5E7EB` | `#FFFFFF` | `#2563EB` | `#FFFFFF` | AuthView 全部（手机号+密码+用户名） |
-
-### 5.2 SCSS 实现
-
-```scss
-// uni.scss — 全局注入
-
-// INPUT-A: 透明边框 + 灰色背景 → 蓝色边框 + 白色背景
-@mixin input-pattern-a {
-  border: 3rpx solid transparent;
-  background: #F1F5F9;
-  /* #ifdef H5 */
-  transition: border-color 0.2s, background 0.2s;
-  /* #endif */
-}
-
-@mixin input-pattern-a-focused {
-  border-color: #2563EB !important;
-  background: #fff !important;
-}
-
-// INPUT-B: 灰色边框 + 白色背景 → 蓝色边框（背景不变）
-@mixin input-pattern-b {
-  border: 3rpx solid #E5E7EB;
-  background: #fff;
-  /* #ifdef H5 */
-  transition: border-color 0.2s;
-  /* #endif */
-}
-
-@mixin input-pattern-b-focused {
-  border-color: #2563EB !important;
-}
+```
+search       → <uni-icons type="search" size="18" color="#9CA3AF" />
+arrow-left   → <uni-icons type="arrowleft" size="18" color="#6B7280" />
+chevron-right→ <uni-icons type="arrowright" size="16" color="#D1D5DB" />
+eye          → <uni-icons type="eye" size="18" color="#9CA3AF" />
+plus         → <uni-icons type="plus" size="16" color="#6B7280" />
+close        → <uni-icons type="clear" size="16" color="#9CA3AF" />
+check        → <uni-icons type="checkmarkempty" size="15" color="#fff" />
+refresh      → <uni-icons type="refreshempty" size="13" color="#374151" />
+settings     → <uni-icons type="gear" size="16" color="#6B7280" />
+book         → <text class="iconfont">&#xe001;</text>
+user         → <text class="iconfont">&#xe002;</text>
+eye-off      → <text class="iconfont">&#xe003;</text>
+trash        → <text class="iconfont">&#xe004;</text>
+shield       → <text class="iconfont">&#xe005;</text>
+sparkles     → <text class="iconfont">&#xe006;</text>
+target       → <text class="iconfont">&#xe007;</text>
+fire         → <text class="iconfont">&#xe008;</text>
+font         → <text class="iconfont">&#xe009;</text>
+friends      → <text class="iconfont">&#xe00a;</text>
+logout       → <text class="iconfont">&#xe00b;</text>
 ```
 
-### 5.3 文件→模式映射表
+### 🚫 Emoji 红线
 
-| 文件 | 输入框类型 | 使用模式 | focus 管理 |
-|------|----------|---------|-----------|
-| home.vue | 搜索 input | INPUT-A | useInputFocus composable |
-| admin/components/WordManager.vue | 搜索 input | INPUT-A | useInputFocus composable |
-| admin/components/LibraryManager.vue | input + textarea | INPUT-A | useInputFocus composable |
-| admin/components/WordEditForm.vue | input + textarea + select | INPUT-A | useInputFocus composable |
-| auth.vue | 手机号/密码/用户名 input | INPUT-B | useInputFocus composable |
+**任何情况下都禁止使用 emoji 替代图标。** 禁止：🔍 ✨ 📖 👤 🛡 ⚙ 🎯 🚪 📭 ❌ ✅ ➕ 🔄 💡
 
----
+### 基础设施（Layer 2.5 占位）
 
-## 六、复用分析
-
-### 6.1 组件复用
-
-| 复用模式 | 出现次数 | 出现位置 | 建议 |
-|---------|---------|---------|------|
-| 页头（半透明背景 + blur + 标题 + 可选返回+可选右侧） | 9 | home, libraries, library-words, profile(已登录), word-detail, auth, admin(×3) | 🟢 **提取为 PageHeader** |
-| 区块标签（大写小字 + letter-spacing） | 15+ | word-detail, admin 所有子组件 | 🟢 **提取为 SectionLabel** |
-| 主操作按钮（全宽 + 蓝色 + 圆角 + loading 态） | 8+ | profile, auth, admin(保存/生成/提交) | 🟢 **提取为 PrimaryButton** |
-| 单词列表项（单词名+音标+含义+箭头） | 3 | home(全部词汇), home(搜索结果), library-words | 🟡 **提取为 WordCard** |
-| 空状态提示（图标+标题+副标题） | 4 | home(搜索无结果), library-words(空词库), admin(词库/单词为空) | 🟢 **提取为 EmptyState** |
-| 搜索栏（图标+输入框+focus/blur 边框） | 2 | home, admin/WordManager | 🟡 **提取为 SearchBar** |
-| 物理意象图（SVG+标签） | 2 | word-detail, admin/WordEditForm | 🟡 **提取为 PhysicalImage** |
-
-### 6.2 PageHeader — 差异化参数清单
-
-| 属性维度 | home | libraries | library-words | profile(已登录) | word-detail | auth | admin |
-|---------|------|-----------|---------------|----------------|-------------|------|-------|
-| 背景色 | `rgba(255,255,255,0.9)` | `rgba(255,255,255,0.9)` | `rgba(255,255,255,0.9)` | `rgba(255,255,255,0.9)` | `rgba(247,249,252,0.92)` | 无header背景 | `rgba(247,249,252,0.94)` |
-| padding-top | 56px | 52px | 52px | 52px | 52px | 52px | 52px |
-| 返回按钮 | ❌ | ❌ | ✅ "词库列表" | ❌ | ✅ "返回" | ✅ "返回" | ✅ "返回" |
-| 右侧操作 | ❌ | ❌ | ❌ | ❌ | 词库标签 badge | ❌ | 新增按钮 |
-| 标题 | 双行(小字+大字) | 双行 | 动态(词库名) | 双行 | 无(用h1在内容) | 动态(logo+标题) | 双行(小字+大字) |
-
-**Props 接口推导**：
-
-| Prop | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `title` | `string` | 必填 | 主标题 |
-| `subtitle` | `string` | `''` | 副标题（小字标签行） |
-| `showBack` | `boolean` | `false` | 是否显示返回按钮 |
-| `backLabel` | `string` | `'返回'` | 返回按钮文字 |
-| `bgType` | `'white' \| 'page' \| 'none'` | `'white'` | 背景类型 |
-| `paddingTop` | `number` | `104` | top padding（rpx） |
-
-### 6.3 样式复用 → SCSS 变量/mixin
-
-| 复用模式 | 实施方式 |
-|---------|---------|
-| header padding + 背景 | SCSS 变量 `$header-padding-top`, `$header-padding-bottom` |
-| 吸顶 header | SCSS mixin `@mixin sticky-header` |
-| 区块标签 | 全局类 `.section-label` |
-| 卡片投影 | SCSS mixin `@mixin card($radius: 48rpx)` |
-| 横排卡片（单词列表项） | 全局类 `.word-row-card` |
-| 按钮基础样式 | 全局类 `.btn` |
-
-### 6.4 逻辑复用 → 工具函数/composable
-
-| 复用模式 | 目标 | 实施方式 |
-|---------|------|---------|
-| `mockWords.find(w => w.id === id)` | `src/utils/helpers.ts` | `getWordById(id)` |
-| `mockLibraries.find(l => l.id === id)` | `src/utils/helpers.ts` | `getLibraryById(id)` |
-| POS_COLORS 查找 | `src/utils/helpers.ts` | `getPosColor(pos)` |
-| 搜索过滤逻辑 | `src/utils/helpers.ts` | `filterWords(query, words)` |
-| Input focus/blur 状态管理 | `src/composables/useInputFocus.ts` | `useInputFocus(initialFocus?)` |
+| 文件 | 说明 |
+|------|------|
+| `src/static/fonts/iconfont.ttf` | 最小合法 TTF 占位（≥ 1KB，含空字形表） |
+| `src/styles/iconfont.css` | `@font-face` 声明 + Unicode 码点映射 |
+| `App.vue` 全局 style | `@import './styles/iconfont.css'` |
 
 ---
 
-## 七、SCSS 变量定义与交叉验证
+## 四、不可移植的特性
 
-### 7.1 变量定义（uni.scss）
+| 源特性 | 问题 | 替代方案 | 多平台影响 |
+|--------|------|---------|-----------|
+| `backdrop-filter: blur()` | 小程序不支持 | H5 条件编译保留；小程序半透明纯色降级 | 见 D3 |
+| `position: sticky` header | 小程序行为不同 | 保留 sticky + 测试验证 | 见 D7 |
+| CSS `transition` on input | 小程序原生组件冲突（NC-04） | H5 条件编译保留；小程序 Class 切换 | 见 D8 |
+| `max-width: 430px` | 小程序无此概念 | H5 条件编译保留 | 见 D1 |
+| SSE 流式 API（ai.ts） | uni.request 不支持流式 | H5 用 fetch SSE；小程序用非流式轮询 | 见 D5 |
+| 内联 SVG（PhysicalImage） | 小程序不支持 | H5 用 SVG；小程序用 PNG 回退 | 见 D6 |
+| `@taroify/icons` 图标 | uni-app 无此库 | uni-icons + iconfont | 🔴 阻塞 |
+| CustomTabBar | 与 pages.json tabBar 功能重叠 | 优先用原生 tabBar；保留自定义作为备选 | 见 D2 |
 
-```scss
-// ══════════════════════════════════════════════════════════
-// uni.scss — 全局 SCSS 变量 (injected via vite.config.ts)
-// ══════════════════════════════════════════════════════════
+---
 
-// ── 颜色 ──────────────────────────────────────────────
-$color-primary: #2563EB;         /* Phase1(src): HomeView.tsx:41 H1=#2563EB, WordDetailView.tsx:95 hero=#111827 */
-$color-primary-dark: #1D4ED8;    /* Phase1(src): HomeView.tsx:143 gradient */
-$color-primary-light: #3B82F6;   /* Phase1(src): HomeView.tsx:143 gradient */
-$color-primary-bg: #EFF6FF;      /* Phase1(src): HomeView.tsx:216 badge, LibrariesView.tsx:11 gradient */
-$color-bg-page: #F7F9FC;         /* Phase1(src): App.tsx:52 bg, HomeView.tsx:26 bg */
-$color-bg-card: #FFFFFF;         /* Phase1(src): all cards */
-$color-bg-input: #F1F5F9;        /* Phase1(src): HomeView.tsx:61 input bg, AdminView.tsx:54 INPUT bg */
-$color-text-primary: #111827;    /* Phase1(src): all titles */
-$color-text-secondary: #6B7280;  /* Phase1(src): all descriptions */
-$color-text-tertiary: #9CA3AF;   /* Phase1(src): HomeView.tsx:36 labels */
-$color-text-muted: #D1D5DB;      /* Phase1(src): arrow icons */
-$color-border: #E5E7EB;          /* Phase1(src): AuthView.tsx:62 input border */
-$color-border-light: #BFDBFE;    /* Phase1(src): LibrariesView.tsx:11 lib card border */
-$color-error: #DC2626;           /* Phase1(src): AuthView.tsx:204 error msg, ProfileView.tsx:176 logout btn */
-$color-error-bg: #FEF2F2;        /* Phase1(src): AuthView.tsx:204, ProfileView.tsx:176 */
-$color-success: #16A34A;         /* Phase1(src): ProfileView.tsx:148 stats */
-$color-success-bg: #F0FDF4;      /* Phase1(src): ProfileView.tsx:148 */
-$color-warning: #D97706;         /* Phase1(src): AuthView.tsx:229 demo hint border */
-$color-warning-bg: #FFFBEB;      /* Phase1(src): AuthView.tsx:229 */
-$color-admin: #7C3AED;           /* Phase1(src): ProfileView.tsx:134 admin icon, AdminView.tsx:146 */
-$color-admin-bg: #FAF5FF;        /* Phase1(src): ProfileView.tsx:132 admin bg */
+## 五、多平台影响矩阵
 
-// ── 间距 ──────────────────────────────────────────────
-$page-pt: 112rpx;                /* Phase1(src): HomeView.tsx:29 56px, LibrariesView.tsx:20 52px ⚠️ 4px diff — use majority 52px=104rpx, home needs override */
-$page-pt-home: 112rpx;           /* Phase1(src): HomeView.tsx:29 56px → 112rpx */
-$header-pt: 104rpx;              /* Phase1(src): LibrariesView.tsx:20 52px, majority */
-$page-px: 48rpx;                 /* Phase1(src): 24px → across all pages */
-$content-pt: 40rpx;              /* Phase1(src): HomeView.tsx:132 20px */
-$card-p-lg: 48rpx;               /* Phase1(src): WordDetailView.tsx:121 24px, LibrariesView.tsx:48 24px */
-$card-p-md: 40rpx;               /* Phase1(src): AdminView.tsx:192 CARD padding=20px ⚠️ diff from $card-p-lg */
-$card-p-sm: 32rpx;               /* Phase1(src): list items 16px */
-$gap-xs: 12rpx;                  /* Phase1(src): icon+text 6px */
-$gap-sm: 20rpx;                  /* Phase1(src): 10px */
-$gap-md: 32rpx;                  /* Phase1(src): 16px */
-$gap-lg: 48rpx;                  /* Phase1(src): 24px */
-$input-px: 32rpx;                /* Phase1(src): 16px */
-$input-py: 28rpx;                /* Phase1(src): 14px */
+### D1：max-width:430px 居中
 
-// ── 圆角 ──────────────────────────────────────────────
-$radius-sm: 16rpx;               /* Phase1(src): 8px badges, tags */
-$radius-md: 24rpx;               /* Phase1(src): 12px icon containers */
-$radius-lg: 32rpx;               /* Phase1(src): 16px inputs, buttons, list items */
-$radius-xl: 40rpx;               /* Phase1(src): 20px cards, user cards */
-$radius-2xl: 48rpx;              /* Phase1(src): 24px large cards, hero */
-$radius-full: 9999rpx;           /* Phase1(src): badge, avatar */
+| 平台 | 影响 | 判定 |
+|------|------|------|
+| H5 桌面 | 🔴 移除后内容拉伸到全宽 | `/* #ifdef H5 */ max-width: 860rpx; margin: 0 auto; /* #endif */` |
+| H5 移动 | 🟢 无影响 | — |
+| 小程序 | 🟢 无影响 | — |
 
-// ── 字体 ──────────────────────────────────────────────
-$font-hero: 84rpx;               /* Phase1(src): WordDetailView.tsx:95 42px → 84rpx */
-$font-h1: 52rpx;                 /* Phase1(src): HomeView.tsx:39 26px */
-$font-h2: 44rpx;                 /* Phase1(src): AdminView.tsx:155 22px */
-$font-h3: 36rpx;                 /* Phase1(src): 18px */
-$font-body-lg: 32rpx;            /* Phase1(src): 16px */
-$font-body: 28rpx;               /* Phase1(src): 14px */
-$font-caption: 26rpx;            /* Phase1(src): 13px */
-$font-label: 22rpx;              /* Phase1(src): HomeView.tsx:37 12px ⚠️ WordDetailView.tsx:105 uses 11px=22rpx → coincidentally same */
-$font-sm: 20rpx;                 /* Phase1(src): 10px tiny text */
+### D2：CustomTabBar → 原生 tabBar
 
-// ── 阴影 ──────────────────────────────────────────────
-$shadow-card: 0 4rpx 24rpx rgba(0,0,0,0.04);     /* Phase1(src): HomeView.tsx:195 */
-$shadow-card-strong: 0 4rpx 32rpx rgba(0,0,0,0.05); /* Phase1(src): HomeView.tsx:105 */
-$shadow-elevated: 0 16rpx 64rpx rgba(37,99,235,0.25); /* Phase1(src): HomeView.tsx:148 */
-$shadow-subtle: 0 2rpx 8rpx rgba(0,0,0,0.08);    /* Phase1(src): AuthView.tsx:123 */
+| 平台 | 影响 | 判定 |
+|------|------|------|
+| H5 | 🟡 原生 tabBar 可用但样式定制受限 | 可接受 |
+| 小程序 | 🟢 原生 tabBar 体验完美 | 可接受 |
+| 视觉差异 | 失去 blur 毛玻璃效果 | D3 已覆盖 |
+
+### D3：header backdrop-filter
+
+| 平台 | 判定 | 实施 |
+|------|------|------|
+| H5 | 🔴 必须保留 | `#ifdef H5` 条件编译 |
+| 小程序 | 🟡 降级为纯色半透明 | `rgba(255,255,255,0.93)` |
+
+### D8：input transition
+
+| 平台 | 判定 | 实施 |
+|------|------|------|
+| H5 | 🟢 保留 | `#ifdef H5` 条件编译 |
+| 小程序 | 🟡 背景色突变 | `:class` 切換 focus/normal 态 |
+
+### 汇总：H5 条件编译属性清单
+
+```
+/* #ifdef H5 */
+max-width: 860rpx; margin: 0 auto;
+backdrop-filter: blur(32rpx); -webkit-backdrop-filter: blur(32rpx);
+transition: border-color 0.2s, background 0.2s;
+cursor: pointer;
+/* #endif */
 ```
 
-### 7.2 交叉验证矩阵
-
-| 变量 | 定义值(rpx) | 原型px→rpx | 原型来源 | 偏差 | 判定 |
-|------|-----------|-----------|---------|------|------|
-| `$page-pt` | 104rpx | 52px→104rpx (多数) | LibrariesView:20 | 0 | 🟢 |
-| `$page-pt-home` | 112rpx | 56px→112rpx | HomeView:29 | 0 | 🟢 |
-| `$header-pt` | 104rpx | 52px→104rpx | 多数页面 | 0 | 🟢 |
-| `$card-p-lg` | 48rpx | 24px→48rpx | WordDetailView:121 | 0 | 🟢 |
-| `$card-p-md` | 40rpx | 20px→40rpx | AdminView:192 | 0 | 🟢 |
-| `$gap-sm` | 20rpx | 10px→20rpx | HomeView:113 | 0 | 🟢 |
-| `$font-h1` | 52rpx | 26px→52rpx | HomeView:39 | 0 | 🟢 |
-| `$font-label` | 22rpx | 11-12px→22-24rpx | ⚠️ 存在2值 (11/12px) | 🟡 (取22rpx) | 🟡 文档中标记 |
-| `$shadow-card` | 0 4rpx 24rpx | 0 2px 12px→4rpx 24rpx | HomeView:195 | 0 | 🟢 |
-
-> ⚠️ **`$font-label` 偏差说明**：源中 11px 和 12px 两个值均存在。取 22rpx (11px) 作为默认值。使用 12px 的页面需覆盖 `font-size: 24rpx`。
-
 ---
 
-## 八、全局样式强制规则（G1~G17）
+## 六、Picker/Select 自适应映射（步骤 2.4c）
 
-Phase 3 每个页面 Agent 必须收到的约束：
+源项目在 `admin/index.tsx` 中有 2 处 Taro `<Picker>`：
 
-| ID | 规则 | 实施方式 | 严重性 |
-|----|------|---------|--------|
-| G1 | 所有 header backdrop-filter 必须 H5 条件编译 | `/* #ifdef H5 */ backdrop-filter: blur(32rpx); /* #endif */` | 🔴 |
-| G2 | header 背景必须是半透明色 | `rgba(255,255,255,0.9)` 或 `rgba(247,249,252,0.94)`（按 bgType） | 🔴 |
-| G3 | 页面顶部 padding 包含安全区 | `padding-top: 104rpx` 起 | 🟡 |
-| G4 | 全局 box-sizing: border-box | `/* #ifdef H5 */ * { box-sizing: border-box; } /* #endif */` | 🔴 |
-| G5 | input 必须有显式 height | `height: 88rpx`（44px×2）| 🔴 NC-01 |
-| G6 | input 必须闭合标签 `></input>` | 非 `/>` | 🔴 NC-02 |
-| G7 | textarea 必须有 `auto-height` | 无 `resize` | 🔴 NC-03/NC-08 |
-| G8 | 页面级 maxWidth H5 条件编译 | `/* #ifdef H5 */ max-width: 860rpx; margin: 0 auto; /* #endif */` | 🔴 D1 |
-| G9 | `@import url()` 必须 H5 条件编译 | `/* #ifdef H5 */ @import url(...) /* #endif */` | 🔴 NC-09 |
-| G10 | 通配选择器 `*` 必须 H5 条件编译 | `/* #ifdef H5 */ * { } /* #endif */` | 🔴 NC-10 |
-| G11 | `html, body` 选择器必须 H5 条件编译 | `/* #ifdef H5 */ html, body { } /* #endif */` | 🔴 NC-11 |
-| G12 | font-family: Inter 降级 | H5: Inter + system-ui; 小程序: system-ui | 🟡 |
-| G13 | transition 在原生组件上必须 H5 条件编译 | `/* #ifdef H5 */ transition: ...; /* #endif */` | 🔴 NC-04 |
-| G14 | input 使用正确的 INPUT-A/B mixin | `@include input-pattern-a` 或 `@include input-pattern-b` | 🔴 |
-| G15 | focus 管理使用 `useInputFocus` composable | `const { isFocused, onFocus, onBlur } = useInputFocus()` | 🔴 |
-| G16 | 🚫 禁止原生 `<select>` 在非 H5 平台 | `<picker mode="selector">` 条件编译 | 🔴 |
-| G17 | `<text>` 替代块级元素时需 `display: block` | nowrap+ellipsis 场景 | 🔴 NC-14 |
+| ID | 位置 | mode | range | 字段 | 选项数 |
+|----|------|------|-------|------|--------|
+| P1 | admin line 493 | selector | libraryNames[] | 词库选择 | N（动态） |
+| P2 | admin line 591 | selector | POS_OPTIONS | 词性选择 | 7 |
 
----
+目标 uni-app 直接使用 `<picker mode="selector">`：
 
-## 九、平台自适应选择器映射（Step 2.4c）
-
-> **触发**：源项目 AdminView 中有 `<select>` 元素（词库选择、词性选择），移动端需底部弹出。
-
-| # | 源位置 | 选择器用途 | 选项数 | 目标组件 | 备注 |
-|---|--------|----------|--------|---------|------|
-| S1 | AdminView.tsx:441 | 词库选择（belonging library） | N个（动态） | `<picker mode="selector">` | #ifndef H5 |
-| S2 | AdminView.tsx:520 | 词性选择（POS） | 7个固定 | `<picker mode="selector">` | #ifndef H5 |
-
-**实施方式**：
 ```html
-<!-- #ifdef H5 -->
-<select v-model="form.libraryId" class="form-select">
-  <option v-for="l in libraries" :key="l.id" :value="l.id">{{ l.name }}</option>
-</select>
-<!-- #endif -->
-<!-- #ifndef H5 -->
-<picker mode="selector" :range="libraryNames" :value="libraryIndex" @change="onLibraryChange">
-  <view class="picker-display">{{ selectedLibraryName }}</view>
+<!-- P1: 词库选择 -->
+<picker mode="selector" :range="libraryNames" :value="libIndex" @change="onLibChange">
+  <view class="picker-display">{{ libraryNames[libIndex] || '请选择词库' }}</view>
 </picker>
-<!-- #endif -->
+
+<!-- P2: 词性选择 -->
+<picker mode="selector" :range="POS_OPTIONS" :value="posIndex" @change="onPosChange">
+  <view class="picker-display">{{ POS_OPTIONS[posIndex] || '请选择词性' }}</view>
+</picker>
+```
+
+> uni-app 的 `<picker>` 在 H5 和小程序端均从底部弹出——无需条件编译。
+
+---
+
+## 七、复用分析
+
+### 7.1 组件复用
+
+| 共享组件 | 复用页面 | 变体差异 |
+|---------|---------|---------|
+| **PageHeader** | 7/7 页面 | 背景色(3种)、padding-top(2种)、标题文字(各页不同)、返回按钮(有/无)、右侧slot(有/无) |
+| **PrimaryButton** | 3 页面 + admin子页 | variant(3种)、loading、disabled、size(3种) |
+| **Icon** | 全部页面 | name(20种)、size、color |
+| **PhysicalImage** | word-detail + admin/word-edit | type(9种) |
+| **CustomTabBar** | home + libraries + profile | activeTab |
+
+### 7.2 样式复用
+
+| 模式 | 建议 |
+|------|------|
+| header padding + 半透明背景 + border-bottom | SCSS mixin `@mixin page-header-base` |
+| 卡片 shadow + border-radius + background | SCSS mixin `@mixin card` |
+| section label（大写+小字+letter-spacing） | 全局 CSS 类 `.section-label` |
+| input focus 态（同 INPUT-A 模式） | SCSS mixin `@mixin input-focus-a` |
+| input focus 态（同 INPUT-B 模式） | SCSS mixin `@mixin input-focus-b` |
+| 空状态（居中+灰色图标+文字） | 组件 `<EmptyState>` |
+
+### 7.3 逻辑复用
+
+| 逻辑 | 目标文件 |
+|------|---------|
+| `navigateToWordDetail(id)` | `src/utils/navigation.ts` |
+| `getLibraryById(id)` | `src/utils/helpers.ts` |
+| `getPosColor(pos)` | `src/utils/helpers.ts` |
+| `useInputFocus()` | `src/composables/useInputFocus.ts` |
+| `useAuth()` | `src/composables/useAuth.ts` |
+| `filterWords(query, words)` | `src/utils/helpers.ts` |
+| `buildCreateInput(form)` | `src/utils/helpers.ts` |
+| `formatDate(iso)` | `src/utils/helpers.ts` |
+
+---
+
+## 八、差异化参数清单
+
+### PageHeader
+
+| 属性 | home | libraries | profile | word-detail | library-words | auth | admin |
+|------|------|-----------|---------|-------------|---------------|------|-------|
+| bgColor | transparent | rgba(255,255,255,0.93) | rgba(255,255,255,0.93) | rgba(247,249,252,0.92) | rgba(255,255,255,0.93) | transparent | rgba(247,249,252,0.94) |
+| paddingTop(rpx) | 104 | 104 | 104 | 104 | 104 | 104 | 104 |
+| paddingBottom(rpx) | 32 | 32 | 32 | 32 | 32 | 32 | 32 |
+| showBack | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| title | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| subtitle | ✅ | ✅ | — | — | — | — | ✅ |
+| sticky | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| right | — | — | — | ✅ | — | — | ✅ |
+| compact | — | — | — | — | — | — | — |
+| children | SearchBar | — | — | — | — | — | — |
+
+**Props 接口**：`bgType: 'white' | 'page' | 'none'`（3 种背景色）、`paddingTop: number`（默认 104）、`title: string`（必填）、`subtitle?: string`、`showBack?: boolean`、`backLabel?: string`、`sticky?: boolean`、`right?: slot`、`default?: slot`
+
+### PrimaryButton
+
+| 属性 | auth/login | admin/save | admin/ai |
+|------|-----------|-----------|---------|
+| padding(rpx) | 32 | 30 | 28 |
+| fontSize(rpx) | 32 | 30 | 30 |
+| variant | primary | primary | primary |
+| loading | ✅ | ✅ | ✅ |
+
+**Props 接口**：增加 `size: 'lg' | 'md' | 'sm'`（控制 padding + font-size）
+
+---
+
+## 九、全局样式强制规则（G1-G20）
+
+| 规则 | 内容 | 严重性 |
+|------|------|--------|
+| G1 | backdrop-filter 必须 `#ifdef H5` 包裹 | 🔴 |
+| G2 | header 背景半透明色由 PageHeader bgType prop 控制 | 🔴 |
+| G3 | 页面 padding-top 至少 104rpx（安全区） | 🟡 |
+| G4 | 条件渲染中的 header 不得丢失背景 | 🟡 |
+| G5 | input 必须有显式 `height`（NC-01） | 🔴 |
+| G6 | input 必须闭合标签 `></input>`（NC-02） | 🔴 |
+| G7 | textarea 必须 `auto-height`（NC-03） | 🔴 |
+| G8 | `<text>` 替代 `<p>/<h1>` 需要 `display: block`（NC-14） | 🔴 |
+| G9 | `<text>` 替代 `<span>` 不加 `display: block`（NC-14 反向） | 🔴 |
+| G10 | `<text>` 中 `\n` 需要 `white-space: pre-line`（NC-12） | 🟡 |
+| G11 | `overflow: hidden` 必须 `#ifdef H5` 包裹（NC-05） | 🔴 |
+| G12 | `transition` on input 必须 `#ifdef H5` 包裹（NC-04） | 🔴 |
+| G13 | input 包裹容器必须有 `min-height`（NC-06） | 🔴 |
+| G14 | focus 管理用 `useInputFocus` composable | 🟡 |
+| G15 | 禁止手写 `isFocused` ref — 必须用 composable | 🟡 |
+| G16 | `max-width: 860rpx; margin: 0 auto` 必须 `#ifdef H5`（D1） | 🟡 |
+| G17 | `cursor: pointer` 必须 `#ifdef H5` | 🟢 |
+| G18 | `@import url()` 必须 `#ifdef H5`（NC-09） | 🔴 |
+| G19 | `*` 选择器必须 `#ifdef H5`（NC-10） | 🔴 |
+| G20 | `html, body` 选择器必须 `#ifdef H5`（NC-11） | 🔴 |
+
+---
+
+## 十、API 迁移策略
+
+### HTTP 客户端
+
+```
+源: Taro.request<T>({ url, method, data, header })
+目标: uni.request<T>({ url, method, data, header })
+```
+
+### Token 存储适配
+
+```ts
+// 跨平台 Token 读写
+function getToken(): string | null {
+  // #ifdef H5
+  return localStorage.getItem('auth_token');
+  // #endif
+  // #ifdef MP-WEIXIN
+  return uni.getStorageSync('auth_token');
+  // #endif
+}
+```
+
+### AI SSE 流式降级
+
+```
+源: 优先 SSE 流式（原生 fetch ReadableStream），降级非流式 POST
+目标: H5 保留 SSE（条件编译）；小程序仅非流式 POST
 ```
 
 ---
 
-## 十、Formily 集成评估
+## 十一、输入框样式模式分类（步骤 4b）
 
-> 用户指定目标栈包含 Formily。
+| 模式 | blur border | blur bg | focus border | focus bg | 出现文件 |
+|------|------------|---------|-------------|---------|---------|
+| INPUT-A | transparent | #F1F5F9 | #2563EB | #FFFFFF | home, admin 全部 input/textarea |
+| INPUT-B | #E5E7EB | #FFFFFF | #2563EB | #FFFFFF | auth 全部 input |
 
-Formily 在本次迁移中的适用性评估：
-
-| 界面 | 表单复杂度 | Formily 适用性 | 替代方案 |
-|------|----------|---------------|---------|
-| AuthView（登录/注册） | 3 字段 + 验证 | 🟡 可选（过度工程化） | 手动 v-model + ref |
-| AdminView:WordEditForm | 15+ 字段 + 嵌套数组 + AI 生成 | ✅ **强烈推荐** | 手写 15+ ref + 嵌套更新逻辑 |
-| AdminView:LibraryManager（编辑模式） | 2 字段 | ❌ 不推荐 | 手动 v-model |
-
-**建议**：仅在 WordEditForm 中引入 Formily。其余表单保持手动 v-model。
-WordEditForm 是本次迁移中最复杂的表单——15+ 字段（单词名、音标、词库、核心义描述、
-核心义例句、例句翻译、N 个引申义各有 5 个字段、搭配列表）——Formily 的
-`ArrayField`（引申义列表）和 `setFieldState`（AI 生成后批量填充）显著减少代码量。
+目标实现：SCSS mixin 封装 → `uni.scss` → 全局注入
 
 ---
 
-## 十一、框架必备文件校验
-
-| 必备文件 | 在映射表中？ | 处理 |
-|---------|----------|------|
-| `index.html` | ✅ | 根目录，已验证模板 |
-| `src/pages.json` | ✅ | src/ 下 |
-| `src/manifest.json` | ✅ | src/ 下 |
-| `src/main.ts` | ✅ | src/ 下 |
-| `src/App.vue` | ✅ | src/ 下 |
-| `src/uni.scss` | ✅ | src/ 下 |
-| `vite.config.ts` | ✅ | 根目录 |
-| `tsconfig.json` | ✅ | 根目录 |
-| `package.json` | ✅ | 根目录 |
-| `src/shims-vue.d.ts` | ✅ | src/ 下 |
-
-✅ 所有框架必备文件已覆盖。
-
----
-
-## 十二、Phase 3 拓扑排序
+## 十二、依赖拓扑排序
 
 ```
-Layer 0 (types + mock):        types.ts, mockData.ts           → 可并行
-Layer 1 (工具函数 + store):    helpers.ts, user.ts, useInputFocus.ts → 可并行
-Layer 2 (🔴 共享组件 — 串行):   SectionLabel → EmptyState → PrimaryButton → 
-                              SearchBar → PhysicalImage → WordCard → PageHeader
-                              (每个组件: Agent生成 → 验证关 → lock → 下一个)
-Layer 2.5 (静态资源占位):      iconfont.ttf + 6 tabBar PNG    → Bash 创建
-Layer 3 (叶子页面 — 可并行):    home, auth, libraries, library-words, profile
-Layer 4 (组合页面 — 可并行):    word-detail, admin + 5子组件
-Layer 5 (入口 — 串行):         App.vue → main.ts              → 使用已验证模板
-Layer 6 (配置 — 可并行):       package.json, vite.config.ts, tsconfig.json,
-                              index.html, pages.json, manifest.json, uni.scss,
-                              shims-vue.d.ts                   → 使用已验证模板
-Layer 7 (构建自检):            npm install + uni build + dist 产物检查 → 🔴 阻断关
+Layer 0: src/types/index.ts                （类型定义；可并行）
+Layer 1: src/utils/adapters.ts             （纯函数；可并行）
+         src/utils/helpers.ts
+         src/utils/navigation.ts
+         src/config/env.ts
+Layer 2: src/utils/request.ts              （HTTP 客户端；依赖 L0-1）
+         src/api/*.ts                       （API 服务层；依赖 request）
+         src/composables/useAuth.ts         （认证 composable）
+         src/composables/useInputFocus.ts   （focus composable）
+══════════════════════════════════════════
+🔴 Layer 3: 共享组件（串行 + 逐个验证关）
+         3a. src/components/Icon.vue
+         3b. src/components/PageHeader.vue
+         3c. src/components/PrimaryButton.vue
+         3d. src/components/PhysicalImage.vue
+         3e. src/components/CustomTabBar.vue  (可选)
+══════════════════════════════════════════
+Layer 3.5: src/static/fonts/iconfont.ttf   （静态资源占位）
+══════════════════════════════════════════
+Layer 4: 叶子页面（L3 全部锁定后并行）
+         src/pages/home/home.vue
+         src/pages/auth/auth.vue
+         src/pages/libraries/libraries.vue
+         src/pages/library-words/library-words.vue
+         src/pages/profile/profile.vue
+══════════════════════════════════════════
+Layer 5: 组合页面（L4 全部完成 + 验证通过后并行）
+         src/pages/word-detail/word-detail.vue  (依赖 PhysicalImage)
+         src/pages/admin/admin.vue              (依赖 PageHeader + PrimaryButton)
+         src/pages/admin/libraries.vue
+         src/pages/admin/word-edit.vue          (依赖 PhysicalImage)
+         src/pages/admin/words.vue
+         src/pages/admin/users.vue
+══════════════════════════════════════════
+Layer 6: src/App.vue                       （串行）
+══════════════════════════════════════════
+Layer 7: src/pages.json                    （可并行，使用已验证模板）
+         src/manifest.json
+         src/uni.scss
+         src/shims-vue.d.ts
+         index.html
+         vite.config.ts
+         tsconfig.json
+         package.json
 ```
 
 ---
 
-## 十三、静态资源清单
+## 十三、框架必备文件校验
 
-| 资源文件 | 用途 | 引用位置 | 占位方案 |
-|---------|------|---------|---------|
-| `src/static/fonts/iconfont.ttf` | 图标字体 | uni.scss @font-face | 最小合法 TTF 占位 |
-| `src/static/images/tab-home.png` | tabBar 首页图标 | pages.json | 1x1 透明 PNG |
-| `src/static/images/tab-home-active.png` | tabBar 首页激活图标 | pages.json | 1x1 透明 PNG |
-| `src/static/images/tab-libraries.png` | tabBar 词库图标 | pages.json | 1x1 透明 PNG |
-| `src/static/images/tab-libraries-active.png` | tabBar 词库激活图标 | pages.json | 1x1 透明 PNG |
-| `src/static/images/tab-profile.png` | tabBar 我的图标 | pages.json | 1x1 透明 PNG |
-| `src/static/images/tab-profile-active.png` | tabBar 我的激活图标 | pages.json | 1x1 透明 PNG |
+| 必备文件 | 状态 |
+|---------|------|
+| `src/App.vue` | ✅ #33 |
+| `src/pages.json` | ✅ #34 |
+| `src/manifest.json` | ✅ #38 |
+| `src/uni.scss` | ✅ #35 |
+| `src/shims-vue.d.ts` | ✅ #41 |
+| `index.html` | ✅ #36 |
+| `vite.config.ts` | ✅ #37 |
+| `tsconfig.json` | ✅ #39 |
+| `package.json` | ✅ #40 |
+
+**校验通过** — 所有 9 个框架必备文件均在映射表中。
 
 ---
 
-## 验证清单
+## 十四、产出物清单
 
-- [x] 每个源文件都有目标文件分配（或明确的"不移植"原因）
-- [x] Phase 1 中所有 62 个交互 ID 至少有一个目标文件负责
-- [x] 所有六个映射类别都有带代码示例的具体规则
-- [x] 无法映射的情况都有文档化的替代方案 + 多平台影响矩阵
-- [x] 全局样式强制规则表已生成（G1~G17）
-- [x] 复用分析已完成：组件（7 个共享）+ 样式（SCSS 变量+mixin）+ 逻辑（helpers + composable）
-- [x] 差异化参数清单已完成（PageHeader 6 维度 × 9 页面）
-- [x] SCSS 变量交叉验证已完成（偏差表 + 已知偏差标记）
-- [x] 设计 Token 数值对照表已生成（含原型来源注释）
-- [x] H5 条件编译属性清单已完成
-- [x] 图标迁移映射表已完成（20 图标 × iconfont 码点）
-- [x] 平台自适应选择器映射已完成（S1/S2）
-- [x] 框架必备文件校验通过（10/10）
-- [x] 拓扑依赖排序已规划（Layer 0-7）
-- [x] 静态资源清单已完成
-- [x] 迁移对 `react→uniapp.md` Post-Mortem 故障录（PM-M1~PM-M7）已纳入
+| 文件 | 大小 | 状态 |
+|------|------|------|
+| `raw-styles.json` | 89KB | ✅ |
+| `design-values.json` | 94KB（14 目标文件，396 样式块） | ✅ |
+| `css-blocks/` | 15 个文件（~2800 行 CSS） | ✅ |
+| `mapping-blueprint.md`（本文件） | — | ✅ |
+
+---
+
+## 十五、Phase 2 完成检查
+
+- [x] 每个源文件都有目标文件分配（42 条映射）
+- [x] 93 个交互 ID 已分配到目标页面
+- [x] 六大映射类别完整（组件/事件/样式/路由/状态/数据）
+- [x] 图标迁移映射表（20 种图标 + 精确代码片段）
+- [x] 不可映射特性已标注替代方案（8 项）
+- [x] 多平台影响矩阵（D1-D8）
+- [x] Picker 自适应映射（步骤 2.4c）
+- [x] 复用分析：组件/样式/逻辑三类
+- [x] 差异化参数清单：PageHeader + PrimaryButton
+- [x] 全局样式强制规则 G1-G20
+- [x] API 迁移策略（含 SSE 降级）
+- [x] 输入框样式模式 INPUT-A/B 分类
+- [x] 依赖拓扑排序（8 层）
+- [x] 框架必备文件校验（9/9 全覆盖）
+- [x] design-values.json 已产出
+- [x] CSS blocks 已预生成（15 文件）

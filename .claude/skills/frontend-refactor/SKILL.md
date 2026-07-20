@@ -108,6 +108,27 @@ description: >
                            │  （verify-page-values.cjs），偏差 > 2rpx 立即修复。
                            │  **不在 Layer 3 通过前启动 Layer 4。**
                            → 否（串行 LLM 生成）→ 跳过逐文件验证，Phase 4 统一审计
+4k. 源项目是否对接了服务端？ 🆕
+                           → 检测命令：
+                             grep -rn "fetch\|axios\|request\|api\.\|baseURL\|httpClient\|useQuery\|useSWR\|useMutation" src/ --include="*.ts" --include="*.tsx" --include="*.js"
+                             grep -rn "Authorization\|Bearer\|x-access-token\|Cookie.*token\|getStorageSync.*token" src/
+                           → 命中 > 0 → 源项目有真实 API 对接
+                           → 零命中 → 源项目为纯静态/纯 mock 项目 → 跳过 API 迁移流程
+                           有真实 API 对接时，必须向用户确认三个问题：
+                           ① 目标项目是否继续对接同一个后端服务？
+                              → 是 → 保留 API 基础 URL 配置，仅迁移客户端代码
+                              → 否 → 需要新的 API 基础 URL
+                           ② 是否需要 mock 模式让目标项目可独立运行？
+                              → 是 → Phase 3 同时生成 mock 数据 + 真实 API 服务文件，通过环境变量切换
+                              → 否 → 仅生成真实 API 服务文件
+                           ③ 认证方式在目标平台是否需要适配？
+                              → Web → 小程序：Cookie 不支持 → 改为 Token Header 方式
+                              → Web → App：检查安全存储方案
+                              → 纯 Web → Web：通常直接保留
+4.5 🆕 目标项目放哪里？       → 🔴 Phase 1 检测技术栈后立即询问用户目标项目根目录路径
+                            → 用户指定 → 写入 .target-project-path（后续不可更改）
+                            → 用户未指定 → 询问：① 放在源项目内部（子目录） ② 放在源项目外部（默认兄弟目录）
+                            → 🔴 禁止不询问就直接创建目标项目目录
 5. 执行 Phase 1 → 确认 → Phase 2 → 确认 → Phase 3 → Step 3.4 自检 → Phase 4 → Phase 5
 5a. 🔴 入口文件生成规则：Phase 3 Layer 5-6 的入口文件（index.html、main.ts、
     vite.config.ts、pages.json、package.json）必须使用 `references/frameworks/<目标>.md`
@@ -412,13 +433,19 @@ node .claude/skills/frontend-refactor/scripts/generate-css-blocks.cjs \
 **执行规则**：
 
 ```
-1. 目标项目根目录命名规则：
-   <源项目父目录>/<源项目名>-<目标框架缩写>/
-   例：/workspace/english-dictionary/ → /workspace/english-dictionary-uni/
+1. 目标项目根目录命名规则（优先级从高到低）：
+   a. 🆕 用户指定路径（Phase 1 检测技术栈后询问 → 写入 .target-project-path）
+      例：用户说"放在项目内部的 client-uni/" → 写入 <源项目根目录>/client-uni/
+      例：用户说"放在 /workspace/my-target/" → 直接使用
+   b. 用户未指定 → 再次询问，给两个选项：
+      ① 源项目内部子目录（如 <源项目根目录>/<框架名>-client/）
+      ② 源项目外部（默认：<源项目父目录>/<源项目名>-<目标框架缩写>/）
+   c. 用户选择后写入 .target-project-path
+   🔴 禁止跳过询问环节直接创建目录。
 
 2. Phase 2 确认后、Phase 3 启动前：
-   a. 创建目标项目根目录（含完整的 src/ 子目录结构）
-   b. 将绝对路径写入 Skill 目录下的 .target-project-path 文件（纯文本，一行）
+   a. 从 .target-project-path 读取目标项目根目录
+   b. 创建目标项目根目录（含完整的 src/ 子目录结构）
 
 3. 写入后即时验证：
    bash: cat .claude/skills/frontend-refactor/.target-project-path
@@ -618,7 +645,8 @@ Layer 4 每个页面 Agent 完成后 → 立即运行逐文件验证 → 通过�
 - [ ] **第七节 — 图标约束**：从 Phase 2 图标映射表提取，精确到代码片段，加 🚫 emoji 禁止声明
 - [ ] **第八节 — 交互清单**：Phase 1 中该文件相关的所有交互 ID 列表
 - [ ] **第二节半 — 🔴 源 DOM 树清单 🆕**：Agent 逐行列出源 JSX 元素嵌套关系树，模板中不添加清单外元素
-- [ ] **🔴 反虚构自检 🆕**（Agent 返回前逐项自问）：模板元素是否有源对应？CSS 声明是否有源对应？
+- [ ] **第八节半 — 🔴 文本内容保持 🆕**：硬编码 UI 文本（标题、按钮、标签、占位符、提示语、空状态文案、section 标题、toast 消息等）**必须从源文件逐字复制，保持源语言不变**。源是中文写中文，源是英文写英文，**禁止**自行翻译、改写或用另一种语言重新表达。这是红线——违反此项的输出视为不合格。参见 `references/phase3-generation.md` §9b
+- [ ] **🔴 反虚构自检 🆕**（Agent 返回前逐项自问）：模板元素是否有源对应？CSS 声明是否有源对应？文本是否有源对应且语言一致？
 - [ ] **第九节 — 输出规范**：🔴 **完整绝对路径**（禁止相对路径——从 `.target-project-path` 文件读取）+ 12 条质量要求（含 DOM 结构一致 + CSS 从 CSS-block 粘贴 + 反虚构 + 🆕 生成后用 Bash `ls` 验证文件存在于目标目录）
 
 **严禁跳过任何一节。** 如果某节在当前文件不适用，写"N/A"并注明原因，不得留空。
@@ -695,7 +723,8 @@ find dist -name "*.css" | wc -l          # 预期 >= 5
 Step 4.0   → 运行 audit-phase4.sh               （脚本 — 6 组机械审计）
 Step 4.0b  → 运行 diff-source-target.cjs          （脚本 — 逐文件源→目标比对）
 Step 4.1   → npm install + build + tsc            （手动 — 依赖+构建+编译）
-Step 4.2   → 启动开发服务器 + 逐路由验证           （手动 — 运行时验证）
+Step 4.2   → 启动开发服务器 + 逐路由验证           （采用 Skill("run") 启动目标项目）
+             🆕 如果目标项目已对接 API，追加 Step 4.3h API 端点联通性验证
 Step 4.3   → 交互清单审计                          （LLM — 脚本覆盖不到的语义验证）
 Step 4.4   → 结构完整性检查                        （手动 — 计数验证）
 Step 4.5   → 阻断式回退（如触发阈值）               （回退 Phase 3 重生成）
@@ -1026,6 +1055,35 @@ grep -c "Post-Mortem\|已验证模板\|文件位置速查" \
 - [ ] 本次所有入口文件模板都固化为已验证模板
 - [ ] 本次所有文件位置规则都在速查表中
 - [ ] 迁移对文件的检查清单中新增了本次发现的所有检查项
+
+**Step 5.4 — 🔴 输出 ai-master 交接信息 🆕**
+
+> Phase 5 最终报告中必须包含以下交接信息块，供 ai-master 自动消费以执行功能级验证。
+
+```markdown
+### 🤖 ai-master 交接信息
+
+目标项目路径：<绝对路径>
+目标框架：<框架名>
+构建命令：<npm run dev/build>
+开发服务器端口：<端口>
+
+核心用户故事（供 ai-master 冒烟验证）：
+1. <故事1> — 对应路由: <URL>，涉及 API: <端点清单>
+2. <故事2> — 对应路由: <URL>，涉及 API: <端点清单>
+3. <故事3> — 对应路由: <URL>，涉及 API: <端点清单>
+
+API 端点清单（供 ai-master 集成验证）：
+| API ID | 方法 | 路径 | 目标实现文件 |
+|--------|------|------|------------|
+| API-01 | GET | /api/words | src/utils/request.ts → getWords() |
+| ... | ... | ... | ... |
+
+> 执行 ai-master 继续推进项目以进行功能级验证。
+```
+
+**Phase 5 完成标准 追加 🆕**：
+- [ ] **ai-master 交接信息块已包含在最终报告中**
 
 ---
 

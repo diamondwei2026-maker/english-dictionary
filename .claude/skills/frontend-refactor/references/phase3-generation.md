@@ -753,6 +753,33 @@ CSS 块末尾的 "Dynamic values" 清单列出了需要动态处理的属性。
     - 违规 = H5 正常，小程序端静默失效。修复模板见 `cross-platform-pitfalls.md` §1
 ```
 
+### 第九节半 — 🔴 文本内容保持（红线，不可跳过）
+
+```
+模板中的所有硬编码 UI 文本（标题、按钮标签、占位符、提示信息、
+空状态文案、toast 消息文案、section 标题、导航栏标题等）**必须从源
+文件逐字复制**，保持源语言不变。
+
+- 源是中文 → 写中文
+- 源是英文 → 写英文
+- 源是混合 → 保持混合
+- **禁止**自行翻译、改写、或用另一种语言重新表达 UI 文案
+- **禁止**用自己的话重新措辞——即使语义等价也禁止
+- 动态数据（如 `{{ word.coreMeaning }}`）不受此约束——仅约束硬编码字符串
+
+此项与交互清单（第八节）同等地位——硬编码文本是 UI 契约的一部分，
+与事件处理器和条件渲染分支具有同等的"必须还原"优先级。
+
+违反此项 = Agent 输出不合格，必须修复后重新提交。
+```
+
+> 📋 **真实案例**：2026-07-20 `english-dictionary` (Taro+React) → uni-app 迁移。
+> 3 个 Agent（home / admin-overview / word-detail）将源中的中文 UI 文案
+> 改写为英文——Agent 的生硬编码文本约束未被注入 Prompt。
+> 涉及其余 8 个页面的 Agent 碰巧保留了中文，因为它们的 Prompt 模板中
+> 源文件的中文文本出现得足够自然，没有被重写。该约束已从此案例提取
+> ——参见 PM-M12。
+
 ### 第十节：已知反模式自检清单 🔴（返回前必须逐条自检）
 
 ```
@@ -775,6 +802,7 @@ CSS 块末尾的 "Dynamic values" 清单列出了需要动态处理的属性。
 | AF11 | `ref` 从 `@dcloudio/uni-app` 导入 | Grep `import.*ref.*from '@dcloudio/uni-app'` | `ref`/`reactive`/`computed`/`watch` 从 `vue` 导入。`@dcloudio/uni-app` 只导出 uni 特有 API（`onLoad`、`onShow` 等） | 2026-07-15 React→uni-app 迁移（PM-M1） |
 | AF12 | 生命周期钩子（onLoad 等）未显式 import | 搜索 `onLoad(` — 如果 `<script setup>` 中没有对应的 import 语句 | 添加 `import { onLoad } from '@dcloudio/uni-app'`。这些钩子在 `<script setup>` 中不会自动可用，缺少 import 不会在编译时报错，运行时抛出 `ReferenceError` | 2026-07-15 React→uni-app 迁移 |
 | AF13 | 模板中使用了共享组件但缺少 import | 🔴 **不可跳过**：对照第四节 b-2 的 Import 声明完整性清单，逐条核对 `<script setup>` 中是否有对应的 `import` 语句。特别检查：(a) 模板中的每个 PascalCase 标签（如 `<PageHeader>`）→ script 中有 `import PageHeader from ...` 吗？(b) 每个 `useInputFocus()` 调用 → script 中有 `import { useInputFocus } from ...` 吗？(c) 每个 `genId()` / `getWordById()` 调用 → script 中有对应 import 吗？ | 补充缺失的 import 语句。**违反后果**：构建通过、TS 不报错、Console 无异常 → 组件渲染为空白区域 → 只能人眼发现。这是所有防线中唯一一道针对"组件静默消失"的防范 | 2026-07-17 React→uni-app 迁移：auth.vue 忘记 import PrimaryButton → 登录按钮完全不可见 |
+| AF14 🆕 | 硬编码 UI 文本被翻译/改写 | 扫描模板中所有 `>xxx<` 之间的文本内容 —— 逐条比对源文件中同位置的文本。源是中文目标却是英文（或反之）= 命中。动态绑定（`{{ }}`, `v-bind`）不受此规则约束 | 将文本改为与源文件逐字一致。**违反后果**：构建通过、样式正确、所有审计通过 → 页面"看起来是英文版" → 只能人眼发现。这是 Phase 4 所有 7 组脚本审计和逐文件 CSS diff 全部无法发现的偏差类别 | 2026-07-20 React→uni-app 迁移：3 个页面共 44 处中文文案被改写为英文 |
 
 如果某条不适用于当前文件（如纯展示页无 input），在代码注释中标注 "// AFx: N/A — <原因>"。
 不能有任何一条被跳过而不做检查。

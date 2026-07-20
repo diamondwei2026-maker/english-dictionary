@@ -524,6 +524,97 @@ PageHeader 模板重构：
 - 判定规则：如果任何固定子元素（如标题区）在 ≥2 个源实例中位于不同位置 →
   Phase 3 Agent Prompt 必须指定该元素在组件模板中的精确位置
 
+### PM-M11: 目标项目路径硬编码 — 生成到错误位置 🆕
+
+> **来源**：2026-07-17 `english-dictionary` (Taro+React) → `english-dict-uni` 迁移。
+
+**现象**：目标项目 `english-dict-uni/` 被创建为源项目的兄弟目录（`d:/Users/weij/english-dict-uni/`），
+而用户的意图是在源项目 **内部** 重构（如 `english-dictionary/client-uni/`）。
+
+**根因**：SKILL.md Step 3.0 硬编码了命名规则 `<源项目父目录>/<源项目名>-<目标框架缩写>/`，
+假设所有场景都是"在源项目外部创建独立项目"。对于 monorepo 或"在项目内重构"的场景，
+此规则产生错误的目录位置。Skill 的决策树中**没有询问目标项目位置的步骤**——Phase 1
+检测完技术栈后就一路执行到 Phase 3 直接创建目录。
+
+**为什么之前没发现**：前几次使用此 Skill 的迁移都是从零开始的原型项目（`figma-prototype`），
+天然适合独立项目模式。`english-dictionary` 是第一个 **monorepo 内重构** 的场景。
+
+**修复**：
+1. **SKILL.md 决策树增加步骤 4.5**：Phase 1 检测技术栈后立即询问用户目标项目根目录路径
+2. **Step 3.0 命名规则改为优先级模式**：用户指定路径 > 询问（内部/外部） > 默认兄弟目录
+3. **`.target-project-path` 写入时机提前**：从 Phase 3 启动前提前到决策树步骤 4.5
+
+详见 SKILL.md 决策树步骤 4.5 和 Step 3.0 的修改。
+
+**检测命令**：
+```bash
+# Phase 1 完成后，立即询问用户并写入
+cat .claude/skills/frontend-refactor/.target-project-path
+# 预期：用户确认过的完整绝对路径（非空）
+# 🔴 如果文件不存在或内容为空 → Phase 3 阻断
+```
+
+**防范措施**（已写入 SKILL.md Step 3.0）：
+- 决策树增加步骤 4.5（目标项目位置询问）
+- Step 3.0 命名规则改为三级优先级（用户指定 → 询问 → 默认）
+- 🔴 禁止不询问就直接创建目标项目目录
+- `.target-project-path` 写入后不可更改（后续 Phase 以此为唯一事实来源）
+
+### PM-M12: Agent 将 UI 文案从中文改写为英文 🆕
+
+> **来源**：2026-07-20 `english-dictionary` (Taro+React) → uni-app 迁移。迁移后 3 个页面
+> 的标签/按钮/提示语变成英文，源文件本是中文。其余 8 个页面未受影响。
+
+**现象**：home.vue 的 section 标题（"认知英语词典"→"Cognitive English Dictionary"）、
+按钮文字（"重试"→"Retry"）、空状态文案（"暂无词汇"→"No words yet"）；
+admin.vue 的管理标签（"退出管理"→"Exit Admin"、统计卡片标签（"词库"→"Libraries"）；
+word-detail.vue 的 section 标题（"核心释义"→"Core Meaning"、"引申释义"→"Extended Meanings"）
+和 toast 消息（"请先登录"→"Please login first"、"已收藏"→"Favorited"）……
+
+共计 44 处 UI 文案被 Agent 从中文改写成英文。
+
+**根因**：Phase 3 Agent Prompt 缺少"硬编码 UI 文本必须逐字从源文件复制"的强制约束。
+Agent 看到源 JSX 中的中文文本，但在生成 Vue 模板时用英语重新表达——这是 LLM 的已知
+行为模式：当 Prompt 没有专门要求保持源语言时，Agent 倾向于用自己最流利的语言重新表达
+UI 文案。
+
+**为什么只有 3/11 个页面受影响**：出问题的 3 个 Agent 各自独立地把 source 文本"自行翻译"；
+其余 8 个 Agent 碰巧保留了中文——不是因为它们遵守了某条规则，而是它们的 Prompt 中
+源文件中文文本出现得足够自然、没有被 Agent 识别为"需要填充的占位符"。这种不一致
+恰恰说明这是一个 Prompt 缺约束的问题，不是 LLM 能力问题。
+
+**为什么现有防线全部失效**：
+- 交互审计（Phase 4, Step 2）检查事件处理器存在性——不检查 UI 文本语言
+- 样式审计（Step 2a）检查 CSS 属性存在性——不检查 `>xxx<` 之间的内容
+- 复用审计（Step 2c）检查共享组件使用率——不检查文本
+- 值级审计（Step 2e）检查 CSS 值精确性——不检查文本
+- Emoji 扫描（Step 2d）检查 emoji——不检查文本语言
+- `audit-phase4.sh` 所有 7 组检查全部不涉及 UI 文本内容
+- `diff-source-target.cjs` 检查 DOM 结构/CSS 值——不检查文本语言
+
+**唯一有效的检测手段**：人眼比对页面渲染结果。但在 11 页面 × 多状态的并行
+Agent 模式下，人工逐页比对不现实。
+
+**修复**：
+1. Phase 3 Agent Prompt §9b：新增"文本内容保持"约束，要求硬编码文本逐字复制
+2. Phase 3 核查清单（SKILL.md）：新增"第八节半"检查项
+3. Phase 4 反模式自检（phase3-generation.md 第十节）：新增 AF14
+
+**检测命令**：
+```bash
+# Phase 4 新检查：扫描目标页面模板中的英文硬编码字符串
+# 提取所有大写开头的英文短语 → 人工比对源文件同位置
+grep -rn '>[A-Z][a-z]\{2,\}\(\s[A-Z][a-z]\{2,\}\)\{0,8\}<' \
+  <目标>/src/pages/ --include="*.vue"
+# 每个命中都需要确认源文件中同位置是否确实是英文
+# 如果源是中文 → 修复；如果源是英文 → 通过
+```
+
+**防范措施**（已写入 phase3-generation.md §9b + SKILL.md 核查清单 第八节半）：
+- Phase 3 Agent Prompt 模板新增 §9b"文本内容保持"节——与交互清单（§8）同等地位
+- Phase 3 核查清单增加检查项："§8b — 文本内容保持：硬编码文本必须逐字复制"
+- AF14 反模式：目标文件的硬编码文本语言与源文件不一致
+
 ---
 
 ## 七、Phase 3 生成顺序（拓扑排序）
@@ -561,3 +652,5 @@ Layer 6: package.json, vite.config.ts, tsconfig.json, index.html,
 - [x] 共享组件被正确引用（而非页面手写替代）
 - [x] 🆕 构建产物 `@font-face` 中 base64 字体内容长度 > 200 字符（排除 60 字符的空 base64）
 - [x] **[PM-M7]** 🆕 检查 `<text>` 元素截断（nowrap+ellipsis）是否缺 `display: block` — 对 `text-overflow: ellipsis` 的每个命中，确认对应 `<text>` 的 CSS 有 `display: block`
+- [x] **[PM-M11]** 🆕 检查 `.target-project-path` 文件存在且内容为有效绝对路径 — Phase 3 启动前必须读取此文件，禁止使用硬编码默认路径
+- [x] **[PM-M12]** 🆕 检查模板硬编码文本语言是否与源文件一致 — 扫描所有 `>大写英文短语<` 命中，逐条比对源文件同位置文本语言。源中文目标英文 = 🔴 Blocker。动态数据不受此规则约束

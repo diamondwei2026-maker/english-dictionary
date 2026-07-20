@@ -445,6 +445,95 @@ SCSS 实现：
 
 ---
 
+## 步骤 4c：API 与服务端映射 🆕（第七类映射）
+
+> **适用条件**：仅当 SKILL.md 决策树步骤 4k 检测到源项目有真实 API 对接时执行此步骤。
+> 纯静态/纯 mock 项目跳过。
+
+现有的六大映射类别（组件模型、事件系统、样式映射、路由、状态管理、数据获取）中，
+"数据获取"仅覆盖了 mock→API 的粗粒度映射。真实的 API 对接涉及 HTTP 客户端选择、
+认证 Token 平台适配、拦截器迁移等复杂决策——这些无法归入任何一个现有类别。
+
+### 4c-1. HTTP 客户端映射
+
+| 源 | 目标 | 注意事项 |
+|----|------|---------|
+| `fetch()` | 保留 `fetch()`（H5）/ `uni.request()`（小程序） | uni-app 需条件编译或用 `uni.request` 统一 |
+| `axios` | H5 保留 axios；小程序用 `uni.request` 或 `axios-miniprogram-adapter` | Taro 用 `Taro.request` |
+| `React Query / TanStack Query` | Vue: `@tanstack/vue-query`；小程序: 手动封装 `useRequest` composable | |
+| `SWR` | Vue: `vue-swr` 或手动 `useFetch` composable | |
+| 自定义 `request.ts` 封装 | 逻辑保留，API 语法按目标 HTTP 客户端调整 | **推荐模式** |
+
+### 4c-2. API 基础 URL 配置策略
+
+```
+源: const API_BASE = 'https://api.example.com/v1' 或 import.meta.env.VITE_API_BASE
+
+目标策略（根据决策树 4k 用户回答决定）:
+  同一后端 → 保留相同 URL，仅迁移客户端代码
+  新后端   → 用户指定的新 URL
+  Mock 模式 → VITE_USE_MOCK=true 时不发真实请求，返回 mock 数据
+
+目标实施:
+  创建 src/config/api.ts — 统一导出 API_BASE、USE_MOCK 等配置
+  创建 .env.development / .env.production — 环境特定 API 地址
+```
+
+### 4c-3. 认证 Token 管理
+
+| 源 | 目标 |
+|----|------|
+| `localStorage.getItem('token')` | H5: 同；小程序: `uni.getStorageSync('token')` |
+| `Authorization: Bearer <token>` Header | 全平台保留 |
+| Cookie-based session | H5: 保留 Cookie 自动携带；小程序: **不支持 Cookie** → 必须改为 Token Header |
+| Token 刷新（401 → refresh → 重试） | 逻辑保留，封装在 `utils/request.ts` 响应拦截器中 |
+
+### 4c-4. 请求/响应拦截器
+
+```
+源项目中 axios/fetch 的拦截器必须提取为独立的 api-client.ts（或 utils/request.ts），
+禁止在每个页面中内联 fetch/axios 调用。
+
+拦截器映射规则:
+  请求拦截器 → 目标 HTTP 客户端的请求中间件（自动附加 Token、Content-Type 等）
+  响应拦截器 → 目标 HTTP 客户端的响应中间件（401 → 清除 token → 跳转登录、网络错误 toast 等）
+  错误处理   → 统一错误处理函数，页面中只需关注业务逻辑
+```
+
+### 4c-5. 环境配置
+
+```
+目标项目必须创建:
+  - .env.development — 开发环境 API 地址（可指向 mock server 或本地后端）
+  - .env.production  — 生产环境 API 地址
+  - src/config/api.ts — 统一导出 API_BASE、ENABLE_MOCK 等配置变量
+```
+
+### 4c-6. 输出到 Phase 3 的格式
+
+API 映射规则必须转化为 Phase 3 拓扑排序中的新增层级：
+
+```
+Layer 0 追加: src/config/api.ts              （API 基础配置；无依赖）
+Layer 1 追加: src/utils/request.ts           （统一 HTTP 客户端 + 拦截器；依赖 Layer 0）
+Layer 2 追加: src/composables/useApi.ts      （API 调用 composable，封装 loading/error 状态）
+```
+
+如果用户选择了 mock 模式，Layer 1 增加:
+```
+Layer 1 追加: src/data/mockData.ts           （mock 数据）
+Layer 2 追加: src/mock/mockInterceptor.ts    （mock 拦截器，环境变量控制开关）
+```
+
+### 4c-7. 进入 Phase 3 前验证清单追加项
+
+- [ ] **🆕 如果源项目有 API 对接，第七类映射规则已生成**
+- [ ] **🆕 API 客户端配置策略已确认（同后端/新后端/mock）**
+- [ ] **🆕 认证 Token 平台适配方案已确定**
+- [ ] **🆕 Phase 3 拓扑排序中包含 API 相关层级（Layer 0/1/2 追加项）**
+
+---
+
 ## 步骤 5：识别并处理"无法"映射的情况
 
 某些源模式没有直接的等价物。对每种情况：

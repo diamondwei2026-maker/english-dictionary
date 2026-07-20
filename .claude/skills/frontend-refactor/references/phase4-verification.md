@@ -1459,6 +1459,100 @@ DOM 结构偏差不能通过简单的单属性 Edit 修复——通常需要改�
 
 ---
 
+## Step 2h: API 层验证 🆕（API Layer Verification）
+
+> **适用条件**：仅当 SKILL.md 决策树步骤 4k 检测到源项目有真实 API 对接时执行此步骤。
+> 纯静态/纯 mock 项目跳过。
+
+Phase 4 的所有现有审计（样式/结构/复用/图标）都是**前端可见层**的验证。
+API 层涉及 HTTP 客户端配置、认证 Token 存储、请求/响应拦截器等**不可见层**——
+CSS 属性存在性审计、DOM 结构审计全部覆盖不到。
+
+### 2h-1. 端点清单完整性验证
+
+从 Phase 1 文档 6（API 资产清单）中提取每个 API 端点 ID，逐项 Grep 验证对应的
+目标实现是否存在：
+
+```bash
+# 对每个 API 端点 ID，检查目标项目中是否有对应的实现
+# 示例：API-01 GET /words → 检查 getWords / fetchWords 函数是否存在
+grep -rn "getWords\|fetchWords\|/words" <target>/src/ --include="*.ts" --include="*.vue"
+
+# 构建审计矩阵
+| API ID | 源端点 | 目标实现函数 | 目标文件 | 状态 |
+|--------|--------|------------|---------|------|
+| API-01 | GET /words?q= | getWords() | utils/request.ts:42 | ✅ |
+| API-02 | GET /words/:id | getWordById() | utils/request.ts:58 | ✅ |
+```
+
+### 2h-2. 认证机制完整性验证
+
+```bash
+# Token 存储方式是否与 Phase 2 映射一致
+grep -rn "getStorageSync\|localStorage.*token\|setStorageSync" <target>/src/ --include="*.ts"
+
+# Token 传递是否正确
+grep -rn "Authorization\|Bearer" <target>/src/ --include="*.ts" --include="*.vue"
+
+# Cookie → Token Header 适配（Web → 小程序迁移时）
+grep -rn "Cookie\|credentials.*include\|withCredentials" <target>/src/ --include="*.ts"
+# → 小程序目标项目中应为空（不支持 Cookie）
+```
+
+### 2h-3. 拦截器完整性验证
+
+```bash
+# 请求/响应拦截器是否保留
+grep -rn "interceptor\|request\.use\|response\.use" <target>/src/ --include="*.ts"
+
+# 401 处理逻辑是否保留
+grep -rn "401\|unauthorized\|token.*expired\|token.*refresh" <target>/src/ --include="*.ts" --include="*.vue"
+```
+
+### 2h-4. Mock 切换机制验证（如适用）
+
+```bash
+# Mock 模式开关是否存在且可配置
+grep -rn "USE_MOCK\|VITE_USE_MOCK\|ENABLE_MOCK" <target>/src/ --include="*.ts" --include="*.env*"
+```
+
+### 2h-5. 禁止内联 API 调用验证 🔴
+
+这是 API 层最关键的审计项——所有 fetch/axios 调用必须通过统一的 request 工具，
+禁止在各页面中内联调用：
+
+```bash
+# 页面/组件文件中不应存在裸 fetch/axios/uni.request 调用
+grep -rn "fetch(\|axios(\|uni\.request(" <target>/src/pages/ <target>/src/components/ --include="*.vue"
+# 预期输出：空（零命中）
+# 如果命中 → 🔴 Blocker → 必须提取到 utils/request.ts
+```
+
+### 2h-6. 环境配置文件验证
+
+```bash
+# 环境配置文件是否存在
+ls <target>/.env.development <target>/.env.production 2>/dev/null
+# 至少 .env.development 存在（含 API_BASE 变量）
+
+# API 配置文件是否存在
+ls <target>/src/config/api.ts 2>/dev/null
+grep -rn "API_BASE\|apiBase\|baseURL" <target>/src/config/ --include="*.ts"
+```
+
+### 2h-7. 判定与处理
+
+| 检查项 | 通过标准 | 失败处理 |
+|--------|---------|---------|
+| 端点清单完整性 | 每个 API 端点 ID 都有对应目标实现 | 缺失 → 回到 Phase 3 补充 |
+| 认证机制 | Token 存储/传递方式与 Phase 2 映射一致 | 不一致 → Edit 修正 |
+| 拦截器 | 401 处理 + 错误 toast 逻辑存在 | 缺失 → Edit 补充 |
+| Mock 开关 | VITE_USE_MOCK 变量存在且可配置 | 缺失 → Edit 补充 |
+| 内联 API 调用 | 页面/组件中零命中 | 命中 → 提取到 request.ts |
+| 环境配置 | .env.development + config/api.ts 存在 | 缺失 → Edit 补充 |
+
+---
+
 ## Step 2d: 阻断式审计与回退重生成 🆕
 
 Phase 4 的常规修复策略是"发现问题 → 读取文件 → Edit 逐项修复"。但当某个规则的
