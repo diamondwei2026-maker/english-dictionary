@@ -2,6 +2,7 @@
   "name": "english-dictionary-monorepo",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "description": "英语母语者词典 — 前后端 Monorepo",
   "scripts": {
     "dev:client": "cd client && pnpm dev:h5",
