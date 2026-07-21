@@ -12,10 +12,13 @@ export const getMe = asyncHandler(
       return;
     }
     res.json({
+      _id: user._id,
       id: user._id,
       phone: user.phone,
       username: user.username,
       role: user.role,
+      learnedWords: user.learnedWords,
+      favoriteWords: user.favoriteWords,
       createdAt: user.createdAt,
     });
   }

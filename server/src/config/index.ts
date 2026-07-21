@@ -1,6 +1,11 @@
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-dotenv.config();
+// 基于当前文件位置解析 .env 路径，避免 CWD 不同导致加载失败
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 // 警告：生产环境必须设置 JWT_SECRET
 if (!process.env.JWT_SECRET) {
@@ -19,7 +24,7 @@ export const config = {
   port: parseInt(process.env.PORT || "3001", 10),
   nodeEnv: process.env.NODE_ENV || "development",
   mongodbUri:
-    process.env.MONGODB_URI || "mongodb://localhost:27017/english-dictionary",
+    process.env.MONGODB_URI || "mongodb://localhost:27017/english-dictionary-dev",
   jwtSecret: process.env.JWT_SECRET || "dev-secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",

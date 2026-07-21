@@ -555,3 +555,51 @@ const uni = (uniPlugin as any).default || uniPlugin;
 grep -c '"type": "module"' package.json
 # 如果输出 1 → 必须使用上述兼容方案
 ```
+
+### PM-6: api/index.ts 缺少文件导出 → 构建失败 🆕
+
+**现象**：`uni build` 报 `"xxx" is not exported by "src/api/index.ts"`
+
+**根因**：API 服务文件迁移时，新增的 API 文件（如`ai.ts`）没有被加入到 `api/index.ts`
+的 re-export 列表中。多个 Agent 各自生成 API 文件，但没有一个 Agent 负责更新索引文件。
+
+**修复**：在 `api/index.ts` 中追加新 API 文件的导出声明。
+
+**检测命令**：
+```bash
+# 检查 api/ 下所有 .ts 文件的导出是否都在 index.ts 中声明
+diff <(ls src/api/*.ts | sed 's|.*/||; s|\.ts||' | grep -v index) \
+     <(grep 'export.*from.*"./' src/api/index.ts | sed 's|.*"./||; s|".*||')
+```
+
+### PM-7: uni.request 错误的 Promise 解构 → TS2488 🆕
+
+**现象**：`tsc --noEmit` 报 `Type '...' must have a '[Symbol.iterator]()' method`
+
+**根因**：Agent 将 `uni.request` 按照 Taro.request 模式写为 `const [err, res] = await uni.request<T>()`。
+但 uni.request 不返回元组，TypeScript 类型中不支持此解构。
+
+**修复**：使用 Promise 包装模式：
+```ts
+const res = await new Promise<UniApp.RequestSuccessCallbackResult>((resolve, reject) => {
+  uni.request({..., success: resolve, fail: reject});
+});
+```
+
+**检测命令**：
+```bash
+grep -rn "const \[.*\] = await uni.request" src/  # 期望: 0
+```
+
+### PM-8: 审计脚本 NC-03 跨行误报 🆕
+
+**现象**：`audit-phase4.sh` 报告 NC-03 Blocker（textarea 无 auto-height），
+但跨行验证后所有 textarea 均有 `auto-height` 属性。
+
+**根因**：审计脚本的 `grep -A2` 只匹配 textarea 标签后 2 行。Vue SFC 的多行
+`<textarea>` 属性可能分布在 5-10 行，`auto-height` 在 grep 窗口外 → 被误报缺失。
+
+**验证命令（每次审计脚本运行后必须执行）**：
+```bash
+grep -A15 '<textarea' src/ --include="*.vue" -rn | grep -c 'auto-height'
+```

@@ -33,7 +33,7 @@ services:
       # ---- 数据库（MongoDB Atlas 或 Render MongoDB）----
       - key: MONGODB_URI
         sync: false                     # 不提交到 git，在 Render Dashboard 手动填写
-        # 示例：mongodb+srv://user:pass@cluster.mongodb.net/english-dictionary
+        # 示例：mongodb+srv://user:pass@cluster.mongodb.net/novelcraft-dev
       - key: DB_MAX_POOL_SIZE
         value: "10"
       - key: DB_IDLE_TIMEOUT_MS

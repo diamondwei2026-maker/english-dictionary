@@ -1,0 +1,117 @@
+/* ── uni.scss — Global SCSS variables & mixins for english-dict-uni ── */
+/* Auto-injected via vite.config.ts additionalData to all component SCSS */
+
+/* ════════════════════════════════════════════════════════════
+   Design Tokens — values cross-validated against source
+   Phase1(src): figma-prototype/src/app/components/*.tsx
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Colors ── */
+$color-page-bg: #F7F9FC;          /* Phase1(src): all pages — background */
+$color-card-bg: #FFFFFF;           /* Phase1(src): all cards */
+$color-primary: #2563EB;           /* Phase1(src): primary blue */
+$color-primary-dark: #1D4ED8;      /* Phase1(src): gradient start */
+$color-primary-light: #3B82F6;     /* Phase1(src): gradient end */
+$color-primary-bg: #EFF6FF;        /* Phase1(src): light blue bg */
+$color-text-primary: #111827;      /* Phase1(src): titles */
+$color-text-secondary: #6B7280;    /* Phase1(src): body text */
+$color-text-tertiary: #9CA3AF;     /* Phase1(src): placeholder/labels */
+$color-text-disabled: #D1D5DB;     /* Phase1(src): arrows/disabled */
+$color-input-bg: #F1F5F9;          /* Phase1(src): INPUT-A blur bg */
+$color-danger: #DC2626;            /* Phase1(src): delete/logout */
+$color-danger-bg: #FEF2F2;         /* Phase1(src): danger bg */
+$color-success: #059669;           /* Phase1(src): done state */
+$color-admin: #7C3AED;             /* Phase1(src): admin purple */
+$color-admin-bg: #FAF5FF;          /* Phase1(src): admin light bg */
+
+/* ── Typography ── */
+$font-family: Inter, system-ui, -apple-system, sans-serif;
+
+$font-h1: 52rpx;                   /* Phase1(src): 26px → 52rpx */
+$font-h2: 44rpx;                   /* Phase1(src): 22px → 44rpx */
+$font-h3: 34rpx;                   /* Phase1(src): 17px → 34rpx */
+$font-body: 30rpx;                 /* Phase1(src): 15px → 30rpx */
+$font-body-sm: 26rpx;              /* Phase1(src): 13px → 26rpx */
+$font-label: 24rpx;                /* Phase1(src): HomeView.tsx:37 L1=12px, LibrariesView.tsx:26 L2=12px, WordDetailView.tsx:105 L3=11px → ⚠️ L3 conflicts, use L1/L2 majority, L3 page must override with font-size:22rpx */
+$font-caption: 22rpx;              /* Phase1(src): 11px → 22rpx */
+
+/* ── Spacing (px × 2 = rpx) ── */
+$space-page-px: 48rpx;             /* Phase1(src): 24px → 48rpx */
+$space-card-p: 40rpx;              /* Phase1(src): AdminView.tsx:192 CARD padding=20px→40rpx. WordDetailView.tsx:121 padding=24px→48rpx — diff page, diff var */
+$space-card-gap: 20rpx;            /* Phase1(src): 10px → 20rpx */
+$space-section-gap: 28rpx;         /* Phase1(src): 14px → 28rpx */
+$space-header-pt: 104rpx;          /* Phase1(src): AdminView.tsx:88 padding-top=52px → 104rpx. ⚠️ HomeView uses 56px→112rpx — MUST override */
+$space-header-pb: 32rpx;           /* Phase1(src): AdminView.tsx:88 padding-bottom=16px → 32rpx. ⚠️ LibrariesView/ProfileView/WordDetailView use 20px→40rpx — MUST override */
+$space-pt-home: 112rpx;            /* Phase1(src): HomeView.tsx:29 — 56px */
+
+/* ── Border Radius ── */
+$radius-card: 40rpx;               /* Phase1(src): AdminView.tsx:45 — 20px → 40rpx */
+$radius-card-lg: 48rpx;            /* Phase1(src): WordDetailView.tsx:120 — 24px → 48rpx */
+$radius-button: 32rpx;             /* Phase1(src): 16px → 32rpx */
+$radius-input: 28rpx;              /* Phase1(src): AdminView.tsx:53 — 14px → 28rpx */
+$radius-tag: 40rpx;                /* Phase1(src): 20px → 40rpx */
+$radius-tag-sm: 12rpx;             /* Phase1(src): WordCard badge — 6px → 12rpx */
+
+/* ════════════════════════════════════════════════════════════
+   Mixins
+   ════════════════════════════════════════════════════════════ */
+
+/* Card base */
+@mixin card {
+  background: $color-card-bg;
+  border-radius: $radius-card;
+  box-shadow: 0 4rpx 32rpx rgba(0, 0, 0, 0.05);
+}
+
+/* Sticky header */
+@mixin sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: $space-header-pt;
+  padding-left: $space-page-px;
+  padding-right: $space-page-px;
+  padding-bottom: $space-header-pb;
+  background: rgba(247, 249, 252, 0.94);
+  /* #ifdef H5 */
+  backdrop-filter: blur(32rpx);
+  -webkit-backdrop-filter: blur(32rpx);
+  /* #endif */
+}
+
+/* INPUT-A pattern: transparent border + gray bg → blue border + white bg */
+@mixin input-pattern-a {
+  border: 3rpx solid transparent;
+  background: $color-input-bg;
+  /* #ifdef H5 */
+  transition: border-color 0.2s, background 0.2s;
+  /* #endif */
+}
+
+@mixin input-pattern-a-focused {
+  border-color: $color-primary;
+  background: #fff;
+}
+
+/* INPUT-B pattern: gray border + white bg → blue border */
+@mixin input-pattern-b {
+  border: 3rpx solid #E5E7EB;
+  background: #fff;
+  /* #ifdef H5 */
+  transition: border-color 0.2s;
+  /* #endif */
+}
+
+@mixin input-pattern-b-focused {
+  border-color: $color-primary;
+}
+
+/* Section label (11-12px / 600 / uppercase / letter-spacing) */
+@mixin section-label {
+  font-size: $font-label;
+  font-weight: 600;
+  color: $color-text-tertiary;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+  margin: 0 0 24rpx;
+}

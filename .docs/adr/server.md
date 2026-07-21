@@ -2,9 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.1 |
+| 版本 | v1.2 |
 | 状态 | 已实现 |
-| 最后更新 | 2026-07-09 |
+| 最后更新 | 2026-07-20 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [前端 ADR](./client.md)（待生成） |
@@ -240,15 +240,15 @@ server/
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
 | GET | /api/v1/daily-word | 获取今日一词（加权随机推荐） | 无 |
-| POST | /api/v1/daily-word/refresh | 强制刷新今日一词 | Admin |
+| POST | /api/v1/daily-word/pin | 管理员置顶今日一词 | Admin |
 
 #### 学习记录
 
 | 方法 | 路径 | 说明 | 认证 |
 |------|------|------|------|
 | POST | /api/v1/words/:id/learn | 标记单词为已学 | User |
-| GET | /api/v1/users/me/learning | 学习记录列表 | User |
-| GET | /api/v1/users/me/stats | 学习统计（已学数、连续天数） | User |
+| GET | /api/v1/users/learning-records | 学习记录列表 | User |
+| GET | /api/v1/users/stats | 学习统计（已学数、学习天数） | User |
 
 #### 收藏
 
@@ -256,7 +256,7 @@ server/
 |------|------|------|------|
 | POST | /api/v1/words/:id/favorite | 收藏单词 | User |
 | DELETE | /api/v1/words/:id/favorite | 取消收藏 | User |
-| GET | /api/v1/users/me/favorites | 收藏列表 | User |
+| GET | /api/v1/users/favorites | 收藏列表 | User |
 
 #### 用户/管理
 

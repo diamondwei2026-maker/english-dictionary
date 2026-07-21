@@ -1,8 +1,9 @@
-import type { Word, WordLibrary, ExtendedMeaning, User } from "../data/types";
-
 // ============================================================
 // 数据适配器 — 后端 API 响应 → 前端类型
+// 从 client/src/api/adapters.ts 移植
 // ============================================================
+
+import type { Word, WordLibrary, ExtendedMeaning, User } from "../data/types";
 
 // ---- 后端原始类型（仅在适配器中使用） ----
 
@@ -135,7 +136,7 @@ export function adaptWordList(response: {
 
 export function adaptWordbank(
   be: BackendWordbank,
-  wordCount?: number,
+  wordCount?: number
 ): WordLibrary {
   return {
     id: String(be._id),

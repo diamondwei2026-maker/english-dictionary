@@ -1,17 +1,17 @@
+// ============================================================
+// 收藏 API 模块 — 与 client/src/api/favorites.ts 一致
+// ============================================================
+
 import { request } from "./request";
 import { adaptWord } from "./adapters";
 import type { Word } from "../data/types";
-
-// ============================================================
-// 收藏 API 模块
-// ============================================================
 
 /**
  * 收藏单词。
  * POST /api/v1/words/:id/favorite
  */
 export async function favoriteWord(
-  wordId: string,
+  wordId: string
 ): Promise<{ favorited: boolean }> {
   return request(`/api/v1/words/${wordId}/favorite`, { method: "POST" });
 }
@@ -21,7 +21,7 @@ export async function favoriteWord(
  * DELETE /api/v1/words/:id/favorite
  */
 export async function unfavoriteWord(
-  wordId: string,
+  wordId: string
 ): Promise<{ favorited: boolean }> {
   return request(`/api/v1/words/${wordId}/favorite`, { method: "DELETE" });
 }
@@ -49,7 +49,7 @@ interface BackendFavoriteWord {
 
 /**
  * 获取用户收藏列表（分页）。
- * GET /api/v1/user/favorites?page=1&pageSize=20
+ * GET /api/v1/users/favorites?page=1&pageSize=20
  */
 export async function fetchFavorites(params: {
   page?: number;
@@ -66,7 +66,7 @@ export async function fetchFavorites(params: {
   const query: string[] = [];
   if (params.page) query.push(`page=${params.page}`);
   if (params.pageSize) query.push(`pageSize=${params.pageSize}`);
-  const path = `/api/v1/user/favorites${
+  const path = `/api/v1/users/favorites${
     query.length ? "?" + query.join("&") : ""
   }`;
 

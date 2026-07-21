@@ -1,0 +1,179 @@
+/* === Pre-generated CSS for pages/library-words/library-words.vue === */
+/* Source: pages/library-words/index.tsx */
+/* Agent: PASTE this entire block into <style scoped> of pages/library-words/library-words.vue */
+
+/* Source line 60 — View */
+.library-words__el1 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 63 — unknown */
+.library-words__el2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #9CA3AF;
+}
+
+/* Source line 73 — Text */
+.library-words__el3 {
+  font-size: 30rpx;
+  margin-top: 24rpx;
+  display: block;
+}
+
+/* Source line 85 — View */
+.library-words__el4 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 88 — unknown */
+.library-words__el5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #6B7280;
+}
+
+/* Source line 97 — Text */
+.library-words__el6 {
+  font-size: 30rpx;
+  display: block;
+}
+
+/* Source line 102 — unknown */
+.library-words__el7 {
+  margin-top: 24rpx;
+  color: #2563EB;
+}
+
+/* Source line 115 — View */
+.library-words__el8 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 118 — unknown */
+.library-words__el9 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 48rpx;
+}
+
+/* Source line 128 — unknown */
+.library-words__el10 {
+  font-size: 30rpx;
+  color: #DC2626;
+  text-align: center;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+/* Source line 140 — unknown */
+.library-words__el11 {
+  padding: 24rpx64rpx;
+  background: #2563EB;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* Source line 149 — Text */
+.library-words__el12 {
+  color: #fff;
+}
+
+/* Source line 158 — View */
+.library-words__el13 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 164 — Text */
+.library-words__el14 {
+  font-size: 26rpx;
+  color: #9CA3AF;
+  display: block;
+  margin-top: 8rpx;
+}
+
+/* Source line 169 — View */
+.library-words__el15 {
+  padding: 32rpx48rpx;
+}
+
+/* Source line 171 — View */
+.library-words__el16 {
+  text-align: center;
+  padding: 120rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 172 — View */
+.library-words__el17 {
+  opacity: 0.4;
+}
+
+/* Source line 175 — Text */
+.library-words__el18 {
+  font-size: 30rpx;
+  display: block;
+}
+
+/* Source line 178 — View */
+.library-words__el19 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Source line 183 — unknown */
+.library-words__el20 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx40rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  box-shadow: 4rpx24rpxrgba(0, 0, 0, 0.04);
+}
+
+/* Source line 194 — View */
+.library-words__el21 {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 195 — Text */
+.library-words__el22 {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Source line 196 — Text */
+.library-words__el23 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}
+
+/* Source line 198 — Text */
+.library-words__el24 {
+  font-size: 26rpx;
+  color: #6B7280;
+  line-height: 1.5;
+  display: block;
+}
+

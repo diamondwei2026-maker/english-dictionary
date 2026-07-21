@@ -1,21 +1,12 @@
-import Taro from "@tarojs/taro";
-import {
-  setGlobalUser,
-  getToken,
-  setToken,
-  removeToken,
-  TOKEN_KEY,
-} from "../hooks/useAuth";
-
 // ============================================================
-// 通用请求封装 — 基于 Taro.request，兼容 H5 与微信小程序
+// 通用请求封装 — 基于 uni.request，兼容 H5 与微信小程序
+// 与 client/src/api/request.ts 保持接口契约一致
 // ============================================================
 
-// 从 useAuth.ts 统一导入，此处仅做 re-export
-export { getToken, setToken, removeToken, TOKEN_KEY };
+import { getToken, removeToken, userStore } from "@/store/user";
 
-/** 后端 API 基路径 */
-const BASE_URL = ""; // 开发环境通过 devServer.proxy 代理，生产环境同域部署
+/** 后端 API 基路径 — 开发环境通过 vite proxy 代理，生产环境同域部署 */
+const BASE_URL = "";
 
 /** 后端统一错误响应格式 */
 export interface ApiError {
@@ -24,7 +15,7 @@ export interface ApiError {
   errors?: Array<{ field: string; message: string }>;
 }
 
-/** Taro.request 的简化选项 */
+/** uni.request 的简化选项 */
 export interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   data?: Record<string, unknown>;
@@ -32,12 +23,34 @@ export interface RequestOptions {
 }
 
 /**
+ * 自定义 API 错误类 — 与 client/src/api/request.ts 一致
+ */
+export class ApiRequestError extends Error {
+  readonly statusCode: number;
+  readonly code: string;
+  readonly errors?: Array<{ field: string; message: string }>;
+
+  constructor(
+    statusCode: number,
+    code: string,
+    message: string,
+    errors?: Array<{ field: string; message: string }>
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.statusCode = statusCode;
+    this.code = code;
+    this.errors = errors;
+  }
+}
+
+/**
  * 发起 API 请求。
  *
- * - 自动从 localStorage 读取 token 并注入 Authorization Header
+ * - 自动从 uni.storage 读取 token 并注入 Authorization Header
  * - 401 响应自动清除 token 并跳转登录页
  * - 非 2xx 响应解析后端 error 格式并 throw
- * - 成功响应直接返回 res.data（Taro 已自动 JSON.parse）
+ * - 成功响应直接返回 res.data
  */
 export async function request<T = unknown>(
   path: string,
@@ -56,17 +69,15 @@ export async function request<T = unknown>(
   }
 
   try {
-    const res = await Taro.request<T>({
+    const res = await uniRequest<T>({
       url: `${BASE_URL}${path}`,
       method,
       data: options.data,
       header,
     });
 
-    // Taro.request 在 H5 环境返回 statusCode，小程序环境也类似
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      // 防御：当响应体为空/非 JSON 时 Taro 可能返回 null data，
-      // 此时应抛出错误而非让上层 adapter 因 null.data 崩溃
+      // 防御：当响应体为空/非 JSON 时可能返回 null data
       if (res.data == null) {
         throw new ApiRequestError(
           res.statusCode,
@@ -74,11 +85,10 @@ export async function request<T = unknown>(
           "服务器返回了空的响应数据，请检查后端服务是否正常运行"
         );
       }
-      return res.data;
+      return res.data as T;
     }
 
-    // 401 — 全局处理：有 token 说明是会话过期，清除状态并跳转登录页；
-    // 无 token（如登录/注册失败）仅抛出错误，由调用方处理。
+    // 401 — 全局处理：有 token 说明是会话过期，清除状态并跳转登录页
     if (res.statusCode === 401) {
       if (token) {
         clearAuthAndRedirect();
@@ -101,7 +111,7 @@ export async function request<T = unknown>(
       apiError?.errors
     );
   } catch (err) {
-    // 网络错误或 Taro.request 本身的异常
+    // 网络错误或 uni.request 本身的异常
     if (err instanceof ApiRequestError) {
       throw err;
     }
@@ -120,29 +130,26 @@ export async function request<T = unknown>(
 /** 清除认证状态并跳转登录页（401 全局拦截） */
 function clearAuthAndRedirect(): void {
   removeToken();
-  setGlobalUser(null);
-  // 延迟跳转，避免与页面自身的 redirectTo 冲突
+  userStore.user = null;
+  // 延迟跳转，避免与页面自身的跳转冲突
   setTimeout(() => {
-    Taro.redirectTo({ url: "/pages/auth/index?mode=login" });
+    uni.redirectTo({ url: "/pages/auth/auth" });
   }, 100);
 }
 
-/** 自定义 API 错误类 */
-export class ApiRequestError extends Error {
-  readonly statusCode: number;
-  readonly code: string;
-  readonly errors?: Array<{ field: string; message: string }>;
-
-  constructor(
-    statusCode: number,
-    code: string,
-    message: string,
-    errors?: Array<{ field: string; message: string }>
-  ) {
-    super(message);
-    this.name = "ApiRequestError";
-    this.statusCode = statusCode;
-    this.code = code;
-    this.errors = errors;
-  }
+/**
+ * uni.request 的 Promise 封装。
+ * uni-app v3 alpha 的 Promise 行为在不同平台可能不同，
+ * 这里使用 success/fail 回调包装以保证一致性。
+ */
+function uniRequest<T = unknown>(
+  options: Record<string, unknown>
+): Promise<{ statusCode: number; data: T; header: Record<string, unknown>; cookies?: string[] }> {
+  return new Promise((resolve, reject) => {
+    uni.request({
+      ...options,
+      success: (res: any) => resolve(res),
+      fail: (err: any) => reject(err),
+    } as any);
+  });
 }

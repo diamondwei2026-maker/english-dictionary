@@ -1,0 +1,938 @@
+/* === Pre-generated CSS for pages/admin/components/UserManager.vue === */
+/* Source: pages/admin/index.tsx */
+/* Agent: PASTE this entire block into <style scoped> of pages/admin/components/UserManager.vue */
+
+/* Source line 120 — View */
+.UserManager__el1 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 123 — View */
+.UserManager__el2 {
+  padding: 32rpx48rpx80rpx;
+}
+
+/* Source line 124 — View */
+.UserManager__el3 {
+  background: linear-gradient(135deg,#1D4ED80%,#2563EB60%,#3B82F6100%);
+  border-radius: 48rpx;
+  padding: 48rpx;
+  margin-bottom: 48rpx;
+  box-shadow: 16rpx64rpxrgba(37, 99, 235, 0.22);
+  color: #fff;
+}
+
+/* Source line 129 — Text */
+.UserManager__el4 {
+  font-size: 22rpx;
+  opacity: 0.7;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+  color: #fff;
+  display: block;
+  margin-bottom: 32rpx;
+}
+
+/* Source line 133 — View */
+.UserManager__el5 {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8rpx;
+}
+
+/* Source line 139 — View */
+.UserManager__el6 {
+  text-align: center;
+}
+
+/* Source line 140 — Text */
+.UserManager__el7 {
+  font-size: 60rpx;
+  font-weight: 800;
+  color: #fff;
+  display: block;
+  margin-bottom: 4rpx;
+  letter-spacing: -1rpx;
+}
+
+/* Source line 143 — Text */
+.UserManager__el8 {
+  font-size: 24rpx;
+  opacity: 0.7;
+  color: #fff;
+  display: block;
+}
+
+/* Source line 150 — View */
+.UserManager__el9 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 64rpx;
+}
+
+/* Source line 153 — unknown */
+.UserManager__el10 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36rpx40rpx;
+}
+
+/* Source line 154 — View */
+.UserManager__el11 {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+/* Source line 155 — View */
+.UserManager__el12 {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: s.bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Source line 160 — Text */
+.UserManager__el13 {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+/* Source line 161 — Text */
+.UserManager__el14 {
+  font-size: 26rpx;
+  color: #9CA3AF;
+  display: block;
+}
+
+/* Source line 170 — unknown */
+.UserManager__el15 {
+  padding: 32rpx;
+  background: #FEF2F2;
+  color: #DC2626;
+  border-radius: 32rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+/* Source line 172 — Text */
+.UserManager__el16 {
+  color: #DC2626;
+}
+
+/* Source line 227 — View */
+.UserManager__el17 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 230 — View */
+.UserManager__el18 {
+  padding: 16rpx48rpx80rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* Source line 235 — unknown */
+.UserManager__el19 {
+  border: focusedField==="libName"?"3rpx solid#2563EB":"3rpx solidtransparent";
+  background: focusedField==="libName"?"#fff":"#F1F5F9";
+}
+
+/* Source line 242 — unknown */
+.UserManager__el20 {
+  min-height: 176rpx;
+  border: focusedField==="libDesc"?"3rpx solid#2563EB":"3rpx solidtransparent";
+  background: focusedField==="libDesc"?"#fff":"#F1F5F9";
+}
+
+/* Source line 246 — unknown */
+.UserManager__el21 {
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: !name.trim()||saving?"#93C5FD":"#2563EB";
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  text-align: center;
+  opacity: saving?0.6:1;
+}
+
+/* Source line 249 — Text */
+.UserManager__el22 {
+  color: #fff;
+}
+
+/* Source line 252 — unknown */
+.UserManager__el23 {
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: #fff;
+  border: 3rpx solid#BFDBFE;
+  color: #2563EB;
+  font-size: 30rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Source line 254 — Text */
+.UserManager__el24 {
+  color: #2563EB;
+}
+
+/* Source line 262 — View */
+.UserManager__el25 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 265 — View */
+.UserManager__el26 {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 16rpx32rpx;
+  background: #2563EB;
+  border-radius: 40rpx;
+}
+
+/* Source line 267 — Text */
+.UserManager__el27 {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* Source line 270 — View */
+.UserManager__el28 {
+  padding: 16rpx48rpx80rpx;
+}
+
+/* Source line 273 — View */
+.UserManager__el29 {
+  text-align: center;
+  padding: 128rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 275 — Text */
+.UserManager__el30 {
+  font-size: 28rpx;
+  display: block;
+}
+
+/* Source line 278 — View */
+.UserManager__el31 {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* Source line 280 — View */
+.UserManager__el32 {
+  padding: 40rpx;
+}
+
+/* Source line 281 — Text */
+.UserManager__el33 {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+/* Source line 282 — Text */
+.UserManager__el34 {
+  font-size: 26rpx;
+  color: #6B7280;
+  display: block;
+  margin-bottom: 28rpx;
+  line-height: 1.6;
+}
+
+/* Source line 283 — View */
+.UserManager__el35 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Source line 284 — Text */
+.UserManager__el36 {
+  font-size: 24rpx;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 6rpx20rpx;
+  border-radius: 40rpx;
+}
+
+/* Source line 288 — View */
+.UserManager__el37 {
+  display: flex;
+  gap: 16rpx;
+}
+
+/* Source line 290 — unknown */
+.UserManager__el38 {
+  padding: 14rpx32rpx;
+  background: #F1F5F9;
+  border-radius: 40rpx;
+}
+
+/* Source line 291 — Text */
+.UserManager__el39 {
+  color: #374151;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* Source line 294 — unknown */
+.UserManager__el40 {
+  padding: 14rpx32rpx;
+  background: #FEF2F2;
+  border-radius: 40rpx;
+}
+
+/* Source line 295 — Text */
+.UserManager__el41 {
+  color: #DC2626;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* Source line 468 — View */
+.UserManager__el42 {
+  padding-bottom: 80rpx;
+}
+
+/* Source line 470 — View */
+.UserManager__el43 {
+  margin-bottom: 40rpx;
+}
+
+/* Source line 472 — View */
+.UserManager__el44 {
+  padding: 40rpx;
+  background: linear-gradient(135deg,#EFF6FF,#DBEAFE);
+  border: 2rpx solid#BFDBFE;
+}
+
+/* Source line 477 — unknown */
+.UserManager__el45 {
+  margin-bottom: 24rpx;
+}
+
+/* Source line 479 — unknown */
+.UserManager__el46 {
+  padding: 28rpx;
+  border-radius: 28rpx;
+  background: aiLoading?"#93C5FD":aiDone?"#059669":"#2563EB";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+/* Source line 482 — Text */
+.UserManager__el47 {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+/* Source line 491 — View */
+.UserManager__el48 {
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* Source line 496 — View */
+.UserManager__el49 {
+  /* #ifdef H5 */
+  cursor: pointer;
+  /* #endif */
+}
+
+/* Source line 510 — View */
+.UserManager__el50 {
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* Source line 533 — View */
+.UserManager__el51 {
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+}
+
+/* Source line 534 — View */
+.UserManager__el52 {
+  border-radius: 32rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+
+/* Source line 538 — unknown */
+.UserManager__el53 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 22rpx;
+  background: #F1F5F9;
+  border-radius: 28rpx;
+  color: #374151;
+  font-size: 26rpx;
+  font-weight: 500;
+  margin-bottom: 28rpx;
+}
+
+/* Source line 541 — Text */
+.UserManager__el54 {
+  margin-left: 4;
+}
+
+/* Source line 558 — View */
+.UserManager__el55 {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-bottom: 40rpx;
+}
+
+/* Source line 560 — View */
+.UserManager__el56 {
+  text-align: center;
+  padding: 56rpx0;
+  color: #D1D5DB;
+  background: #fff;
+  border-radius: 32rpx;
+  border: 3rpxdashed#E5E7EB;
+}
+
+/* Source line 562 — Text */
+.UserManager__el57 {
+  font-size: 26rpx;
+}
+
+/* Source line 566 — View */
+.UserManager__el58 {
+  padding: 40rpx;
+}
+
+/* Source line 567 — View */
+.UserManager__el59 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28rpx;
+}
+
+/* Source line 568 — Text */
+.UserManager__el60 {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #9CA3AF;
+  letter-spacing: 2rpx;
+  text-transform: uppercase;
+}
+
+/* Source line 572 — unknown */
+.UserManager__el61 {
+  background: #FEF2F2;
+  border-radius: 16rpx;
+  padding: 10rpx14rpx;
+}
+
+/* Source line 577 — View */
+.UserManager__el62 {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* Source line 584 — View */
+.UserManager__el63 {
+  display: grid;
+  grid-template-columns: 1fr192rpx;
+  gap: 20rpx;
+}
+
+/* Source line 594 — View */
+.UserManager__el64 {
+  /* #ifdef H5 */
+  cursor: pointer;
+  /* #endif */
+}
+
+/* Source line 595 — Text */
+.UserManager__el65 {
+  font-size: 30rpx;
+}
+
+/* Source line 615 — unknown */
+.UserManager__el66 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 28rpx;
+  background: #fff;
+  border: 3rpxdashed#D1D5DB;
+  border-radius: 32rpx;
+  color: #6B7280;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* Source line 625 — View */
+.UserManager__el67 {
+  padding: 40rpx;
+  margin-bottom: 48rpx;
+}
+
+/* Source line 633 — View */
+.UserManager__el68 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Source line 635 — unknown */
+.UserManager__el69 {
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: !form.word||!form.libraryId||saving?"#93C5FD":"#2563EB";
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  text-align: center;
+  opacity: saving?0.6:1;
+}
+
+/* Source line 639 — Text */
+.UserManager__el70 {
+  color: #fff;
+}
+
+/* Source line 643 — unknown */
+.UserManager__el71 {
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: #fff;
+  border: 3rpx solid#BFDBFE;
+  color: #2563EB;
+  font-size: 30rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Source line 645 — Text */
+.UserManager__el72 {
+  color: #2563EB;
+}
+
+/* Source line 704 — View */
+.UserManager__el73 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 708 — View */
+.UserManager__el74 {
+  padding: 16rpx48rpx80rpx;
+}
+
+/* Source line 719 — View */
+.UserManager__el75 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 723 — unknown */
+.UserManager__el76 {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 16rpx32rpx;
+  background: #2563EB;
+  border-radius: 40rpx;
+}
+
+/* Source line 725 — Text */
+.UserManager__el77 {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* Source line 728 — View */
+.UserManager__el78 {
+  padding: 16rpx48rpx80rpx;
+}
+
+/* Source line 729 — View */
+.UserManager__el79 {
+  position: relative;
+  margin-bottom: 32rpx;
+}
+
+/* Source line 730 — View */
+.UserManager__el80 {
+  position: absolute;
+  left: 28rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Source line 736 — unknown */
+.UserManager__el81 {
+  padding-left: 80rpx;
+  border: searchFocused?"3rpx solid#2563EB":"3rpx solidtransparent";
+  background: searchFocused?"#fff":"#F1F5F9";
+}
+
+/* Source line 741 — unknown */
+.UserManager__el82 {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4rpx;
+}
+
+/* Source line 750 — View */
+.UserManager__el83 {
+  text-align: center;
+  padding: 128rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 752 — Text */
+.UserManager__el84 {
+  font-size: 28rpx;
+  display: block;
+}
+
+/* Source line 755 — View */
+.UserManager__el85 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Source line 759 — View */
+.UserManager__el86 {
+  padding: 32rpx40rpx;
+}
+
+/* Source line 760 — View */
+.UserManager__el87 {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+
+/* Source line 761 — View */
+.UserManager__el88 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Source line 762 — View */
+.UserManager__el89 {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 763 — Text */
+.UserManager__el90 {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Source line 764 — Text */
+.UserManager__el91 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}
+
+/* Source line 766 — Text */
+.UserManager__el92 {
+  font-size: 24rpx;
+  color: #6B7280;
+  display: block;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Source line 770 — View */
+.UserManager__el93 {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+/* Source line 771 — Text */
+.UserManager__el94 {
+  font-size: 22rpx;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 4rpx16rpx;
+  border-radius: 40rpx;
+}
+
+/* Source line 773 — Text */
+.UserManager__el95 {
+  font-size: 22rpx;
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 4rpx16rpx;
+  border-radius: 40rpx;
+}
+
+/* Source line 779 — View */
+.UserManager__el96 {
+  display: flex;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
+/* Source line 781 — unknown */
+.UserManager__el97 {
+  padding: 14rpx28rpx;
+  background: #F1F5F9;
+  border-radius: 40rpx;
+}
+
+/* Source line 782 — Text */
+.UserManager__el98 {
+  color: #374151;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* Source line 785 — unknown */
+.UserManager__el99 {
+  padding: 14rpx28rpx;
+  background: #FEF2F2;
+  border-radius: 40rpx;
+}
+
+/* Source line 786 — Text */
+.UserManager__el100 {
+  color: #DC2626;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* Source line 809 — View */
+.UserManager__el101 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 812 — View */
+.UserManager__el102 {
+  padding: 16rpx48rpx80rpx;
+}
+
+/* Source line 815 — View */
+.UserManager__el103 {
+  text-align: center;
+  padding: 128rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 816 — Text */
+.UserManager__el104 {
+  font-size: 28rpx;
+  display: block;
+}
+
+/* Source line 819 — View */
+.UserManager__el105 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Source line 821 — View */
+.UserManager__el106 {
+  padding: 32rpx40rpx;
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+/* Source line 822 — View */
+.UserManager__el107 {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: u.role==="admin"?"linear-gradient(135deg,#7C3AED,#8B5CF6)":"linear-gradient(135deg,#2563EB,#3B82F6)";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+/* Source line 825 — Text */
+.UserManager__el108 {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+/* Source line 827 — View */
+.UserManager__el109 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Source line 828 — View */
+.UserManager__el110 {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 829 — Text */
+.UserManager__el111 {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Source line 830 — Text */
+.UserManager__el112 {
+  font-size: 22rpx;
+  padding: 4rpx16rpx;
+  border-radius: 40rpx;
+  background: u.role==="admin"?"#FAF5FF":"#F3F4F6";
+  color: u.role==="admin"?"#7C3AED":"#6B7280";
+  font-weight: 500;
+}
+
+/* Source line 836 — Text */
+.UserManager__el113 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  display: block;
+}
+
+/* Source line 838 — View */
+.UserManager__el114 {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Source line 839 — Text */
+.UserManager__el115 {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2563EB;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+/* Source line 842 — Text */
+.UserManager__el116 {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  display: block;
+}
+
+/* Source line 977 — View */
+.UserManager__el117 {
+  min-height: 100vh;
+  background: BG;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 980 — Text */
+.UserManager__el118 {
+  font-size: 30rpx;
+  color: #9CA3AF;
+  margin-top: 24rpx;
+  display: block;
+}
+
+/* Source line 989 — View */
+.UserManager__el119 {
+  min-height: 100vh;
+  background: BG;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+/* Source line 991 — Text */
+.UserManager__el120 {
+  font-size: 30rpx;
+  color: #DC2626;
+  text-align: center;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+/* Source line 995 — unknown */
+.UserManager__el121 {
+  padding: 24rpx64rpx;
+  background: #2563EB;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* Source line 997 — Text */
+.UserManager__el122 {
+  color: #fff;
+}
+
+/* Source line 1004 — View */
+.UserManager__el123 {
+  font-family: Inter,system-ui,-apple-system,sans-serif;
+  min-height: 100vh;
+  background: BG;
+}
+

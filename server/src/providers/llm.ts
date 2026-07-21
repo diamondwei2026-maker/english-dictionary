@@ -1,4 +1,5 @@
 import { AppError } from "../utils/errors.js";
+import { DeepSeekProvider } from "./deepseek.js";
 
 /**
  * LLM 返回的词条结构化数据（snake_case，匹配 AI 响应 JSON）
@@ -61,9 +62,6 @@ export type LLMProviderType = "deepseek" | string;
 export function createLLMProvider(type: LLMProviderType): LLMProvider {
   switch (type) {
     case "deepseek": {
-      // 动态 import 避免循环依赖，确保 config 已初始化
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { DeepSeekProvider } = require("./deepseek");
       return new DeepSeekProvider();
     }
     default:

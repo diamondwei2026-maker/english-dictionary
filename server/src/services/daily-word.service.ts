@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { DailyWord, Word, LearningRecord, IWord } from "../models";
+import { DailyWord, Word, WordBank, LearningRecord, IWord } from "../models";
 import { AppError } from "../utils/errors.js";
 import { getCache, tryCacheGet, tryCacheSet } from "../cache";
 import { config } from "../config";
@@ -71,7 +71,12 @@ export async function getDailyWord(
   }
 
   // 2. 当天无记录，运行推荐算法
-  const allWords = await Word.find({});
+  // 仅从公开词库中选取单词
+  const publicWordbankIds = await WordBank.distinct("_id", { is_public: true });
+  const allWords =
+    publicWordbankIds.length > 0
+      ? await Word.find({ wordbankId: { $in: publicWordbankIds } })
+      : [];
   if (allWords.length === 0) {
     const result = { word: null, date: today, isPinned: false };
     tryCacheSet(cacheKey, result, config.cacheTtlDailyWord);

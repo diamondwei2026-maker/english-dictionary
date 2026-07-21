@@ -1,12 +1,11 @@
+// ============================================================
+// 今日一词 API 模块 — 与 client/src/api/daily-word.ts 一致
+// ============================================================
+
 import { request } from "./request";
 import type { Word } from "../data/types";
 import { adaptWord } from "./adapters";
 
-// ============================================================
-// 今日一词 API 模块
-// ============================================================
-
-/** 后端 daily-word 返回的完整 Word 子文档结构（与 BackendWord 相同） */
 interface BackendDailyWord {
   _id: string;
   word: string;
@@ -34,7 +33,6 @@ interface BackendDailyWordResponse {
   isPinned: boolean;
 }
 
-/** 前端适配后的每日一词数据 */
 export interface DailyWordResponse {
   word: Word | null;
   date: string;
@@ -44,8 +42,6 @@ export interface DailyWordResponse {
 /**
  * 获取今日一词
  * GET /api/v1/daily-word
- *
- * 公开接口，已登录用户会获得个性化推荐。
  */
 export async function fetchDailyWord(): Promise<DailyWordResponse> {
   const raw = await request<BackendDailyWordResponse>("/api/v1/daily-word");

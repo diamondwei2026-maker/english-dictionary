@@ -1,0 +1,13 @@
+{
+  "name": "认知英语词典",
+  "appid": "__UNI__ENGDICT",
+  "description": "认知语言学英语词典 — 用物理意象读懂英语",
+  "vueVersion": "3",
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  }
+}

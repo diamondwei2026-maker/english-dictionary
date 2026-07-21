@@ -1,0 +1,258 @@
+/* === Pre-generated CSS for pages/auth/auth.vue === */
+/* Source: pages/auth/index.tsx */
+/* Agent: PASTE this entire block into <style scoped> of pages/auth/auth.vue */
+
+/* Source line 131 — unknown */
+.auth__el1 {
+  min-height: 100vh;
+  background: #F7F9FC;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Source line 139 — View */
+.auth__el2 {
+  padding: 104rpx48rpx0;
+}
+
+/* Source line 142 — unknown */
+.auth__el3 {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  color: #6B7280;
+  font-size: 28rpx;
+  padding: 12rpx0;
+}
+
+/* Source line 156 — unknown */
+.auth__el4 {
+  flex: 1;
+  padding: 64rpx48rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Source line 164 — View */
+.auth__el5 {
+  margin-bottom: 72rpx;
+}
+
+/* Source line 166 — unknown */
+.auth__el6 {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg,#1D4ED8,#3B82F6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+  box-shadow: 8rpx32rpxrgba(37, 99, 235, 0.3);
+}
+
+/* Source line 179 — unknown */
+.auth__el7 {
+  color: #fff;
+  font-size: 44rpx;
+  font-weight: 800;
+  font-style: italic;
+}
+
+/* Source line 190 — unknown */
+.auth__el8 {
+  font-size: 52rpx;
+  font-weight: 800;
+  color: #111827;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+/* Source line 201 — unknown */
+.auth__el9 {
+  font-size: 28rpx;
+  color: #9CA3AF;
+  display: block;
+  line-height: 1.6;
+}
+
+/* Source line 214 — unknown */
+.auth__el10 {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 24rpx;
+  padding: 8rpx;
+  margin-bottom: 56rpx;
+}
+
+/* Source line 227 — unknown */
+.auth__el11 {
+  flex: 1;
+  padding: 20rpx;
+  border-radius: 20rpx;
+  background: isLogin?"#fff":"transparent";
+  box-shadow: isLogin?"2rpx8rpxrgba(0, 0, 0, 0.08)":undefined;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 239 — unknown */
+.auth__el12 {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: isLogin?"#111827":"#9CA3AF";
+}
+
+/* Source line 253 — unknown */
+.auth__el13 {
+  flex: 1;
+  padding: 20rpx;
+  border-radius: 20rpx;
+  background: !isLogin?"#fff":"transparent";
+  box-shadow: !isLogin?"2rpx8rpxrgba(0, 0, 0, 0.08)":undefined;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 265 — unknown */
+.auth__el14 {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: !isLogin?"#111827":"#9CA3AF";
+}
+
+/* Source line 277 — View */
+.auth__el15 {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* Source line 282 — unknown */
+.auth__el16 {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16rpx;
+}
+
+/* Source line 298 — unknown */
+.auth__el17 {
+  border: nameFocused ?"3rpx solid#2563EB" :"3rpx solid#E5E7EB";
+  background: nameFocused?"#fff":"#fff";
+}
+
+/* Source line 312 — unknown */
+.auth__el18 {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16rpx;
+}
+
+/* Source line 322 — View */
+.auth__el19 {
+  position: relative;
+}
+
+/* Source line 324 — unknown */
+.auth__el20 {
+  position: absolute;
+  left: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 30rpx;
+  color: #6B7280;
+  font-weight: 500;
+  z-index: 1;
+}
+
+/* Source line 345 — unknown */
+.auth__el21 {
+  padding-left: 104rpx;
+  border: phoneFocused ?"3rpx solid#2563EB" :"3rpx solid#E5E7EB";
+}
+
+/* Source line 359 — unknown */
+.auth__el22 {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16rpx;
+}
+
+/* Source line 369 — View */
+.auth__el23 {
+  position: relative;
+}
+
+/* Source line 378 — unknown */
+.auth__el24 {
+  padding-right: 96rpx;
+  border: pwdFocused ?"3rpx solid#2563EB" :"3rpx solid#E5E7EB";
+}
+
+/* Source line 388 — unknown */
+.auth__el25 {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  padding: 0;
+  font-size: 32rpx;
+}
+
+/* Source line 409 — unknown */
+.auth__el26 {
+  font-size: 26rpx;
+  color: #DC2626;
+  background: #FEF2F2;
+  padding: 20rpx28rpx;
+  border-radius: 20rpx;
+}
+
+/* Source line 421 — View */
+.auth__el27 {
+  margin-top: 16rpx;
+}
+
+/* Source line 424 — unknown */
+.auth__el28 {
+  padding: 32rpx;
+  background: loading?"#93C5FD":"#2563EB";
+  color: #fff;
+  border-radius: 32rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.6rpx;
+}
+
+/* Source line 435 — Text */
+.auth__el29 {
+  color: #fff;
+}
+
+/* Source line 445 — unknown */
+.auth__el30 {
+  margin-top: 40rpx;
+  padding: 28rpx32rpx;
+  background: #FFFBEB;
+  border-radius: 24rpx;
+  border: 2rpx solid#FDE68A;
+}
+
+/* Source line 454 — unknown */
+.auth__el31 {
+  font-size: 24rpx;
+  color: #92400E;
+  line-height: 1.8;
+  display: block;
+}
+

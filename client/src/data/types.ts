@@ -1,3 +1,5 @@
+// Ported from figma-prototype/src/app/data/types.ts
+
 export interface ExtendedMeaning {
   id: string;
   logicalEvolution: string;

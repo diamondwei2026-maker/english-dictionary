@@ -1,14 +1,10 @@
+// ============================================================
+// 单词 API 模块 — 与 client/src/api/words.ts 一致
+// ============================================================
+
 import { request } from "./request";
 import type { Word } from "../data/types";
-import {
-  adaptWord,
-  adaptWordList,
-  type BackendPagination,
-} from "./adapters";
-
-// ============================================================
-// 单词 API 模块
-// ============================================================
+import { adaptWord, adaptWordList, type BackendPagination } from "./adapters";
 
 interface BackendWordResponse {
   _id: string;
@@ -106,7 +102,7 @@ export async function createWord(data: CreateWordInput): Promise<Word> {
  */
 export async function updateWord(
   id: string,
-  data: UpdateWordInput,
+  data: UpdateWordInput
 ): Promise<Word> {
   const res = await request<BackendWordResponse>(`/api/v1/words/${id}`, {
     method: "PUT",
@@ -136,9 +132,9 @@ export interface WordDetail extends Word {
  * GET /api/v1/words/:id
  */
 export async function fetchWordDetail(id: string): Promise<WordDetail> {
-  const raw = await request<BackendWordResponse & { isFavorited?: boolean; learnCount?: number }>(
-    `/api/v1/words/${id}`,
-  );
+  const raw = await request<
+    BackendWordResponse & { isFavorited?: boolean; learnCount?: number }
+  >(`/api/v1/words/${id}`);
   return {
     ...adaptWord(raw),
     isFavorited: raw.isFavorited ?? false,

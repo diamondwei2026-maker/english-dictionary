@@ -1,0 +1,179 @@
+/* === Pre-generated CSS for pages/libraries/libraries.vue === */
+/* Source: pages/libraries/index.tsx */
+/* Agent: PASTE this entire block into <style scoped> of pages/libraries/libraries.vue */
+
+/* Source line 55 — View */
+.libraries__el1 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 58 — unknown */
+.libraries__el2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: #9CA3AF;
+}
+
+/* Source line 68 — Text */
+.libraries__el3 {
+  font-size: 30rpx;
+  margin-top: 24rpx;
+  display: block;
+}
+
+/* Source line 80 — View */
+.libraries__el4 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 83 — unknown */
+.libraries__el5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 48rpx;
+}
+
+/* Source line 93 — unknown */
+.libraries__el6 {
+  font-size: 30rpx;
+  color: #DC2626;
+  text-align: center;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+/* Source line 105 — unknown */
+.libraries__el7 {
+  padding: 24rpx64rpx;
+  background: #2563EB;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* Source line 114 — Text */
+.libraries__el8 {
+  color: #fff;
+}
+
+/* Source line 123 — View */
+.libraries__el9 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 126 — View */
+.libraries__el10 {
+  padding: 40rpx48rpx;
+}
+
+/* Source line 129 — unknown */
+.libraries__el11 {
+  text-align: center;
+  padding: 120rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 135 — View */
+.libraries__el12 {
+  opacity: 0.4;
+}
+
+/* Source line 138 — Text */
+.libraries__el13 {
+  font-size: 30rpx;
+  display: block;
+}
+
+/* Source line 143 — View */
+.libraries__el14 {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+/* Source line 152 — unknown */
+.libraries__el15 {
+  background: color.bg;
+  border: 2rpx solid$color.border;
+  border-radius: 48rpx;
+  padding: 48rpx;
+  box-shadow: 4rpx32rpxrgba(0, 0, 0, 0.04);
+}
+
+/* Source line 160 — View */
+.libraries__el16 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Source line 161 — View */
+.libraries__el17 {
+  flex: 1;
+}
+
+/* Source line 162 — View */
+.libraries__el18 {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+/* Source line 163 — View */
+.libraries__el19 {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 170 — Text */
+.libraries__el20 {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Source line 174 — Text */
+.libraries__el21 {
+  font-size: 26rpx;
+  color: #6B7280;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 32rpx;
+}
+
+/* Source line 177 — View */
+.libraries__el22 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Source line 178 — View */
+.libraries__el23 {
+  display: flex;
+  gap: 32rpx;
+}
+
+/* Source line 179 — Text */
+.libraries__el24 {
+  font-size: 24rpx;
+  color: color.accent;
+  font-weight: 600;
+}
+

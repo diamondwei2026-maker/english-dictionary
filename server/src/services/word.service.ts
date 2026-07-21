@@ -54,7 +54,7 @@ export async function listWords(options: {
 
   // 权限过滤：非管理员只能看到公开词库的单词
   if (!isAdmin) {
-    const publicIds = await WordBank.find({ is_public: true }).distinct("_id");
+    const publicIds = await WordBank.distinct("_id", { is_public: true });
     if (wordbankId) {
       if (!publicIds.some((id) => id.toString() === wordbankId)) {
         return {

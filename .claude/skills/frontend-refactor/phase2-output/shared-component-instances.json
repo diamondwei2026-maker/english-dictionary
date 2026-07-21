@@ -1,0 +1,153 @@
+{
+  "PageHeader": {
+    "importPath": "@/components/PageHeader.vue",
+    "propsSchema": {
+      "title": { "type": "string", "required": true, "note": "Main title text" },
+      "subtitle": { "type": "string", "default": "", "note": "Uppercase subtitle label" },
+      "showBack": { "type": "boolean", "default": false },
+      "backLabel": { "type": "string", "default": "返回" },
+      "bgType": { "type": "'white'|'page'|'none'|'transparent'", "default": "white", "note": "white=rgba(255,255,255,0.93), page=rgba(247,249,252,0.92), none=transparent" },
+      "paddingTop": { "type": "number", "default": 104, "note": "rpx; 104=52px default, 112=56px for home" },
+      "sticky": { "type": "boolean", "default": false },
+      "compact": { "type": "boolean", "default": false, "note": "horizontal padding 40rpx vs 48rpx" }
+    },
+    "instances": {
+      "pages/home/home.vue": {
+        "props": { "title": "用物理意象\n读懂英语", "subtitle": "认知英语词典", "bgType": "page", "paddingTop": 112, "showBack": false, "sticky": false, "compact": false },
+        "sourceEvidence": "HomeView.tsx:29-32 — padding:56px 24px 24px, bg:rgba(255,255,255,0.93); title '认知英语词典' / '用物理意象读懂英语'"
+      },
+      "pages/libraries/libraries.vue": {
+        "props": { "title": "选择词库", "subtitle": "词库", "bgType": "white", "paddingTop": 104, "showBack": false, "sticky": false, "compact": false },
+        "sourceEvidence": "LibrariesView.tsx:19-20 — PageHeader subtitle='词库' title='选择词库'"
+      },
+      "pages/profile/profile.vue": {
+        "props": { "title": "个人中心", "subtitle": "我的", "bgType": "white", "paddingTop": 104, "showBack": false, "sticky": false, "compact": false },
+        "sourceEvidence": "ProfileView.tsx:69-70 — PageHeader subtitle='我的' title='个人中心'"
+      },
+      "pages/word-detail/word-detail.vue": {
+        "props": { "title": "<word.word>", "subtitle": "", "bgType": "page", "paddingTop": 104, "showBack": true, "backLabel": "返回", "sticky": true, "compact": true },
+        "sourceEvidence": "WordDetailView.tsx:48-50 — PageHeader showBack backLabel='返回' sticky compact bgColor='rgba(247,249,252,0.92)'"
+      },
+      "pages/library-words/library-words.vue": {
+        "props": { "title": "<library.name>", "subtitle": "", "bgType": "white", "paddingTop": 104, "showBack": true, "backLabel": "词库列表", "sticky": false, "compact": false },
+        "sourceEvidence": "LibraryWordsView.tsx:28-30 — PageHeader showBack backLabel='词库列表' title={library?.name}"
+      },
+      "pages/auth/auth.vue": {
+        "props": { "title": "", "subtitle": "", "bgType": "none", "paddingTop": 0, "showBack": false, "sticky": false, "compact": false },
+        "sourceEvidence": "AuthView.tsx — uses custom back button in-page, not PageHeader component"
+      },
+      "pages/admin/admin.vue": {
+        "props": { "title": "管理后台", "subtitle": "", "bgType": "white", "paddingTop": 104, "showBack": true, "backLabel": "个人中心", "sticky": false, "compact": false },
+        "sourceEvidence": "AdminView.tsx:151-156 — PageHeader showBack backLabel='个人中心' title='管理后台' bgColor='rgba(247,249,252,0.94)'"
+      }
+    },
+    "crossValidationMatrix": {
+      "padding-top": { "home": 112, "libraries": 104, "profile": 104, "word-detail": 104, "library-words": 104, "auth": 0, "admin": 104, "verdict": "prop", "defaultValue": 104 },
+      "background": { "home": "rgba(255,255,255,0.93)", "libraries": "rgba(255,255,255,0.93)", "profile": "rgba(255,255,255,0.93)", "word-detail": "rgba(247,249,252,0.92)", "library-words": "rgba(255,255,255,0.93)", "auth": "transparent", "admin": "rgba(247,249,252,0.94)", "verdict": "prop(bgType)", "defaultValue": "white" },
+      "border-bottom": { "all-same": "0.5px solid rgba(0,0,0,0.05)", "verdict": "hardcode" },
+      "backdrop-filter": { "word-detail": "blur(16px) via bgColor", "verdict": "hardcode (H5 conditional)", "defaultValue": "blur(16px)" }
+    }
+  },
+  "PrimaryButton": {
+    "importPath": "@/components/PrimaryButton.vue",
+    "propsSchema": {
+      "variant": { "type": "'primary'|'outline'|'danger'", "default": "primary" },
+      "loading": { "type": "boolean", "default": false },
+      "disabled": { "type": "boolean", "default": false },
+      "size": { "type": "'lg'|'md'", "default": "md", "note": "lg=16px padding, md=15px padding" }
+    },
+    "instances": {
+      "pages/auth/auth.vue": {
+        "props": { "variant": "primary", "size": "lg" },
+        "sourceEvidence": "AuthView.tsx — padding:16px, fontSize:16px, background:#2563EB"
+      },
+      "pages/admin/admin.vue": {
+        "props": { "variant": "primary", "size": "md" },
+        "sourceEvidence": "AdminView.tsx — padding:15px, fontSize:15px, background:#2563EB"
+      }
+    },
+    "crossValidationMatrix": {
+      "padding": { "auth": "16px→32rpx", "admin-save": "15px→30rpx", "admin-cancel": "15px→30rpx", "verdict": "prop(size)", "defaultValue": "md=30rpx" },
+      "font-size": { "auth": "16px→32rpx", "admin": "15px→30rpx", "verdict": "prop(size)", "defaultValue": "md=30rpx" },
+      "border-radius": { "all-same": "16px→32rpx", "verdict": "hardcode" }
+    }
+  },
+  "SectionLabel": {
+    "importPath": "@/components/SectionLabel.vue",
+    "propsSchema": {
+      "label": { "type": "string", "required": true },
+      "marginBottom": { "type": "number", "default": 24, "note": "rpx" }
+    },
+    "crossValidationMatrix": {
+      "font-size": { "all-same": "11px→22rpx", "verdict": "hardcode" },
+      "font-weight": { "all-same": "600", "verdict": "hardcode" },
+      "color": { "all-same": "#9CA3AF", "verdict": "hardcode" },
+      "letter-spacing": { "all-same": "2px→4rpx", "verdict": "hardcode" },
+      "text-transform": { "all-same": "uppercase", "verdict": "hardcode" }
+    }
+  },
+  "EmptyState": {
+    "importPath": "@/components/EmptyState.vue",
+    "propsSchema": {
+      "message": { "type": "string", "required": true },
+      "subtitle": { "type": "string", "default": "" },
+      "iconName": { "type": "string", "default": "empty" }
+    },
+    "crossValidationMatrix": {
+      "text-align": { "all-same": "center", "verdict": "hardcode" },
+      "padding": { "min": "40px 0", "max": "64px 0", "verdict": "prop", "defaultValue": "80rpx 0" },
+      "color": { "all-same": "#9CA3AF", "verdict": "hardcode" }
+    }
+  },
+  "SearchBar": {
+    "importPath": "@/components/SearchBar.vue",
+    "propsSchema": {
+      "modelValue": { "type": "string", "required": true },
+      "placeholder": { "type": "string", "default": "搜索单词..." },
+      "paddingLeft": { "type": "number", "default": 92, "note": "rpx; 92=46px for search icon" }
+    },
+    "crossValidationMatrix": {
+      "padding": { "home": "14px 16px 14px 46px→28/32/28/92rpx", "admin": "13px 14px→26/28rpx", "verdict": "prop(paddingLeft)+base", "defaultValue": "28rpx 32rpx 28rpx 92rpx" },
+      "border-radius": { "all-same": "14px→28rpx", "verdict": "hardcode" },
+      "font-size": { "home": "16px→32rpx", "admin": "15px→30rpx", "verdict": "prop", "defaultValue": 30 }
+    }
+  },
+  "WordCard": {
+    "importPath": "@/components/WordCard.vue",
+    "propsSchema": {
+      "word": { "type": "Word", "required": true },
+      "libraryName": { "type": "string", "default": "" },
+      "variant": { "type": "'default'|'search'|'compact'", "default": "default" }
+    },
+    "crossValidationMatrix": {
+      "box-shadow": { "default": "0 2px 12px rgba(0,0,0,0.04)→0 4rpx 24rpx rgba(0,0,0,0.04)", "search": "0 2px 16px rgba(0,0,0,0.05)→0 4rpx 32rpx rgba(0,0,0,0.05)", "verdict": "prop(variant)", "defaultValue": "default" },
+      "padding": { "all-same": "16px 20px→32rpx 40rpx", "verdict": "hardcode" },
+      "border-radius": { "all-same": "16px→32rpx", "verdict": "hardcode" },
+      "font-size(word)": { "home-all": "17px→34rpx", "home-search": "18px→36rpx", "library-words": "17px→34rpx", "favorites": "18px→36rpx", "verdict": "prop(variant)", "defaultValue": "34rpx" }
+    }
+  },
+  "CustomTabBar": {
+    "importPath": "@/components/CustomTabBar.vue",
+    "propsSchema": {
+      "activeTab": { "type": "'home'|'libraries'|'profile'", "required": true }
+    },
+    "instances": {
+      "pages/home/home.vue": { "props": { "activeTab": "home" }, "sourceEvidence": "HomeView.tsx — <CustomTabBar activeTab='home' />" },
+      "pages/libraries/libraries.vue": { "props": { "activeTab": "libraries" }, "sourceEvidence": "LibrariesView.tsx — <CustomTabBar activeTab='libraries' />" },
+      "pages/library-words/library-words.vue": { "props": { "activeTab": "libraries" }, "sourceEvidence": "LibraryWordsView.tsx — <CustomTabBar activeTab='libraries' />" },
+      "pages/profile/profile.vue": { "props": { "activeTab": "profile" }, "sourceEvidence": "ProfileView.tsx — <CustomTabBar activeTab='profile' />" },
+      "pages/auth/auth.vue": { "props": { "activeTab": "profile" }, "sourceEvidence": "AuthView.tsx — <CustomTabBar activeTab='profile' />" },
+      "pages/word-detail/word-detail.vue": { "props": { "activeTab": "home" }, "sourceEvidence": "WordDetailView.tsx — <CustomTabBar activeTab='home' />" }
+    },
+    "crossValidationMatrix": {
+      "height": { "all-same": "60px→120rpx", "verdict": "hardcode" },
+      "background": { "all-same": "rgba(255,255,255,0.88)", "verdict": "hardcode" },
+      "border-top": { "all-same": "1px solid rgba(0,0,0,0.06)", "verdict": "hardcode" },
+      "backdrop-filter": { "all-same": "blur(20px)—H5 conditional", "verdict": "hardcode (H5 conditional)" },
+      "tab-icon-color": { "active": "#2563EB", "inactive": "#9CA3AF", "verdict": "prop-controlled", "defaultValue": "inactive" },
+      "tab-icon-strokeWidth": { "active": "2.5", "inactive": "1.8", "verdict": "prop-controlled" },
+      "tab-font-weight": { "active": "600", "inactive": "400", "verdict": "prop-controlled" },
+      "tab-font-size": { "all-same": "11px→22rpx", "verdict": "hardcode" }
+    }
+  }
+}

@@ -1,3 +1,7 @@
+// ============================================================
+// 词库 API 模块 — 与 client/src/api/wordbanks.ts 一致
+// ============================================================
+
 import { request } from "./request";
 import type { Word, WordLibrary } from "../data/types";
 import {
@@ -6,10 +10,6 @@ import {
   adaptWordList,
   type BackendPagination,
 } from "./adapters";
-
-// ============================================================
-// 词库 API 模块
-// ============================================================
 
 interface BackendWordbankResponse {
   _id: string;
@@ -26,30 +26,6 @@ interface BackendWordbankResponse {
 
 interface BackendWordbankListResponse {
   data: BackendWordbankResponse[];
-  pagination: BackendPagination;
-}
-
-interface BackendWordListResponse {
-  data: Array<{
-    _id: string;
-    word: string;
-    wordbankId: string;
-    phonetic?: string;
-    coreMeaning: string;
-    coreExampleEn: string;
-    coreExampleZh: string;
-    physicalImageType: string;
-    physicalImageDescription: string;
-    extendedMeanings: Array<{
-      _id: string;
-      evolutionDescription: string;
-      meaning: string;
-      partOfSpeech: string;
-      exampleEn: string;
-      exampleZh: string;
-    }>;
-    collocations: string[];
-  }>;
   pagination: BackendPagination;
 }
 
@@ -76,7 +52,7 @@ export async function fetchWordbanks(params?: {
  */
 export async function fetchWordbankById(id: string): Promise<WordLibrary> {
   const res = await request<BackendWordbankResponse>(
-    `/api/v1/wordbanks/${id}`,
+    `/api/v1/wordbanks/${id}`
   );
   return adaptWordbank(res, res.wordCount);
 }
@@ -87,17 +63,14 @@ export async function fetchWordbankById(id: string): Promise<WordLibrary> {
  */
 export async function fetchWordsByWordbank(
   id: string,
-  params?: { page?: number; pageSize?: number },
+  params?: { page?: number; pageSize?: number }
 ): Promise<{ words: Word[]; total: number }> {
   const query: string[] = [];
   if (params?.page) query.push(`page=${params.page}`);
   if (params?.pageSize) query.push(`pageSize=${params.pageSize}`);
 
   const qs = query.length ? "?" + query.join("&") : "";
-  const res = await request<BackendWordListResponse>(
-    `/api/v1/wordbanks/${id}/words${qs}`,
-  );
-  return adaptWordList(res as unknown as {
+  const res = await request<{
     data: Array<{
       _id: string;
       word: string;
@@ -119,25 +92,25 @@ export async function fetchWordsByWordbank(
       collocations: string[];
     }>;
     pagination: BackendPagination;
-  });
+  }>(`/api/v1/wordbanks/${id}/words${qs}`);
+  return adaptWordList(res);
 }
 
 /**
  * 新增词库（admin）
  * POST /api/v1/wordbanks
- *
- * slug 由前端自动生成：name 转小写、替换空格为连字符、去除非 slug 字符
  */
 export async function createWordbank(data: {
   name: string;
   description?: string;
 }): Promise<WordLibrary> {
-  const slug = data.name
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/^-+|-+$/g, "")
-    || `wb-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  const slug =
+    data.name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/^-+|-+$/g, "") ||
+    `wb-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
   const res = await request<BackendWordbankResponse>("/api/v1/wordbanks", {
     method: "POST",
@@ -156,14 +129,14 @@ export async function createWordbank(data: {
  */
 export async function updateWordbank(
   id: string,
-  data: { name?: string; description?: string },
+  data: { name?: string; description?: string }
 ): Promise<WordLibrary> {
   const res = await request<BackendWordbankResponse>(
     `/api/v1/wordbanks/${id}`,
     {
       method: "PUT",
       data: data as unknown as Record<string, unknown>,
-    },
+    }
   );
   return adaptWordbank(res, res.wordCount);
 }

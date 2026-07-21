@@ -5,9 +5,8 @@ node_modules/
 dist/
 .rncache/
 
-# Taro
-.taro-cache/
-.temp/
+# uni-app
+unpackage/
 
 # Environment variables
 .env

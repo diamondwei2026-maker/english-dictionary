@@ -1,0 +1,457 @@
+/* === Pre-generated CSS for pages/profile/profile.vue === */
+/* Source: pages/profile/index.tsx */
+/* Agent: PASTE this entire block into <style scoped> of pages/profile/profile.vue */
+
+/* Source line 36 — View */
+.profile__el1 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 38 — View */
+.profile__el2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+/* Source line 40 — Text */
+.profile__el3 {
+  font-size: 30rpx;
+  color: #9CA3AF;
+  margin-top: 24rpx;
+  display: block;
+}
+
+/* Source line 48 — View */
+.profile__el4 {
+  min-height: 100vh;
+  background: BG;
+}
+
+/* Source line 50 — View */
+.profile__el5 {
+  padding: 16rpx48rpx80rpx;
+}
+
+/* Source line 52 — View */
+.profile__el6 {
+  text-align: center;
+  padding: 128rpx0;
+  color: #9CA3AF;
+}
+
+/* Source line 54 — Text */
+.profile__el7 {
+  font-size: 28rpx;
+  display: block;
+  margin-top: 24rpx;
+}
+
+/* Source line 57 — View */
+.profile__el8 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+/* Source line 60 — unknown */
+.profile__el9 {
+  padding: 32rpx40rpx;
+}
+
+/* Source line 61 — View */
+.profile__el10 {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 62 — Text */
+.profile__el11 {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Source line 63 — Text */
+.profile__el12 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}
+
+/* Source line 65 — Text */
+.profile__el13 {
+  font-size: 24rpx;
+  color: #6B7280;
+  display: block;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Source line 117 — View */
+.profile__el14 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 121 — unknown */
+.profile__el15 {
+  padding: 80rpx48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Source line 129 — unknown */
+.profile__el16 {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 48rpx;
+}
+
+/* Source line 143 — unknown */
+.profile__el17 {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+/* Source line 154 — unknown */
+.profile__el18 {
+  font-size: 28rpx;
+  color: #9CA3AF;
+  text-align: center;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 72rpx;
+}
+
+/* Source line 166 — unknown */
+.profile__el19 {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  width: 100%;
+  max-width: 560rpx;
+}
+
+/* Source line 178 — unknown */
+.profile__el20 {
+  padding: 32rpx;
+  background: #2563EB;
+  color: #fff;
+  border-radius: 32rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Source line 188 — Text */
+.profile__el21 {
+  color: #fff;
+}
+
+/* Source line 194 — unknown */
+.profile__el22 {
+  padding: 32rpx;
+  background: #fff;
+  color: #2563EB;
+  border: 3rpx solid#BFDBFE;
+  border-radius: 32rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Source line 205 — Text */
+.profile__el23 {
+  color: #2563EB;
+}
+
+/* Source line 222 — View */
+.profile__el24 {
+  min-height: 100vh;
+  background: #F7F9FC;
+}
+
+/* Source line 225 — View */
+.profile__el25 {
+  padding: 40rpx48rpx;
+}
+
+/* Source line 228 — unknown */
+.profile__el26 {
+  background: isAdmin ?"linear-gradient(135deg,#4C1D95,#7C3AED)" :"linear-gradient(135deg,#1D4ED8,#2563EB)";
+  border-radius: 48rpx;
+  padding: 48rpx;
+  margin-bottom: 40rpx;
+  color: #fff;
+  box-shadow: isAdmin ?"16rpx64rpxrgba(124, 58, 237, 0.25)" :"16rpx64rpxrgba(37, 99, 235, 0.25)";
+}
+
+/* Source line 241 — View */
+.profile__el27 {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+
+/* Source line 243 — unknown */
+.profile__el28 {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 257 — unknown */
+.profile__el29 {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 268 — unknown */
+.profile__el30 {
+  font-size: 26rpx;
+  opacity: 0.75;
+  color: #fff;
+  display: block;
+}
+
+/* Source line 278 — unknown */
+.profile__el31 {
+  display: inline-block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx20rpx;
+  border-radius: 40rpx;
+  letter-spacing: 1rpx;
+  color: #fff;
+}
+
+/* Source line 297 — View */
+.profile__el32 {
+  margin-bottom: 32rpx;
+}
+
+/* Source line 302 — unknown */
+.profile__el33 {
+  padding: 40rpx48rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  box-shadow: 4rpx32rpxrgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Source line 313 — unknown */
+.profile__el34 {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+/* Source line 316 — unknown */
+.profile__el35 {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: #FAF5FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 330 — unknown */
+.profile__el36 {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+/* Source line 341 — unknown */
+.profile__el37 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  display: block;
+}
+
+/* Source line 356 — unknown */
+.profile__el38 {
+  display: grid;
+  grid-template-columns: 1fr1fr;
+  gap: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+/* Source line 381 — unknown */
+.profile__el39 {
+  background: #fff;
+  border-radius: 40rpx;
+  padding: 40rpx;
+  box-shadow: 4rpx24rpxrgba(0, 0, 0, 0.04);
+}
+
+/* Source line 389 — unknown */
+.profile__el40 {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: item.bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+/* Source line 403 — unknown */
+.profile__el41 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+/* Source line 413 — unknown */
+.profile__el42 {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+}
+
+/* Source line 428 — View */
+.profile__el43 {
+  margin-bottom: 28rpx;
+}
+
+/* Source line 431 — unknown */
+.profile__el44 {
+  padding: 40rpx48rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  box-shadow: 4rpx32rpxrgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Source line 441 — View */
+.profile__el45 {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+/* Source line 442 — View */
+.profile__el46 {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: #FEF3C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 450 — Text */
+.profile__el47 {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+/* Source line 453 — Text */
+.profile__el48 {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  display: block;
+}
+
+/* Source line 464 — unknown */
+.profile__el49 {
+  background: #fff;
+  border-radius: 40rpx;
+  overflow: hidden;
+  margin-bottom: 28rpx;
+  box-shadow: 4rpx32rpxrgba(0, 0, 0, 0.04);
+}
+
+/* Source line 473 — unknown */
+.profile__el50 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 32rpx40rpx;
+}
+
+/* Source line 482 — unknown */
+.profile__el51 {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+/* Source line 485 — unknown */
+.profile__el52 {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Source line 498 — unknown */
+.profile__el53 {
+  font-size: 30rpx;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Source line 514 — unknown */
+.profile__el54 {
+  padding: 32rpx;
+  background: #FEF2F2;
+  color: #DC2626;
+  border-radius: 32rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+/* Source line 528 — Text */
+.profile__el55 {
+  color: #DC2626;
+}
+

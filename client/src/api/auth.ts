@@ -1,8 +1,8 @@
-import { request } from "./request";
+// ============================================================
+// 认证 API 模块 — 与 client/src/api/auth.ts 一致
+// ============================================================
 
-// ============================================================
-// 认证 API 模块
-// ============================================================
+import { request } from "./request";
 
 /** 登录请求参数 */
 export interface LoginParams {
@@ -39,7 +39,7 @@ export interface RegisterResult {
  * 手机号 + 密码登录。
  * POST /api/v1/auth/login
  */
-export function login(params: LoginParams): Promise<LoginResult> {
+export function apiLogin(params: LoginParams): Promise<LoginResult> {
   return request<LoginResult>("/api/v1/auth/login", {
     method: "POST",
     data: params as unknown as Record<string, unknown>,
@@ -52,7 +52,7 @@ export function login(params: LoginParams): Promise<LoginResult> {
  *
  * 注意：注册成功不返回 token，需跳转登录页手动登录。
  */
-export function register(params: RegisterParams): Promise<RegisterResult> {
+export function apiRegister(params: RegisterParams): Promise<RegisterResult> {
   return request<RegisterResult>("/api/v1/auth/register", {
     method: "POST",
     data: params as unknown as Record<string, unknown>,

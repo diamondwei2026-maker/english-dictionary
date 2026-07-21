@@ -1,0 +1,23 @@
+═══════════════════════════════════════════════════════════════
+  Phase 4 自动审计 — frontend-refactor
+  目标: client-uni/
+  平台: cross-platform
+═══════════════════════════════════════════════════════════════
+
+── 第 1 组：跨平台原生组件合规 ──
+
+[0;36m[检查 1][0m NC-01: input 是否有显式 height
+  [0;32m✅ PASS[0m — input 高度声明覆盖率正常
+
+[0;36m[检查 2][0m NC-02: input 自闭合标签
+  [0;32m✅ PASS[0m — 无自闭合 input 标签
+
+[0;36m[检查 3][0m NC-03: textarea 缺少 auto-height
+  [0;31m🔴 BLOCKER[0m — 存在 textarea 无 auto-height 属性:
+client-uni//src/pages/admin/components/LibraryManager.vue:29:          <textarea
+client-uni//src/pages/admin/components/WordEditForm.vue:70:        <textarea
+client-uni//src/pages/admin/components/WordEditForm.vue:83:        <textarea
+client-uni//src/pages/admin/components/WordEditForm.vue:96:        <textarea
+client-uni//src/pages/admin/components/WordEditForm.vue:122:        <textarea
+
+[0;36m[检查 4][0m NC-04: transition 未用 #ifdef H5 包裹

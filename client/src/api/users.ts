@@ -1,10 +1,10 @@
+// ============================================================
+// 用户 API 模块 — 与 client/src/api/users.ts 一致
+// ============================================================
+
 import { request } from "./request";
 import type { User } from "../data/types";
 import { adaptUser, type BackendPagination } from "./adapters";
-
-// ============================================================
-// 用户 API 模块
-// ============================================================
 
 interface BackendUserResponse {
   _id: string;
@@ -19,10 +19,7 @@ interface BackendUserResponse {
 
 /**
  * 用户列表（admin）
- * GET /api/v1/users（注：后端目前仅有 GET /api/v1/users/me，
- * 若 admin 用户列表接口尚未实现，则此函数返回空数组）
- *
- * TODO: 待后端实现 GET /api/v1/users (admin) 路由
+ * GET /api/v1/users
  */
 export async function fetchUsers(): Promise<User[]> {
   try {
@@ -32,7 +29,6 @@ export async function fetchUsers(): Promise<User[]> {
     }>("/api/v1/users");
     return (res.data || []).map(adaptUser);
   } catch {
-    // 后端路由未实现时静默返回空数组
     return [];
   }
 }
