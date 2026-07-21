@@ -56,7 +56,7 @@ export async function listWords(options: {
   if (!isAdmin) {
     const publicIds = await WordBank.distinct("_id", { is_public: true });
     if (wordbankId) {
-      if (!publicIds.some((id) => id.toString() === wordbankId)) {
+      if (!publicIds.some((id: mongoose.Types.ObjectId) => id.toString() === wordbankId)) {
         return {
           data: [],
           pagination: { total: 0, page, pageSize, totalPages: 0 },

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, UserFavorite, User } from "../models";
+import { Word, UserFavorite, User, IUserFavorite } from "../models";
 import { AppError } from "../utils/errors.js";
 
 // ============================================================
@@ -81,7 +81,7 @@ export async function getUserFavorites(
     UserFavorite.countDocuments({ userId }),
   ]);
 
-  const mapped = data.map((fav) => {
+  const mapped = data.map((fav: IUserFavorite) => {
     const wordDoc = (fav.wordId as unknown as Record<string, unknown>) || {};
     return {
       _id: wordDoc._id,

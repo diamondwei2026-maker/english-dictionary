@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, LearningRecord, User } from "../models";
+import { Word, LearningRecord, User, ILearningRecord } from "../models";
 import { AppError } from "../utils/errors.js";
 
 // ============================================================
@@ -74,7 +74,7 @@ export async function getUserLearningRecords(
     LearningRecord.countDocuments({ userId }),
   ]);
 
-  const mapped = data.map((record) => {
+  const mapped = data.map((record: ILearningRecord) => {
     const populated = record.wordId as unknown as {
       _id: mongoose.Types.ObjectId;
       word: string;

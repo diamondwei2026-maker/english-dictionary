@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { DailyWord, Word, WordBank, LearningRecord, IWord } from "../models";
+import { DailyWord, Word, WordBank, LearningRecord, IWord, ILearningRecord, IDailyWord } from "../models";
 import { AppError } from "../utils/errors.js";
 import { getCache, tryCacheGet, tryCacheSet } from "../cache";
 import { config } from "../config";
@@ -87,7 +87,7 @@ export async function getDailyWord(
   const learnedWordIds: Set<string> = new Set();
   if (userId) {
     const records = await LearningRecord.find({ userId });
-    records.forEach((r) => learnedWordIds.add(String(r.wordId)));
+    records.forEach((r: ILearningRecord) => learnedWordIds.add(String(r.wordId)));
   }
 
   // 4. 收集近期（7天冷却窗口）已推荐的单词 ID
@@ -99,10 +99,10 @@ export async function getDailyWord(
     date: { $gte: sevenDaysAgoStr, $lt: today },
   });
   const recentWordIds: Set<string> = new Set();
-  recentRecords.forEach((r) => recentWordIds.add(String(r.wordId)));
+  recentRecords.forEach((r: IDailyWord) => recentWordIds.add(String(r.wordId)));
 
   // 5. 构建候选池
-  let candidates = allWords.filter((w) => {
+  let candidates = allWords.filter((w: IWord) => {
     const wid = String(w._id);
     if (learnedWordIds.has(wid)) return false;
     if (recentWordIds.has(wid)) return false;
@@ -111,16 +111,16 @@ export async function getDailyWord(
 
   // 兜底1：所有单词都学过 → 仅排除冷却窗口内的
   if (candidates.length === 0) {
-    candidates = allWords.filter((w) => !recentWordIds.has(String(w._id)));
+    candidates = allWords.filter((w: IWord) => !recentWordIds.has(String(w._id)));
   }
 
   // 兜底2：冷却窗口内包含了所有单词 → 选推荐历史中最久远的
   if (candidates.length === 0) {
     // 找到最久未被推荐的单词（按 DailyWord 中最近一次出现时间升序）
     const wordLastRecDate = new Map<string, Date>();
-    allWords.forEach((w) => {
+    allWords.forEach((w: IWord) => {
       const rid = recentRecords.find(
-        (r) => String(r.wordId) === String(w._id)
+        (r: IDailyWord) => String(r.wordId) === String(w._id)
       );
       if (rid) {
         wordLastRecDate.set(String(w._id), rid.createdAt);

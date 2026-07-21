@@ -46,7 +46,7 @@ async function buildTrend(
 
   // 将 aggregate 结果转为 Map，缺失日期填 0
   const countMap = new Map<string, number>();
-  result.forEach((r) => countMap.set(r._id, r.count));
+  result.forEach((r: { _id: string; count: number }) => countMap.set(r._id, r.count));
 
   // 生成完整 7 天数组
   const trend: Array<{ date: string; count: number }> = [];
