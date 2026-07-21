@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { verifyToken } from "../utils/jwt.js";
 import { AppError } from "../utils/errors.js";
 
@@ -36,7 +36,7 @@ export function authMiddleware(
     req.user = { userId: payload.userId, role: payload.role };
     next();
   } catch (err) {
-    if (err instanceof TokenExpiredError) {
+    if (err instanceof jwt.TokenExpiredError) {
       return next(
         new AppError(401, "TOKEN_EXPIRED", "令牌已过期，请重新登录")
       );
