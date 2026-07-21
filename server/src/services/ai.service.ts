@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, WordBank, IWord, PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models";
+import { Word, WordBank, IWord, PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 import { createLLMProvider } from "../providers/llm.js";
 import type { LLMWordEntry } from "../providers/llm.js";

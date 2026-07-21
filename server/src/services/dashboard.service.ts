@@ -1,4 +1,4 @@
-import { WordBank, Word, User } from "../models";
+import { WordBank, Word, User } from "../models/index.js";
 
 // ============================================================
 // 管理后台 Dashboard 统计服务

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, LearningRecord, User, ILearningRecord } from "../models";
+import { Word, LearningRecord, User, ILearningRecord } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 
 // ============================================================

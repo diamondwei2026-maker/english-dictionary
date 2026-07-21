@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, WordBank } from "../models";
+import { Word, WordBank } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 import { createLLMProvider } from "../providers/llm.js";
 import type { SSEChunk, LLMWordEntry } from "../providers/llm.js";

@@ -5,7 +5,7 @@
  * 统一为异步接口，便于将来替换为 Redis 等外部缓存。
  */
 
-import { config } from "../config";
+import { config } from "../config/index.js";
 
 export interface CacheStore {
   get<T>(key: string): Promise<T | null>;

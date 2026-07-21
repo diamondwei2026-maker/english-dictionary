@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Word, WordBank, IWord } from "../models";
+import { Word, WordBank, IWord } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 import type { CreateWordInput, UpdateWordInput } from "../validators/word.validator.js";
-import { tryCacheGet, tryCacheSet, tryCacheDel, tryCacheDelByPrefix } from "../cache";
-import { config } from "../config";
+import { tryCacheGet, tryCacheSet, tryCacheDel, tryCacheDelByPrefix } from "../cache/index.js";
+import { config } from "../config/index.js";
 
 // === 工具函数 ===
 

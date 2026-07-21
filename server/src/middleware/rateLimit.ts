@@ -1,5 +1,5 @@
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { config } from "../config";
+import { config } from "../config/index.js";
 
 function rateLimitMessage(msg: string) {
   return {

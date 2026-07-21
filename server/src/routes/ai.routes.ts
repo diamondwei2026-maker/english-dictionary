@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
-import { authMiddleware, adminMiddleware, aiLimiter } from "../middleware";
+import { authMiddleware, adminMiddleware, aiLimiter } from "../middleware/index.js";
 import * as aiController from "../controllers/ai.controller.js";
 
 const router = Router();

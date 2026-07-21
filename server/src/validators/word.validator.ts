@@ -1,5 +1,5 @@
 import { AppError } from "../utils/errors.js";
-import { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models";
+import { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models/index.js";
 
 // === 输入类型 ===
 

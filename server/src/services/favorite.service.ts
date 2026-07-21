@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Word, UserFavorite, User, IUserFavorite } from "../models";
+import { Word, UserFavorite, User, IUserFavorite } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 
 // ============================================================

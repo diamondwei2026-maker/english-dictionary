@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { DailyWord, Word, WordBank, LearningRecord, IWord, ILearningRecord, IDailyWord } from "../models";
+import { DailyWord, Word, WordBank, LearningRecord, IWord, ILearningRecord, IDailyWord } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
-import { getCache, tryCacheGet, tryCacheSet } from "../cache";
-import { config } from "../config";
+import { getCache, tryCacheGet, tryCacheSet } from "../cache/index.js";
+import { config } from "../config/index.js";
 
 // ============================================================
 // 今日一词推荐服务

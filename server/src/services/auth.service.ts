@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { User, IUser } from "../models";
+import { User, IUser } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 import { signToken } from "../utils/jwt.js";
 import type { RegisterInput, LoginInput } from "../validators/auth.validator.js";

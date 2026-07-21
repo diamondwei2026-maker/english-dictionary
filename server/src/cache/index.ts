@@ -7,4 +7,4 @@ export {
   tryCacheSet,
   tryCacheDel,
   tryCacheDelByPrefix,
-} from "./cache";
+} from "./cache.js";

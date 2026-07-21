@@ -5,7 +5,7 @@ import {
   validateUpdateWordInput,
 } from "../validators/word.validator.js";
 import * as wordService from "../services/word.service.js";
-import { UserFavorite, LearningRecord } from "../models";
+import { UserFavorite, LearningRecord } from "../models/index.js";
 
 export const list = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {

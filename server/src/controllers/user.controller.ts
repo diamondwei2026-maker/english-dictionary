@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { User } from "../models";
+import { User } from "../models/index.js";
 
 export const getMe = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {

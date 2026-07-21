@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
-import { authMiddleware, optionalAuth, adminMiddleware } from "../middleware";
+import { authMiddleware, optionalAuth, adminMiddleware } from "../middleware/index.js";
 import * as wordbankController from "../controllers/wordbank.controller.js";
 import * as wordController from "../controllers/word.controller.js";
 
