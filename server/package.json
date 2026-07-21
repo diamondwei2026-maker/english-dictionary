@@ -2,6 +2,7 @@
   "name": "english-dictionary-server",
   "version": "1.0.0",
   "description": "英语母语者词典 — 后端 API 服务",
+  "type": "module",
   "main": "dist/index.js",
   "engines": {
     "node": ">=18"
