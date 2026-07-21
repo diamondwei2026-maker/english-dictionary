@@ -1,8 +1,8 @@
 {
   "framework": null,
-  "buildCommand": "npm install -g pnpm@9 && cd client && pnpm install --frozen-lockfile && pnpm build:h5",
+  "buildCommand": "cd client && npm install && npm run build:h5",
   "outputDirectory": "client/dist/build/h5",
-  "installCommand": "",
+  "installCommand": "cd client && npm install",
   "rewrites": [
     {
       "source": "/api/:path*",
