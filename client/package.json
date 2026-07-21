@@ -2,6 +2,7 @@
   "name": "english-dict-uni",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "uni",
     "dev:h5": "uni -p h5",
