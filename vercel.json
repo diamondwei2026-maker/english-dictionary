@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "npm install -g pnpm && cd client && pnpm install --frozen-lockfile && pnpm build:h5",
+  "buildCommand": "corepack enable && cd client && pnpm install --frozen-lockfile && pnpm build:h5",
   "outputDirectory": "client/dist/build/h5",
   "installCommand": "",
   "rewrites": [
