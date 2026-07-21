@@ -3,10 +3,10 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
-import { routes } from "./routes";
-import { errorHandler, loginLimiter } from "./middleware";
+import { routes } from "./routes/index.js";
+import { errorHandler, loginLimiter } from "./middleware/index.js";
 import { swaggerSpec } from "./config/swagger.js";
-import { config } from "./config";
+import { config } from "./config/index.js";
 
 export function createApp(): Express {
   const app = express();
