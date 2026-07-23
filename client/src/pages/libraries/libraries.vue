@@ -28,7 +28,7 @@
               已收录 {{ lib.wordCount }} 个
             </text>
           </view>
-          <text class="iconfont libraries-page__card-arrow">&#xe002;</text>
+          <view class="css-arrow libraries-page__card-arrow" />
         </view>
       </view>
     </view>
@@ -62,6 +62,7 @@ function goLibraryWords(libId: string) {
 <style scoped lang="scss">
 .libraries-page {
   min-height: 100vh;
+  padding-bottom: 132rpx;
   background: #F7F9FC;
 
   &__header {
@@ -199,7 +200,8 @@ function goLibraryWords(libId: string) {
     }
 
     &-arrow {
-      font-size: 32rpx;      /* ArrowRight size 16 → 32rpx */
+      --arrow-chevron: 12rpx;
+      // color 继承自 --0/--1/--2/--3 变体，与 card-count 同色
     }
   }
 }

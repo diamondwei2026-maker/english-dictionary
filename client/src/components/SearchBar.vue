@@ -1,7 +1,11 @@
 <template>
   <!-- Ported from figma-prototype HomeView.tsx:55-79 + AdminView.tsx:619-637 -->
   <view class="search-bar" :class="{ 'search-bar--focused': focused }">
-    <text class="iconfont search-bar__icon">&#xe001;</text>
+        <image
+        class="iconfont search-bar__icon"
+      src="/static/images/tab-home.png"
+      mode="scaleToFill"
+    />
     <input
       class="search-bar__input"
       :class="{ 'search-bar__input--focused': focused }"
@@ -56,10 +60,12 @@ function onClear() {
     left: 32rpx;             /* Phase1(src): HomeView.tsx:49 — 16px → 32rpx */
     top: 50%;
     transform: translateY(-50%);
-    font-size: 36rpx;        /* Search size 18 → 36rpx */
-    color: #9CA3AF;
+    // font-size: 36rpx;        /* Search size 18 → 36rpx */
+    // color: #9CA3AF;
     z-index: 1;
     pointer-events: none;
+    width: 40rpx;
+    height: 40rpx;
   }
 
   &__input {

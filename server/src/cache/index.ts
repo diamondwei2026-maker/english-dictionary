@@ -1,5 +1,5 @@
+export type { CacheStore } from "./cache.js";
 export {
-  CacheStore,
   MemoryCache,
   getCache,
   resetCacheInstance,

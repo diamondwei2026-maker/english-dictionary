@@ -79,6 +79,7 @@
     "navigationStyle": "custom"
   },
   "tabBar": {
+    "height": "132rpx",
     "color": "#9CA3AF",
     "selectedColor": "#2563EB",
     "borderStyle": "black",
