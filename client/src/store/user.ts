@@ -54,9 +54,9 @@ export function login(u: AuthUser, token: string): void {
   userStore.user = u;
 }
 
-/** 退出登录：清除 Token + 用户状态 + 跳转登录页 */
+/** 退出登录：清除 Token + 用户状态 + 跳转首页 */
 export function logout(): void {
   removeToken();
   userStore.user = null;
-  uni.redirectTo({ url: '/pages/auth/auth' });
+  uni.switchTab({ url: '/pages/home/home' });
 }

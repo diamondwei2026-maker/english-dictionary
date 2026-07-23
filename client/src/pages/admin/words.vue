@@ -35,7 +35,7 @@
               @click="handleAI"
             >
               <view v-if="aiLoading" class="admin-words__spinner" />
-              <text v-else-if="aiDone" class="iconfont admin-words__ai-btn-icon">&#xe007;</text>
+              <text v-else-if="aiDone" class="iconfont admin-words__ai-btn-icon">√</text>
               <text>{{ aiLoading ? '正在生成...' : aiDone ? '已生成，可继续编辑' : 'AI 自动生成词条' }}</text>
             </view>
           </view>
@@ -244,7 +244,7 @@
       >
         <template #right>
           <view class="admin-words__add-btn" @click="openNew">
-            <text class="iconfont admin-words__add-btn-icon">&#xe008;</text>
+            <text class="iconfont admin-words__add-btn-icon">+</text>
             <text>新增</text>
           </view>
         </template>
@@ -579,6 +579,7 @@ function goBack() {
 .admin-words {
   min-height: 100vh;
   background: #F7F9FC;
+  color: #fff;
 
   &__add-btn {
     display: flex;
@@ -586,7 +587,7 @@ function goBack() {
     gap: 10rpx;
     padding: 16rpx 32rpx;
     background: #2563EB;
-    color: #fff;
+ 
     border: none;
     border-radius: 40rpx;
     font-size: 26rpx;

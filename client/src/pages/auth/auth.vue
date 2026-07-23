@@ -180,7 +180,7 @@ async function handleSubmit() {
       };
       doLogin(authUser, result.token);
       if (authUser.role === 'admin') {
-        uni.switchTab({ url: '/pages/profile/profile' });
+        uni.redirectTo({ url: '/pages/admin/overview' });
       } else {
         uni.switchTab({ url: '/pages/home/home' });
       }

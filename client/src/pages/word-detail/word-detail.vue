@@ -55,7 +55,7 @@
             <!-- Evolution arrow -->
             <view class="word-detail-page__ext-arrow">
               <view class="word-detail-page__ext-arrow-line" />
-              <text class="iconfont">&#xe002;</text>
+              <view class="word-detail-page__ext-arrow-icon" />
             </view>
 
             <!-- Meaning -->
@@ -313,9 +313,14 @@ function goBack() {
       flex: 1;
       background: linear-gradient(to right, #E5E7EB, #2563EB);
     }
-    .iconfont {
-      font-size: 28rpx;
-      color: #2563EB;
+    &-icon {
+      display: inline-block;
+      width: 10rpx;
+      height: 10rpx;
+      border-right: 2rpx solid #2563EB;
+      border-bottom: 2rpx solid #2563EB;
+      transform: rotate(45deg);
+      flex-shrink: 0;
     }
   }
 
