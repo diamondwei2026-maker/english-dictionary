@@ -132,7 +132,6 @@ defineEmits<{ click: [] }>();
   }
 
   &__arrow {
-    --arrow-chevron: 10rpx;
     color: #a0a0a0; // 0.71 × 255 ≈ 181
     flex-shrink: 0;
     margin-left: 24rpx; /* 12px → 24rpx */

@@ -4,7 +4,7 @@
     <!-- Top sticky bar -->
     <view class="word-detail-page__topbar">
       <view class="word-detail-page__topbar-left" @click="goBack">
-        <text class="iconfont word-detail-page__back-icon">&#xe003;</text>
+        <view class="css-arrow-left word-detail-page__back-icon" />
         <text class="word-detail-page__back-label">返回</text>
       </view>
       <text v-if="libraryName" class="word-detail-page__library-badge">{{ libraryName }}</text>
@@ -173,7 +173,7 @@ function goBack() {
     }
 
     &-back-icon {
-      font-size: 36rpx;
+      flex-shrink: 0;
     }
 
     &-back-label {

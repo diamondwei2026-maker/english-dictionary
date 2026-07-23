@@ -4,7 +4,7 @@
     <!-- Header with back button -->
     <view class="auth-page__header">
       <view class="auth-page__back-btn" @click="goBack">
-        <text class="iconfont auth-page__back-icon">&#xe003;</text>
+        <view class="css-arrow-left auth-page__back-icon" />
         <text>返回</text>
       </view>
     </view>
@@ -110,11 +110,6 @@
             {{ loading ? '处理中...' : tab === 'login' ? '登录' : '创建账号' }}
           </PrimaryButton>
         </view>
-      </view>
-
-      <!-- Demo hint (login only) -->
-      <view v-if="tab === 'login'" class="auth-page__demo">
-        <text class="auth-page__demo-text">演示账号（管理员）：13800000001\n密码：admin123</text>
       </view>
     </view>
   </view>
@@ -235,7 +230,7 @@ async function handleSubmit() {
   }
 
   &__back-icon {
-    font-size: 28rpx;            /* 14px × 2 */
+    flex-shrink: 0;
   }
 
   /* ── Body ── */

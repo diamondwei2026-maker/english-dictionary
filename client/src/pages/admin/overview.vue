@@ -32,7 +32,7 @@
               <text class="admin-overview__section-card-desc">{{ s.desc }}</text>
             </view>
           </view>
-          <text class="iconfont admin-overview__section-card-arrow">&#xe002;</text>
+          <view class="css-arrow admin-overview__section-card-arrow" />
         </view>
       </view>
 
@@ -195,8 +195,8 @@ function exitAdmin() {
     }
 
     &-arrow {
-      font-size: 32rpx;
-      color: #D1D5DB;
+      color: #a0a0a0;
+      flex-shrink: 0;
     }
   }
 

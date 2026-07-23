@@ -8,7 +8,7 @@
   >
     <view v-if="showBack || $slots.right" class="page-header__bar">
       <view v-if="showBack" class="page-header__back" @click="$emit('back')">
-        <text class="iconfont page-header__back-icon">&#xe003;</text>
+        <view class="css-arrow-left page-header__back-icon" />
         <text class="page-header__back-label">{{ backLabel }}</text>
       </view>
       <view v-else class="page-header__spacer" />
@@ -83,7 +83,7 @@ defineEmits<{ back: [] }>();
   }
 
   &__back-icon {
-    font-size: 36rpx;        /* 18px → 36rpx */
+    flex-shrink: 0;
   }
 
   &__back-label {

@@ -48,7 +48,7 @@
               <text class="profile-page__menu-item-desc">词库、单词与用户管理</text>
             </view>
           </view>
-          <text class="iconfont profile-page__menu-item-chevron">&#xe002;</text>
+          <view class="css-arrow profile-page__menu-item-chevron" />
         </view>
       </view>
 
@@ -79,7 +79,7 @@
             </view>
             <text class="profile-page__menu-item-label">设置</text>
           </view>
-          <text class="iconfont profile-page__menu-item-chevron">&#xe002;</text>
+          <view class="css-arrow profile-page__menu-item-chevron" />
         </view>
       </view>
 
@@ -359,8 +359,8 @@ function handleLogout() {
     }
 
     &-chevron {
-      font-size: 32rpx;
-      color: #D1D5DB;
+      color: #a0a0a0;
+      flex-shrink: 0;
     }
   }
 

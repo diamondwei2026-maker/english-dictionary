@@ -63,7 +63,7 @@ body {
 
 /* ── CSS Arrow ">" — chevron drawn with border + rotate ── */
 .css-arrow {
-  --arrow-chevron: 10rpx;
+  --arrow-chevron: 16rpx;
   --arrow-stroke: 3rpx;
 
   display: inline-block;
@@ -73,6 +73,21 @@ body {
   border-right: var(--arrow-stroke) solid currentColor;
   transform: rotate(45deg);
   vertical-align: middle;
+}
+
+/* ── CSS Arrow "<" — left-pointing chevron drawn with border + rotate ── */
+.css-arrow-left {
+  --arrow-chevron: 16rpx;
+  --arrow-stroke: 3rpx;
+
+  display: inline-block;
+  width: var(--arrow-chevron);
+  height: var(--arrow-chevron);
+  border-top: var(--arrow-stroke) solid currentColor;
+  border-left: var(--arrow-stroke) solid currentColor;
+  transform: rotate(-45deg);
+  vertical-align: middle;
+  color: #a0a0a0;
 }
 
 /* ── Animations (WXSS supports @keyframes) ── */

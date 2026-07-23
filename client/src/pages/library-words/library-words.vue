@@ -3,7 +3,7 @@
   <view class="library-words-page">
     <view class="library-words-page__header">
       <view class="library-words-page__back" @click="goBack">
-        <text class="iconfont library-words-page__back-icon">&#xe012;</text>
+        <view class="css-arrow-left library-words-page__back-icon" />
         <text>词库列表</text>
       </view>
       <text class="library-words-page__title">{{ library?.name || '加载中...' }}</text>
@@ -93,9 +93,7 @@ function goWordDetail(wordId: string) {
   }
 
   &__back-icon {
-    font-size: 32rpx;
-    display: inline-block;
-    transform: rotate(180deg);
+    flex-shrink: 0;
   }
 
   &__title {
