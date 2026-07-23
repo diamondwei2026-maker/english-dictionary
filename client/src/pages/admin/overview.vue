@@ -48,6 +48,7 @@
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import { fetchDashboard } from '@/api';
+import { logout } from '@/store/user';
 import PageHeader from '@/components/PageHeader.vue';
 import SectionLabel from '@/components/SectionLabel.vue';
 
@@ -86,7 +87,7 @@ function goSection(id: string) {
 }
 
 function exitAdmin() {
-  uni.navigateBack();
+  logout();
 }
 </script>
 

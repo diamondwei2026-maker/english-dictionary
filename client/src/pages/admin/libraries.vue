@@ -54,7 +54,7 @@
       >
         <template #right>
           <view class="admin-libs__add-btn" @click="openNew">
-            <text class="iconfont admin-libs__add-btn-icon">&#xe008;</text>
+            <text class="iconfont admin-libs__add-btn-icon">+</text>
             <text>新增</text>
           </view>
         </template>
