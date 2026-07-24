@@ -251,11 +251,10 @@
             <text>新增</text>
           </view>
         </template>
+        <SearchBar v-model="query" placeholder="搜索单词或含义..." :clearable="true" />
       </PageHeader>
 
       <view class="admin-words__body">
-        <SearchBar v-model="query" placeholder="搜索单词或含义..." :clearable="true" />
-
         <SectionLabel>共 {{ filteredWords.length }} 个单词</SectionLabel>
 
         <view v-if="loading" class="admin-words__loading">
