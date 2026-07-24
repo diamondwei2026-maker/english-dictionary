@@ -91,8 +91,16 @@
               @confirm="handleSubmit"
             ></input>
             <view class="auth-page__eye-btn" @click="showPassword = !showPassword">
-              <text class="iconfont" v-if="showPassword">&#xe00a;</text>
-              <text class="iconfont" v-else>&#xe009;</text>
+              <image
+              v-if="showPassword"
+              src="\static\images\hide.png"
+              mode="scaleToFill"
+              />
+              <image
+              v-else
+              src="\static\images\browse.png"
+              mode="scaleToFill"
+              />
             </view>
           </view>
         </view>
@@ -377,17 +385,20 @@ async function handleSubmit() {
   /* ── Eye toggle button ── */
   &__eye-btn {
     position: absolute;
-    right: 32rpx;                /* 16px × 2 */
+    right: 1rem;                /* 16px × 2 */
     top: 50%;
     transform: translateY(-50%);
+    margin-top: 4rpx;
     background: none;
     border: none;
     padding: 0;
-    color: #9CA3AF;
-    font-size: 36rpx;            /* 18px × 2 */
     /* #ifdef H5 */
     cursor: pointer;
     /* #endif */
+    image{
+      width: 36rpx;
+      height: 36rpx;
+    }
   }
 
   /* ── Error message ── */
