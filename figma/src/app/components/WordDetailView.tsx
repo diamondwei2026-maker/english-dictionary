@@ -1,11 +1,15 @@
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ChevronRight, FileText } from 'lucide-react';
 import { mockWords, mockLibraries } from '../data/mockData';
 import { PhysicalImage } from './PhysicalImage';
-import type { ViewState } from '../data/types';
+import type { ViewState, AuthUser, Note } from '../data/types';
 
 interface WordDetailViewProps {
   wordId: string;
   navigate: (view: ViewState) => void;
+  user: AuthUser | null;
+  notes: Note[];
+  onSaveNote: (note: Omit<Note, 'id' | 'createdAt'>) => void;
 }
 
 const POS_COLORS: Record<string, { bg: string; text: string }> = {
@@ -26,8 +30,10 @@ function EvolutionArrow() {
   );
 }
 
-export function WordDetailView({ wordId, navigate }: WordDetailViewProps) {
+export function WordDetailView({ wordId, navigate, user, notes, onSaveNote }: WordDetailViewProps) {
   const word = mockWords.find(w => w.id === wordId);
+  const [noteInput, setNoteInput] = useState('');
+  const [saving, setSaving] = useState(false);
 
   if (!word) {
     return (
@@ -41,6 +47,17 @@ export function WordDetailView({ wordId, navigate }: WordDetailViewProps) {
   }
 
   const library = mockLibraries.find(l => l.id === word.libraryId);
+  const wordNotes = user ? notes.filter(n => n.wordId === wordId && n.userId === user.id) : [];
+
+  const handleSave = () => {
+    if (!noteInput.trim() || !user) return;
+    setSaving(true);
+    setTimeout(() => {
+      onSaveNote({ wordId, userId: user.id, content: noteInput.trim() });
+      setNoteInput('');
+      setSaving(false);
+    }, 300);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F9FC' }}>
@@ -216,6 +233,7 @@ export function WordDetailView({ wordId, navigate }: WordDetailViewProps) {
           background: '#fff',
           borderRadius: '24px',
           padding: '24px',
+          marginBottom: '16px',
           boxShadow: '0 2px 20px rgba(0,0,0,0.05)',
         }}>
           <p style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', letterSpacing: '2px', textTransform: 'uppercase', margin: '0 0 16px' }}>
@@ -240,6 +258,87 @@ export function WordDetailView({ wordId, navigate }: WordDetailViewProps) {
             ))}
           </div>
         </div>
+
+        {/* Notes — only for logged-in users */}
+        {user && (
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '24px',
+            boxShadow: '0 2px 20px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <FileText size={14} color="#9CA3AF" />
+              <p style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
+                我的笔记
+              </p>
+            </div>
+
+            {/* Existing notes */}
+            {wordNotes.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+                {wordNotes.map(note => (
+                  <div
+                    key={note.id}
+                    style={{
+                      padding: '14px 16px',
+                      background: '#F8FAFC',
+                      borderRadius: '14px',
+                      borderLeft: '3px solid #2563EB',
+                    }}
+                  >
+                    <p style={{ fontSize: '14px', color: '#374151', margin: '0 0 6px', lineHeight: 1.7 }}>{note.content}</p>
+                    <p style={{ fontSize: '11px', color: '#CBD5E1', margin: 0 }}>{note.createdAt}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Input */}
+            <textarea
+              value={noteInput}
+              onChange={e => setNoteInput(e.target.value)}
+              placeholder="添加笔记，记录你的理解..."
+              style={{
+                width: '100%',
+                padding: '13px 14px',
+                borderRadius: '14px',
+                border: '1.5px solid #E5E7EB',
+                background: '#F8FAFC',
+                fontSize: '14px',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+                lineHeight: 1.7,
+                resize: 'none',
+                minHeight: '88px',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+                marginBottom: '10px',
+              }}
+              onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff'; }}
+              onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.background = '#F8FAFC'; }}
+            />
+            <button
+              onClick={handleSave}
+              disabled={!noteInput.trim() || saving}
+              style={{
+                width: '100%',
+                padding: '13px',
+                background: !noteInput.trim() || saving ? '#DBEAFE' : '#2563EB',
+                color: !noteInput.trim() || saving ? '#93C5FD' : '#fff',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: !noteInput.trim() || saving ? 'default' : 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {saving ? '保存中...' : '保存笔记'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

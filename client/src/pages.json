@@ -36,6 +36,13 @@
       }
     },
     {
+      "path": "pages/notes/notes",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/word-detail/word-detail",
       "style": {
         "navigationBarTitleText": "",

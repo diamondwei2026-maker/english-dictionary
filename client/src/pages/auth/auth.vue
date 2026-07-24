@@ -5,7 +5,7 @@
     <view class="auth-page__header">
       <view class="auth-page__back-btn" @click="goBack">
         <view class="css-arrow-left auth-page__back-icon" />
-        <text>返回</text>
+        <text>{{ forgotStep > 0 ? '返回登录' : '返回' }}</text>
       </view>
     </view>
 
@@ -16,12 +16,12 @@
         <view class="auth-page__logo-box">
           <text class="auth-page__logo-text">E</text>
         </view>
-        <text class="auth-page__title">{{ tab === 'login' ? '欢迎回来' : '创建账号' }}</text>
-        <text class="auth-page__subtitle">{{ tab === 'login' ? '登录继续你的认知英语学习' : '开始用物理意象理解英语' }}</text>
+        <text class="auth-page__title">{{ forgotStep > 0 ? '找回密码' : tab === 'login' ? '欢迎回来' : '创建账号' }}</text>
+        <text class="auth-page__subtitle">{{ forgotStep > 0 ? '验证手机号后重置密码' : tab === 'login' ? '登录继续你的认知英语学习' : '开始用物理意象理解英语' }}</text>
       </view>
 
-      <!-- Tab switcher -->
-      <view class="auth-page__tabs">
+      <!-- Tab switcher — hidden in forgot mode -->
+      <view v-if="forgotStep === 0" class="auth-page__tabs">
         <view
           class="auth-page__tab"
           :class="{ 'auth-page__tab--active': tab === 'login' }"
@@ -38,8 +38,160 @@
         </view>
       </view>
 
-      <!-- Form -->
-      <view class="auth-page__form">
+      <!-- ═══ Forgot password flow ═══ -->
+      <template v-if="forgotStep > 0">
+        <!-- Step indicator -->
+        <view class="auth-page__steps">
+          <template v-for="(_, i) in 3" :key="i">
+            <view class="auth-page__steps-item">
+              <view
+                class="auth-page__steps-circle"
+                :class="{
+                  'auth-page__steps-circle--done': forgotStep > i + 1,
+                  'auth-page__steps-circle--active': forgotStep === i + 1,
+                }"
+              >
+                <text v-if="forgotStep > i + 1" class="iconfont auth-page__steps-check">✓</text>
+                <text v-else>{{ i + 1 }}</text>
+              </view>
+            </view>
+            <view
+              v-if="i < 2"
+              class="auth-page__steps-line"
+              :class="{ 'auth-page__steps-line--done': forgotStep > i + 1 }"
+            />
+          </template>
+        </view>
+
+        <!-- Step 1: Verify phone -->
+        <view v-if="forgotStep === 1" class="auth-page__forgot-form">
+          <view class="auth-page__field">
+            <text class="auth-page__label">手机号</text>
+            <view class="auth-page__input-wrap">
+              <text class="auth-page__prefix">+86</text>
+              <input
+                v-model="forgotPhone"
+                class="auth-page__input auth-page__input--phone"
+                :class="{ 'auth-page__input--focused': forgotPhoneFocused }"
+                type="number"
+                placeholder="请输入手机号"
+                :maxlength="11"
+                @focus="forgotPhoneFocused = true"
+                @blur="forgotPhoneFocused = false"
+              ></input>
+            </view>
+          </view>
+          <text v-if="error" class="auth-page__error">{{ error }}</text>
+          <view class="auth-page__submit-wrap">
+            <PrimaryButton :loading="loading" size="lg" @click="handleSendResetCode">
+              {{ loading ? '发送中...' : '获取验证码' }}
+            </PrimaryButton>
+          </view>
+        </view>
+
+        <!-- Step 2: Enter code -->
+        <view v-if="forgotStep === 2" class="auth-page__forgot-form">
+          <view class="auth-page__forgot-hint">
+            <text>验证码已发送至 +86 {{ forgotPhone }}（演示：任意 6 位数字）</text>
+          </view>
+          <view class="auth-page__field">
+            <text class="auth-page__label">验证码</text>
+            <view class="auth-page__input-wrap">
+              <input
+                v-model="forgotCode"
+                class="auth-page__input"
+                :class="{ 'auth-page__input--focused': forgotCodeFocused }"
+                type="number"
+                placeholder="输入 6 位验证码"
+                :maxlength="6"
+                @focus="forgotCodeFocused = true"
+                @blur="forgotCodeFocused = false"
+                @input="forgotCode = forgotCode.replace(/\D/g, '')"
+              ></input>
+            </view>
+          </view>
+          <text v-if="error" class="auth-page__error">{{ error }}</text>
+          <view class="auth-page__submit-wrap">
+            <PrimaryButton :loading="loading" size="lg" @click="handleVerifyResetCode">
+              {{ loading ? '验证中...' : '下一步' }}
+            </PrimaryButton>
+          </view>
+        </view>
+
+        <!-- Step 3: Set new password -->
+        <view v-if="forgotStep === 3" class="auth-page__forgot-form">
+          <view class="auth-page__field">
+            <text class="auth-page__label">新密码</text>
+            <view class="auth-page__input-wrap">
+              <input
+                :type="showNewPassword ? 'text' : 'password'"
+                v-model="forgotNewPassword"
+                class="auth-page__input auth-page__input--password"
+                :class="{ 'auth-page__input--focused': forgotNewPasswordFocused }"
+                placeholder="至少 6 位"
+                @focus="forgotNewPasswordFocused = true"
+                @blur="forgotNewPasswordFocused = false"
+              ></input>
+              <view class="auth-page__eye-btn" @click="showNewPassword = !showNewPassword">
+                <image
+                v-if="showNewPassword"
+                src="\static\images\hide.png"
+                mode="scaleToFill"
+                />
+                <image
+                v-else
+                src="\static\images\browse.png"
+                mode="scaleToFill"
+                />
+              </view>
+            </view>
+          </view>
+          <view class="auth-page__field">
+            <text class="auth-page__label">确认新密码</text>
+            <view class="auth-page__input-wrap">
+              <input
+                :type="showConfirmPassword ? 'text' : 'password'"
+                v-model="forgotConfirmPassword"
+                class="auth-page__input auth-page__input--password"
+                :class="{ 'auth-page__input--focused': forgotConfirmPasswordFocused }"
+                placeholder="再次输入新密码"
+                @focus="forgotConfirmPasswordFocused = true"
+                @blur="forgotConfirmPasswordFocused = false"
+              ></input>
+              <view class="auth-page__eye-btn" @click="showConfirmPassword = !showConfirmPassword">
+                <image
+                v-if="showConfirmPassword"
+                src="\static\images\hide.png"
+                mode="scaleToFill"
+                />
+                <image
+                v-else
+                src="\static\images\browse.png"
+                mode="scaleToFill"
+                />
+              </view>
+            </view>
+          </view>
+          <text v-if="error" class="auth-page__error">{{ error }}</text>
+          <view class="auth-page__submit-wrap">
+            <PrimaryButton :loading="loading" size="lg" @click="handleResetPassword">
+              {{ loading ? '提交中...' : '确认修改' }}
+            </PrimaryButton>
+          </view>
+        </view>
+
+        <!-- Success state -->
+        <view v-if="resetDone" class="auth-page__reset-done">
+          <view class="auth-page__reset-done-circle">
+            <text class="iconfont auth-page__reset-done-check">✓</text>
+          </view>
+          <text class="auth-page__reset-done-title">密码修改成功</text>
+          <text class="auth-page__reset-done-sub">正在返回登录...</text>
+        </view>
+      </template>
+
+      <!-- Login / Register form -->
+      <view v-if="forgotStep === 0" class="auth-page__form">
         <!-- Username field (register only) -->
         <view v-if="tab === 'register'" class="auth-page__field">
           <text class="auth-page__label">用户名</text>
@@ -78,7 +230,14 @@
 
         <!-- Password field -->
         <view class="auth-page__field">
-          <text class="auth-page__label">密码</text>
+          <view class="auth-page__label-row">
+            <text class="auth-page__label">密码</text>
+            <text
+              v-if="tab === 'login'"
+              class="auth-page__forgot-link"
+              @click="openForgotPassword"
+            >忘记密码？</text>
+          </view>
           <view class="auth-page__input-wrap">
             <input
               v-model="password"
@@ -144,6 +303,21 @@ const phoneFocused = ref(false);
 const passwordFocused = ref(false);
 const usernameFocused = ref(false);
 
+// ── Forgot password state ──
+const forgotStep = ref(0); // 0 = not in forgot, 1/2/3 = steps
+const forgotPhone = ref('');
+const forgotCode = ref('');
+const forgotNewPassword = ref('');
+const forgotConfirmPassword = ref('');
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
+const resetDone = ref(false);
+
+const forgotPhoneFocused = ref(false);
+const forgotCodeFocused = ref(false);
+const forgotNewPasswordFocused = ref(false);
+const forgotConfirmPasswordFocused = ref(false);
+
 onLoad((options: any) => {
   if (options?.mode === 'register') {
     tab.value = 'register';
@@ -156,7 +330,76 @@ function switchTab(t: 'login' | 'register') {
 }
 
 function goBack() {
-  uni.navigateBack();
+  if (forgotStep.value > 0) {
+    // Return to login from forgot flow
+    forgotStep.value = 0;
+    resetDone.value = false;
+    error.value = '';
+  } else {
+    uni.navigateBack();
+  }
+}
+
+function openForgotPassword() {
+  forgotStep.value = 1;
+  forgotPhone.value = '';
+  forgotCode.value = '';
+  forgotNewPassword.value = '';
+  forgotConfirmPassword.value = '';
+  resetDone.value = false;
+  error.value = '';
+}
+
+function handleSendResetCode() {
+  error.value = '';
+  const cleanPhone = forgotPhone.value.replace(/\s/g, '');
+  if (!isValidPhone(cleanPhone)) {
+    error.value = '请输入有效的手机号';
+    return;
+  }
+  loading.value = true;
+  // Mock: simulate API call
+  setTimeout(() => {
+    loading.value = false;
+    forgotStep.value = 2;
+  }, 600);
+}
+
+function handleVerifyResetCode() {
+  error.value = '';
+  if (!/^\d{6}$/.test(forgotCode.value)) {
+    error.value = '请输入 6 位数字验证码';
+    return;
+  }
+  loading.value = true;
+  // Mock: simulate API call
+  setTimeout(() => {
+    loading.value = false;
+    forgotStep.value = 3;
+  }, 500);
+}
+
+function handleResetPassword() {
+  error.value = '';
+  if (forgotNewPassword.value.length < 6) {
+    error.value = '密码至少 6 位';
+    return;
+  }
+  if (forgotNewPassword.value !== forgotConfirmPassword.value) {
+    error.value = '两次密码不一致';
+    return;
+  }
+  loading.value = true;
+  // Mock: simulate API call
+  setTimeout(() => {
+    loading.value = false;
+    resetDone.value = true;
+    // Auto redirect back to login after 1.5s
+    setTimeout(() => {
+      forgotStep.value = 0;
+      resetDone.value = false;
+    }, 1500);
+  }, 600);
 }
 
 async function handleSubmit() {
@@ -380,6 +623,137 @@ async function handleSubmit() {
     font-size: 30rpx;            /* 15px × 2 */
     color: #6B7280;
     font-weight: 500;
+  }
+
+  /* ── Label row (for "忘记密码？" link) ── */
+  &__label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16rpx;
+  }
+
+  &__forgot-link {
+    font-size: 24rpx;
+    color: #2563eb;
+    font-weight: 500;
+    padding: 0;
+    background: none;
+    border: none;
+    /* #ifdef H5 */
+    cursor: pointer;
+    /* #endif */
+  }
+
+  /* ── Forgot password steps indicator ── */
+  &__steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 56rpx;
+  }
+
+  &__steps-item {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__steps-circle {
+    width: 52rpx;
+    height: 52rpx;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22rpx;
+    font-weight: 700;
+    background: #f1f5f9;
+    border: 4rpx solid transparent;
+    color: #d1d5db;
+
+    &--active {
+      background: #eff6ff;
+      border-color: #2563eb;
+      color: #2563eb;
+    }
+
+    &--done {
+      background: #2563eb;
+      color: #fff;
+    }
+  }
+
+  &__steps-check {
+    font-size: 24rpx;
+  }
+
+  &__steps-line {
+    flex: 1;
+    height: 2rpx;
+    background: #e5e7eb;
+    margin: 0 8rpx;
+
+    &--done {
+      background: #2563eb;
+    }
+  }
+
+  /* ── Forgot form ── */
+  &__forgot-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28rpx;
+  }
+
+  &__forgot-hint {
+    padding: 24rpx 32rpx;
+    background: #eff6ff;
+    border-radius: 24rpx;
+
+    text {
+      display: block;
+      font-size: 26rpx;
+      color: #1d4ed8;
+    }
+  }
+
+  /* ── Reset done ── */
+  &__reset-done {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 96rpx 0;
+  }
+
+  &__reset-done-circle {
+    width: 128rpx;
+    height: 128rpx;
+    border-radius: 50%;
+    background: #f0fdf4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40rpx;
+  }
+
+  &__reset-done-check {
+    font-size: 56rpx;
+    color: #16a34a;
+  }
+
+  &__reset-done-title {
+    font-size: 34rpx;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 12rpx;
+    display: block;
+  }
+
+  &__reset-done-sub {
+    font-size: 26rpx;
+    color: #9cafc6;
+    display: block;
   }
 
   /* ── Eye toggle button ── */

@@ -7,7 +7,7 @@
 | 方式 | 依赖 |
 |------|------|
 | Docker 部署 | Docker 24+、Docker Compose v2 |
-| 本地开发 | Node.js 18+、MongoDB 7+ |
+| 本地开发 | Node.js 18+ |
 
 ---
 
@@ -25,10 +25,10 @@ git clone <repo-url> && cd english-dictionary
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，至少修改 `JWT_SECRET` 为安全的随机字符串：
+编辑 `.env` 文件，至少配置 `MONGODB_URI`（MongoDB Atlas 连接字符串）和 `JWT_SECRET`：
 
 ```bash
-# 生成安全随机字符串
+# 生成安全的 JWT_SECRET 随机字符串
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
@@ -55,11 +55,8 @@ curl http://localhost:3001/api/v1/health
 ### 5. 停止服务
 
 ```bash
-# 停止并保留数据
+# 停止服务
 docker compose down
-
-# 停止并删除数据库数据（⚠️ 数据不可恢复）
-docker compose down -v
 ```
 
 ### 6. 查看日志
@@ -76,19 +73,19 @@ docker compose logs -f app
 
 ## 本地开发（非 Docker）
 
-### 1. 确保 MongoDB 运行中
+### 1. 配置环境变量
 
 ```bash
-# 如使用 Docker 仅运行 MongoDB
-docker run -d --name mongo-dev -p 27017:27017 mongo:7
+cp .env.example .env
 ```
+
+编辑 `.env` 文件，填入 MongoDB Atlas 连接字符串及其他配置。数据库使用 MongoDB 云托管（Atlas），无需本地安装 MongoDB。
 
 ### 2. 安装依赖并启动
 
 ```bash
 cd server
 npm install
-cp ../.env.example .env   # 按需修改配置
 npm run dev                 # tsx watch 热重载，监听文件变更
 ```
 
@@ -145,16 +142,14 @@ ports:
 ### MongoDB 连接失败
 
 ```bash
-# 检查 MongoDB 容器是否健康
-docker compose ps mongodb
-
 # 检查 app 日志
 docker compose logs app | grep -i mongo
 ```
 
 常见原因：
-- MongoDB 容器尚未健康就绪 — 等待 30 秒后重试
-- `MONGODB_URI` 使用了 `localhost` 而非 Docker 服务名 `mongodb`
+- `MONGODB_URI` 未在 `.env` 中配置或连接字符串格式错误
+- MongoDB Atlas IP 白名单未包含当前 IP 地址
+- 网络无法访问 MongoDB Atlas 集群
 
 ### 首次 build 很慢
 

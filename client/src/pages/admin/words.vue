@@ -143,7 +143,10 @@
               <view class="admin-words__ext-header">
                 <text class="admin-words__ext-header-label">引申义 {{ i + 1 }}</text>
                 <view v-if="!isNew" class="admin-words__ext-remove" @click="removeExt(i)">
-                  <text class="iconfont">&#xe006;</text>
+                  <image
+                    src="\static\images\ashbin.png"
+                    mode="scaleToFill"
+                  />
                 </view>
               </view>
               <view class="admin-words__field">
@@ -200,7 +203,7 @@
               </view>
             </view>
             <view v-if="!isNew" class="admin-words__add-ext-btn" @click="addExt">
-              <text class="iconfont admin-words__add-ext-btn-icon">&#xe008;</text>
+              <text class="iconfont admin-words__add-ext-btn-icon">+</text>
               <text>添加引申义</text>
             </view>
           </view>
@@ -765,7 +768,10 @@ function goBack() {
     padding: 10rpx 14rpx;
     display: flex;
 
-    .iconfont { font-size: 28rpx; }
+    image{
+      width: 28rpx;
+      height: 28rpx;
+    }
   }
 
   &__ext-row {

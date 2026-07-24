@@ -12,3 +12,5 @@ export { LearningRecord } from "./LearningRecord.js";
 export type { ILearningRecord } from "./LearningRecord.js";
 export { DailyWord } from "./DailyWord.js";
 export type { IDailyWord } from "./DailyWord.js";
+export { Note } from "./Note.js";
+export type { INote } from "./Note.js";

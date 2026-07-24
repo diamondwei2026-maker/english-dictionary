@@ -47,4 +47,12 @@ export interface AuthUser {
   role: 'admin' | 'user';
 }
 
+export interface Note {
+  id: string;
+  wordId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+}
+
 export type AdminTab = 'overview' | 'libraries' | 'words' | 'users';

@@ -13,7 +13,9 @@
         <text class="iconfont">&#xe004;</text>
       </view>
       <text class="profile-page__unauth-title">登录后开始学习</text>
-      <text class="profile-page__unauth-desc">登录账号，追踪学习进度\n解锁完整词库内容</text>
+      <text class="profile-page__unauth-desc"
+        >登录账号，追踪学习进度\n解锁完整词库内容</text
+      >
       <view class="profile-page__unauth-btns">
         <PrimaryButton @click="goLogin">登录</PrimaryButton>
         <PrimaryButton ghost @click="goRegister">注册新账号</PrimaryButton>
@@ -23,15 +25,22 @@
     <!-- Logged in -->
     <view v-else class="profile-page__content">
       <!-- User card -->
-      <view class="profile-page__user-card" :class="{ 'profile-page__user-card--admin': isAdmin }">
+      <view
+        class="profile-page__user-card"
+        :class="{ 'profile-page__user-card--admin': isAdmin }"
+      >
         <view class="profile-page__user-card-inner">
           <view class="profile-page__user-card-avatar">
-            <text class="iconfont">&#xe004;</text>
+            <image src="\static\images\user.png" mode="scaleToFill" />
           </view>
           <view class="profile-page__user-card-info">
-            <text class="profile-page__user-card-name">{{ user.username }}</text>
+            <text class="profile-page__user-card-name">{{
+              user.username
+            }}</text>
             <text class="profile-page__user-card-phone">{{ user.phone }}</text>
-            <text class="profile-page__user-card-role">{{ isAdmin ? '管理员' : '普通用户' }}</text>
+            <text class="profile-page__user-card-role">{{
+              isAdmin ? "管理员" : "普通用户"
+            }}</text>
           </view>
         </view>
       </view>
@@ -40,12 +49,16 @@
       <view v-if="isAdmin" class="profile-page__admin-entry">
         <view class="profile-page__menu-item" @click="goAdmin">
           <view class="profile-page__menu-item-left">
-            <view class="profile-page__menu-item-icon profile-page__menu-item-icon--purple">
+            <view
+              class="profile-page__menu-item-icon profile-page__menu-item-icon--purple"
+            >
               <text class="iconfont">&#xe00d;</text>
             </view>
             <view>
               <text class="profile-page__menu-item-label">管理后台</text>
-              <text class="profile-page__menu-item-desc">词库、单词与用户管理</text>
+              <text class="profile-page__menu-item-desc"
+                >词库、单词与用户管理</text
+              >
             </view>
           </view>
           <view class="css-arrow profile-page__menu-item-chevron" />
@@ -56,17 +69,44 @@
       <view v-else class="profile-page__stats">
         <view class="profile-page__stat">
           <view class="profile-page__stat-icon profile-page__stat-icon--blue">
-            <text class="iconfont">&#xe00b;</text>
+            <image
+              src="/static/images/tab-libraries-active.png"
+              mode="scaleToFill"
+            />
           </view>
           <text class="profile-page__stat-label">已学单词</text>
-          <text class="profile-page__stat-value">{{ stats.totalWordsLearned }} 个</text>
+          <text class="profile-page__stat-value"
+            >{{ stats.totalWordsLearned }} 个</text
+          >
         </view>
         <view class="profile-page__stat">
           <view class="profile-page__stat-icon profile-page__stat-icon--green">
-            <text class="iconfont">&#xe00e;</text>
+            <image src="\static\images\task.png" mode="scaleToFill" />
           </view>
           <text class="profile-page__stat-label">今日目标</text>
-          <text class="profile-page__stat-value">{{ stats.todayLearnedCount }}/5 个</text>
+          <text class="profile-page__stat-value"
+            >{{ stats.todayLearnedCount }}/5 个</text
+          >
+        </view>
+      </view>
+
+      <!-- Notes entry — regular users only -->
+      <view v-if="user && !isAdmin" class="profile-page__notes-entry">
+        <view class="profile-page__menu-item" @click="goNotes">
+          <view class="profile-page__menu-item-left">
+            <view
+              class="profile-page__menu-item-icon profile-page__menu-item-icon--blue"
+            >
+              <image src="\static\images\file-blue.png" mode="scaleToFill" />
+            </view>
+            <view>
+              <text class="profile-page__menu-item-label">我的笔记</text>
+              <text class="profile-page__menu-item-desc"
+                >{{ noteCount }} 条笔记</text
+              >
+            </view>
+          </view>
+          <view class="css-arrow profile-page__menu-item-chevron" />
         </view>
       </view>
 
@@ -74,8 +114,10 @@
       <view class="profile-page__settings">
         <view class="profile-page__menu-item">
           <view class="profile-page__menu-item-left">
-            <view class="profile-page__menu-item-icon profile-page__menu-item-icon--gray">
-              <text class="iconfont">&#xe005;</text>
+            <view
+              class="profile-page__menu-item-icon profile-page__menu-item-icon--gray"
+            >
+              <image src="/static/images/setting.png" mode="scaleToFill" />
             </view>
             <text class="profile-page__menu-item-label">设置</text>
           </view>
@@ -85,7 +127,6 @@
 
       <!-- Logout -->
       <view class="profile-page__logout" @click="handleLogout">
-        <text class="iconfont profile-page__logout-icon">&#xe00f;</text>
         <text>退出登录</text>
       </view>
     </view>
@@ -93,16 +134,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
-import { userStore, logout } from '@/store/user';
-import { fetchUserStats } from '@/api';
-import PrimaryButton from '@/components/PrimaryButton.vue';
+import { ref, computed } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import { userStore, logout } from "@/store/user";
+import { fetchUserStats, fetchMyNotes } from "@/api";
+import PrimaryButton from "@/components/PrimaryButton.vue";
 
 const user = computed(() => userStore.user);
-const isAdmin = computed(() => user.value?.role === 'admin');
+const isAdmin = computed(() => user.value?.role === "admin");
 
-const stats = ref({ totalWordsLearned: 0, totalLearningDays: 0, todayLearnedCount: 0 });
+const stats = ref({
+  totalWordsLearned: 0,
+  totalLearningDays: 0,
+  todayLearnedCount: 0,
+});
+const noteCount = ref(0);
 
 onShow(async () => {
   if (user.value && !isAdmin.value) {
@@ -113,18 +159,31 @@ onShow(async () => {
       // API 不可用时保留默认值
     }
   }
+  // 加载笔记计数（登录用户）
+  if (user.value) {
+    try {
+      const notes = await fetchMyNotes();
+      noteCount.value = notes.length;
+    } catch {
+      // API 不可用时保留默认值
+    }
+  }
 });
 
 function goLogin() {
-  uni.navigateTo({ url: '/pages/auth/auth?mode=login' });
+  uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
 }
 
 function goRegister() {
-  uni.navigateTo({ url: '/pages/auth/auth?mode=register' });
+  uni.navigateTo({ url: "/pages/auth/auth?mode=register" });
 }
 
 function goAdmin() {
-  uni.navigateTo({ url: '/pages/admin/overview' });
+  uni.navigateTo({ url: "/pages/admin/overview" });
+}
+
+function goNotes() {
+  uni.navigateTo({ url: "/pages/notes/notes" });
 }
 
 function handleLogout() {
@@ -137,8 +196,13 @@ function handleLogout() {
 .profile-page {
   min-height: 100vh;
   padding-bottom: 132rpx;
-  background: #F7F9FC;
-
+  background: #f7f9fc;
+  &__stat-icon {
+    image {
+      width: 36rpx;
+      height: 36rpx;
+    }
+  }
   &__header {
     padding: 104rpx 48rpx 40rpx;
     background: rgba(255, 255, 255, 0.9);
@@ -151,7 +215,7 @@ function handleLogout() {
   &__subtitle {
     display: block;
     font-size: 24rpx;
-    color: #9CA3AF;
+    color: #9ca3af;
     letter-spacing: 4rpx;
     text-transform: uppercase;
     margin-bottom: 12rpx;
@@ -176,13 +240,13 @@ function handleLogout() {
       width: 160rpx;
       height: 160rpx;
       border-radius: 50%;
-      background: #F1F5F9;
+      background: #f1f5f9;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 48rpx;
       font-size: 72rpx;
-      color: #CBD5E1;
+      color: #cbd5e1;
     }
 
     &-title {
@@ -194,7 +258,7 @@ function handleLogout() {
 
     &-desc {
       font-size: 28rpx;
-      color: #9CA3AF;
+      color: #9ca3af;
       text-align: center;
       line-height: 1.6;
       margin: 0 0 72rpx;
@@ -220,11 +284,11 @@ function handleLogout() {
     padding: 48rpx;
     margin-bottom: 40rpx;
     color: #fff;
-    background: linear-gradient(135deg, #1D4ED8, #2563EB);
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
     box-shadow: 0 16rpx 64rpx rgba(37, 99, 235, 0.25);
 
     &--admin {
-      background: linear-gradient(135deg, #4C1D95, #7C3AED);
+      background: linear-gradient(135deg, #4c1d95, #7c3aed);
       box-shadow: 0 16rpx 64rpx rgba(124, 58, 237, 0.25);
     }
 
@@ -244,6 +308,10 @@ function handleLogout() {
       justify-content: center;
       flex-shrink: 0;
       font-size: 48rpx;
+      image {
+        width: 72rpx;
+        height: 72rpx;
+      }
     }
 
     &-name {
@@ -294,13 +362,19 @@ function handleLogout() {
       margin-bottom: 20rpx;
       font-size: 36rpx;
 
-      &--blue { background: #EFF6FF; color: #2563EB; }
-      &--green { background: #F0FDF4; color: #16A34A; }
+      &--blue {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+      &--green {
+        background: #f0fdf4;
+        color: #16a34a;
+      }
     }
 
     &-label {
       font-size: 24rpx;
-      color: #9CA3AF;
+      color: #9ca3af;
       margin: 0 0 8rpx;
       display: block;
     }
@@ -330,6 +404,19 @@ function handleLogout() {
       display: flex;
       align-items: center;
       gap: 24rpx;
+      width: 100%;
+      & > :nth-child(2) {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0%;
+        padding: 0;
+      }
+      image {
+        width: 36rpx;
+        height: 36rpx;
+      }
     }
 
     &-icon {
@@ -342,8 +429,18 @@ function handleLogout() {
       font-size: 32rpx;
       flex-shrink: 0;
 
-      &--purple { background: #FAF5FF; color: #7C3AED; }
-      &--gray { background: #F3F4F6; color: #6B7280; }
+      &--purple {
+        background: #faf5ff;
+        color: #7c3aed;
+      }
+      &--blue {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+      &--gray {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
     }
 
     &-label {
@@ -354,14 +451,23 @@ function handleLogout() {
 
     &-desc {
       font-size: 24rpx;
-      color: #9CA3AF;
-      margin: 0 0 2px;
+      color: #9ca3af;
+      margin-right: 20rpx;
     }
 
     &-chevron {
       color: #a0a0a0;
       flex-shrink: 0;
     }
+  }
+
+  /* ── Notes entry ── */
+  &__notes-entry {
+    margin-bottom: 32rpx;
+    background: #fff;
+    border-radius: 40rpx;
+    overflow: hidden;
+    box-shadow: 0 4rpx 32rpx rgba(0, 0, 0, 0.04);
   }
 
   &__settings {
@@ -376,8 +482,8 @@ function handleLogout() {
   &__logout {
     width: 100%;
     padding: 32rpx;
-    background: #FEF2F2;
-    color: #DC2626;
+    background: #fef2f2;
+    color: #dc2626;
     border: none;
     border-radius: 32rpx;
     font-size: 30rpx;

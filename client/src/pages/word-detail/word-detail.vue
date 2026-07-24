@@ -103,6 +103,59 @@
           >
         </view>
       </view>
+
+      <!-- Notes — only for logged-in users -->
+      <view
+        v-if="userStore.user"
+        class="word-detail-page__card word-detail-page__card--notes"
+      >
+        <view class="word-detail-page__notes-head">
+          <image src="\static\images\file.png" mode="scaleToFill" />
+          <text class="word-detail-page__notes-head-label">我的笔记</text>
+        </view>
+
+        <!-- Existing notes -->
+        <view
+          v-if="wordNotes.length > 0"
+          class="word-detail-page__notes-existing"
+        >
+          <view
+            v-for="note in wordNotes"
+            :key="note.id"
+            class="word-detail-page__notes-item"
+          >
+            <text class="word-detail-page__notes-item-content">{{
+              note.content
+            }}</text>
+            <text class="word-detail-page__notes-item-date">{{
+              note.createdAt
+            }}</text>
+          </view>
+        </view>
+
+        <!-- Input -->
+        <textarea
+          v-model="noteInput"
+          class="word-detail-page__notes-input"
+          :class="{
+            'word-detail-page__notes-input--focused': noteInputFocused,
+          }"
+          placeholder="添加笔记，记录你的理解..."
+          @focus="noteInputFocused = true"
+          @blur="noteInputFocused = false"
+        ></textarea>
+
+        <view
+          class="word-detail-page__notes-save-btn"
+          :class="{
+            'word-detail-page__notes-save-btn--disabled':
+              !noteInput.trim() || saving,
+          }"
+          @click="handleSaveNote"
+        >
+          <text>{{ saving ? "保存中..." : "保存笔记" }}</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -121,9 +174,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import { fetchWordDetail, fetchWordbankById } from "@/api";
+import {
+  fetchWordDetail,
+  fetchWordbankById,
+  fetchNotesByWord,
+  createNote,
+} from "@/api";
 import { getPosColor } from "@/utils/helpers";
+import { userStore } from "@/store/user";
 import type { Word, WordDetail } from "@/api";
+import type { Note } from "@/data/types";
 import SectionLabel from "@/components/SectionLabel.vue";
 import PhysicalImage from "@/components/PhysicalImage.vue";
 
@@ -131,6 +191,12 @@ const wordId = ref("");
 const word = ref<Word | WordDetail | null>(null);
 const libraryName = ref("");
 const loading = ref(true);
+
+// ── Notes state ──
+const wordNotes = ref<Note[]>([]);
+const noteInput = ref("");
+const saving = ref(false);
+const noteInputFocused = ref(false);
 
 onLoad(async (options: any) => {
   wordId.value = options?.wordId || "";
@@ -148,7 +214,34 @@ onLoad(async (options: any) => {
     uni.showToast({ title: "加载失败，请检查网络", icon: "none" });
   }
   loading.value = false;
+
+  // 加载笔记
+  if (userStore.user) {
+    loadNotes();
+  }
 });
+
+async function loadNotes() {
+  try {
+    wordNotes.value = await fetchNotesByWord(wordId.value);
+  } catch {
+    // 笔记加载失败不阻塞页面
+  }
+}
+
+async function handleSaveNote() {
+  if (!noteInput.value.trim() || saving.value) return;
+  saving.value = true;
+  try {
+    await createNote({ wordId: wordId.value, content: noteInput.value.trim() });
+    noteInput.value = "";
+    await loadNotes();
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || "保存失败", icon: "none" });
+  } finally {
+    saving.value = false;
+  }
+}
 
 function getPosStyle(pos: string) {
   const c = getPosColor(pos);
@@ -403,6 +496,114 @@ function goBack() {
     color: #374151;
     font-style: italic;
     line-height: 1;
+  }
+
+  /* ── Notes section ── */
+  &__card--notes {
+    // Inherits card base styles
+  }
+
+  &__notes-head {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    margin-bottom: 32rpx;
+    image {
+      width: 30rpx;
+      height: 30rpx;
+    }
+  }
+
+  &__notes-head-icon {
+    font-size: 28rpx;
+    color: #9cafc6;
+  }
+
+  &__notes-head-label {
+    font-size: 22rpx;
+    font-weight: 600;
+    color: #9cafc6;
+    letter-spacing: 4rpx;
+    text-transform: uppercase;
+  }
+
+  &__notes-existing {
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+    margin-bottom: 32rpx;
+  }
+
+  &__notes-item {
+    padding: 28rpx 32rpx;
+    background: #f8fafc;
+    border-radius: 28rpx;
+    border-left: 6rpx solid #2563eb;
+  }
+
+  &__notes-item-content {
+    display: block;
+    font-size: 28rpx;
+    color: #374151;
+    margin: 0 0 12rpx;
+    line-height: 1.7;
+  }
+
+  &__notes-item-date {
+    display: block;
+    font-size: 22rpx;
+    color: #cbd5e1;
+  }
+
+  &__notes-input {
+    width: 100%;
+    padding: 26rpx 28rpx;
+    border-radius: 28rpx;
+    border: 3rpx solid #e5e7eb;
+    background: #f8fafc;
+    font-size: 28rpx;
+    color: #111827;
+    outline: none;
+    box-sizing: border-box;
+    line-height: 1.7;
+    resize: none;
+    min-height: 176rpx;
+    font-family: inherit;
+    margin-bottom: 20rpx;
+    /* #ifdef H5 */
+    transition: border-color 0.2s;
+    /* #endif */
+
+    &--focused {
+      border-color: #2563eb;
+      background: #fff;
+    }
+  }
+
+  &__notes-save-btn {
+    width: 100%;
+    padding: 26rpx;
+    border-radius: 28rpx;
+    background: #2563eb;
+    color: #fff;
+    font-size: 28rpx;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* #ifdef H5 */
+    cursor: pointer;
+    transition: background 0.2s;
+    /* #endif */
+
+    &--disabled {
+      background: #dbeafe;
+      color: #93c5fd;
+      /* #ifdef H5 */
+      cursor: default;
+      /* #endif */
+    }
   }
 
   /* ── Loading ── */

@@ -1,16 +1,29 @@
 <template>
   <!-- Ported from figma-prototype AdminView.tsx:137-222 — Overview sub-module -->
   <view class="admin-overview">
-    <PageHeader title="数据概览" subtitle="管理后台" bg-type="admin" :padding-top="104" />
+    <PageHeader
+      title="数据概览"
+      subtitle="管理后台"
+      bg-type="admin"
+      :padding-top="104"
+    />
 
     <view class="admin-overview__body">
       <!-- Stats banner -->
       <view class="admin-overview__banner">
         <text class="admin-overview__banner-label">当前数据</text>
         <view class="admin-overview__banner-stats">
-          <view v-for="(stat, i) in stats" :key="i" class="admin-overview__banner-stat">
-            <text class="admin-overview__banner-stat-value">{{ stat.value }}</text>
-            <text class="admin-overview__banner-stat-label">{{ stat.label }}</text>
+          <view
+            v-for="(stat, i) in stats"
+            :key="i"
+            class="admin-overview__banner-stat"
+          >
+            <text class="admin-overview__banner-stat-value">{{
+              stat.value
+            }}</text>
+            <text class="admin-overview__banner-stat-label">{{
+              stat.label
+            }}</text>
           </view>
         </view>
       </view>
@@ -24,12 +37,19 @@
           @click="goSection(s.id)"
         >
           <view class="admin-overview__section-card-left">
-            <view class="admin-overview__section-card-icon" :style="{ background: s.bg, color: s.color }">
-              <text class="iconfont">{{ s.icon }}</text>
+            <view
+              class="admin-overview__section-card-icon"
+              :style="{ background: s.bg, color: s.color }"
+            >
+              <image :src="s.url" mode="scaleToFill" />
             </view>
             <view>
-              <text class="admin-overview__section-card-label">{{ s.label }}</text>
-              <text class="admin-overview__section-card-desc">{{ s.desc }}</text>
+              <text class="admin-overview__section-card-label">{{
+                s.label
+              }}</text>
+              <text class="admin-overview__section-card-desc">{{
+                s.desc
+              }}</text>
             </view>
           </view>
           <view class="css-arrow admin-overview__section-card-arrow" />
@@ -45,40 +65,82 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { onShow } from '@dcloudio/uni-app';
-import { fetchDashboard } from '@/api';
-import { logout } from '@/store/user';
-import PageHeader from '@/components/PageHeader.vue';
-import SectionLabel from '@/components/SectionLabel.vue';
+import { ref } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import { fetchDashboard } from "@/api";
+import { logout } from "@/store/user";
+import PageHeader from "@/components/PageHeader.vue";
+import SectionLabel from "@/components/SectionLabel.vue";
 
 const stats = ref([
-  { label: '词库', value: 0 },
-  { label: '单词', value: 0 },
-  { label: '用户', value: 0 },
+  { label: "词库", value: 0 },
+  { label: "单词", value: 0 },
+  { label: "用户", value: 0 },
 ]);
 
 const sections = ref([
-  { id: 'libraries', label: '词库管理', desc: '', icon: '', color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'words', label: '单词管理', desc: '', icon: '', color: '#16A34A', bg: '#F0FDF4' },
-  { id: 'users', label: '用户管理', desc: '', icon: '', color: '#7C3AED', bg: '#FAF5FF' },
+  {
+    id: "libraries",
+    label: "词库管理",
+    desc: "",
+    url: "",
+    color: "#2563EB",
+    bg: "#EFF6FF",
+  },
+  {
+    id: "words",
+    label: "单词管理",
+    desc: "",
+    url: "",
+    color: "#16A34A",
+    bg: "#F0FDF4",
+  },
+  {
+    id: "users",
+    label: "用户管理",
+    desc: "",
+    url: "",
+    color: "#7C3AED",
+    bg: "#FAF5FF",
+  },
 ]);
 
 onShow(async () => {
   try {
     const dash = await fetchDashboard();
     stats.value = [
-      { label: '词库', value: dash.wordbankCount },
-      { label: '单词', value: dash.wordCount },
-      { label: '用户', value: dash.userCount },
+      { label: "词库", value: dash.wordbankCount },
+      { label: "单词", value: dash.wordCount },
+      { label: "用户", value: dash.userCount },
     ];
     sections.value = [
-      { id: 'libraries', label: '词库管理', desc: `${dash.wordbankCount} 个词库`, icon: '', color: '#2563EB', bg: '#EFF6FF' },
-      { id: 'words', label: '单词管理', desc: `${dash.wordCount} 个单词`, icon: '', color: '#16A34A', bg: '#F0FDF4' },
-      { id: 'users', label: '用户管理', desc: `${dash.userCount} 位用户`, icon: '', color: '#7C3AED', bg: '#FAF5FF' },
+      {
+        id: "libraries",
+        label: "词库管理",
+        desc: `${dash.wordbankCount} 个词库`,
+        url: "/static/images/tab-libraries-active.png",
+        color: "#2563EB",
+        bg: "#EFF6FF",
+      },
+      {
+        id: "words",
+        label: "单词管理",
+        desc: `${dash.wordCount} 个单词`,
+        url: "/static/images/word.png",
+        color: "#16A34A",
+        bg: "#F0FDF4",
+      },
+      {
+        id: "users",
+        label: "用户管理",
+        desc: `${dash.userCount} 位用户`,
+        url: "/static/images/user-purple.png",
+        color: "#7C3AED",
+        bg: "#FAF5FF",
+      },
     ];
   } catch {
-    uni.showToast({ title: '加载失败，请检查网络', icon: 'none' });
+    uni.showToast({ title: "加载失败，请检查网络", icon: "none" });
   }
 });
 
@@ -94,7 +156,7 @@ function exitAdmin() {
 <style scoped lang="scss">
 .admin-overview {
   min-height: 100vh;
-  background: #F7F9FC;
+  background: #f7f9fc;
 
   &__body {
     padding: 32rpx 48rpx 80rpx;
@@ -102,7 +164,7 @@ function exitAdmin() {
 
   /* ── Stats banner ── */
   &__banner {
-    background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 60%, #3B82F6 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
     border-radius: 48rpx;
     padding: 48rpx;
     margin-bottom: 48rpx;
@@ -164,6 +226,10 @@ function exitAdmin() {
     box-shadow: 0 4rpx 32rpx rgba(0, 0, 0, 0.05);
     text-align: left;
 
+    image {
+      width: 36rpx;
+      height: 36rpx;
+    }
     &-left {
       display: flex;
       align-items: center;
@@ -192,7 +258,7 @@ function exitAdmin() {
     &-desc {
       display: block;
       font-size: 26rpx;
-      color: #9CA3AF;
+      color: #9ca3af;
     }
 
     &-arrow {
@@ -205,8 +271,8 @@ function exitAdmin() {
   &__exit {
     width: 100%;
     padding: 32rpx;
-    background: #FEF2F2;
-    color: #DC2626;
+    background: #fef2f2;
+    color: #dc2626;
     border: none;
     border-radius: 32rpx;
     font-size: 30rpx;

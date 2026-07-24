@@ -1,13 +1,14 @@
-import { User, Settings, Shield, LogOut, ChevronRight, BookOpen, Target } from 'lucide-react';
-import type { AuthUser, ViewState } from '../data/types';
+import { User, Settings, Shield, LogOut, ChevronRight, BookOpen, Target, FileText } from 'lucide-react';
+import type { AuthUser, ViewState, Note } from '../data/types';
 
 interface ProfileViewProps {
   user: AuthUser | null;
   navigate: (view: ViewState) => void;
   onLogout: () => void;
+  notes: Note[];
 }
 
-export function ProfileView({ user, navigate, onLogout }: ProfileViewProps) {
+export function ProfileView({ user, navigate, onLogout, notes }: ProfileViewProps) {
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', background: '#F7F9FC' }}>
@@ -166,6 +167,22 @@ export function ProfileView({ user, navigate, onLogout }: ProfileViewProps) {
           </div>
         )}
 
+        {/* Notes entry — regular users only */}
+        {user && !isAdmin && (
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
+              <MenuRow
+                icon={<FileText size={16} />}
+                label="我的笔记"
+                sub={`${notes.filter(n => n.userId === user.id).length} 条笔记`}
+                color="#2563EB"
+                bg="#EFF6FF"
+                onClick={() => navigate({ name: 'notes' })}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Settings */}
         <div style={{ background: '#fff', borderRadius: '20px', overflow: 'hidden', marginBottom: '14px', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
           <MenuRow icon={<Settings size={16} />} label="设置" color="#6B7280" bg="#F3F4F6" />
@@ -188,10 +205,11 @@ export function ProfileView({ user, navigate, onLogout }: ProfileViewProps) {
 }
 
 function MenuRow({
-  icon, label, color, bg, onClick,
+  icon, label, sub, color, bg, onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  sub?: string;
   color: string;
   bg: string;
   onClick?: () => void;
@@ -212,7 +230,10 @@ function MenuRow({
         }}>
           {icon}
         </div>
-        <span style={{ fontSize: '15px', color: '#374151', fontWeight: 500 }}>{label}</span>
+        <div>
+          <span style={{ fontSize: '15px', color: '#374151', fontWeight: 500, display: 'block' }}>{label}</span>
+          {sub && <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{sub}</span>}
+        </div>
       </div>
       <ChevronRight size={16} color="#D1D5DB" />
     </button>

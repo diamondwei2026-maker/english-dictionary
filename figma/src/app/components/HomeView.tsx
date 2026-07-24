@@ -140,7 +140,6 @@ export function HomeView({ navigate }: HomeViewProps) {
               onClick={() => navigate({ name: 'wordDetail', wordId: todayWord.id })}
               style={{
                 width: '100%',
-                boxSizing: 'border-box',
                 background: 'linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #3B82F6 100%)',
                 borderRadius: '24px',
                 padding: '28px 24px',

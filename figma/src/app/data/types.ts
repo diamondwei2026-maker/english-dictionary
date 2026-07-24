@@ -44,6 +44,14 @@ export interface AuthUser {
   role: 'admin' | 'user';
 }
 
+export interface Note {
+  id: string;
+  wordId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+}
+
 export type ViewState =
   | { name: 'home' }
   | { name: 'wordDetail'; wordId: string }
@@ -53,6 +61,7 @@ export type ViewState =
   | { name: 'login' }
   | { name: 'register' }
   | { name: 'admin'; tab: AdminTab }
-  | { name: 'adminWordEdit'; wordId?: string; libraryId?: string };
+  | { name: 'adminWordEdit'; wordId?: string; libraryId?: string }
+  | { name: 'notes' };
 
 export type AdminTab = 'overview' | 'libraries' | 'words' | 'users';
