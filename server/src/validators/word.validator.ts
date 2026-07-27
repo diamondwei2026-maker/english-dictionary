@@ -18,8 +18,8 @@ export interface CreateWordInput {
   coreMeaning: string;
   coreExampleEn: string;
   coreExampleZh: string;
-  physicalImageType: string;
-  physicalImageDescription: string;
+  physicalImageType?: string;
+  physicalImageDescription?: string;
   coreImageSvg?: string;
   extendedMeanings?: ExtendedMeaningInput[];
   collocations?: string[];
@@ -226,35 +226,39 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     );
   }
 
-  // physicalImageType
-  if (!physicalImageType) {
-    collect(errs, "physicalImageType", "物理意象类型为必填项");
-  } else if (typeof physicalImageType !== "string") {
-    collect(errs, "physicalImageType", "物理意象类型格式不正确");
-  } else if (
-    !(PHYSICAL_IMAGE_TYPES as readonly string[]).includes(physicalImageType)
-  ) {
-    collect(
-      errs,
-      "physicalImageType",
-      `物理意象类型必须为以下之一：${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}`
-    );
+  // physicalImageType（可选 — 无物理意象的词可以为空）
+  if (physicalImageType !== undefined && physicalImageType !== null && physicalImageType !== "") {
+    if (typeof physicalImageType !== "string") {
+      collect(errs, "physicalImageType", "物理意象类型格式不正确");
+    } else if (
+      !(PHYSICAL_IMAGE_TYPES as readonly string[]).includes(physicalImageType)
+    ) {
+      collect(
+        errs,
+        "physicalImageType",
+        `物理意象类型必须为以下之一：${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}`
+      );
+    }
   }
 
-  // physicalImageDescription
-  if (!physicalImageDescription) {
-    collect(errs, "physicalImageDescription", "物理意象描述为必填项");
-  } else if (typeof physicalImageDescription !== "string") {
-    collect(errs, "physicalImageDescription", "物理意象描述格式不正确");
-  } else if (
-    physicalImageDescription.length < 1 ||
-    physicalImageDescription.length > 500
+  // physicalImageDescription（可选 — 无物理意象的词可以为空）
+  if (
+    physicalImageDescription !== undefined &&
+    physicalImageDescription !== null &&
+    physicalImageDescription !== ""
   ) {
-    collect(
-      errs,
-      "physicalImageDescription",
-      "物理意象描述长度需在1-500字符之间"
-    );
+    if (typeof physicalImageDescription !== "string") {
+      collect(errs, "physicalImageDescription", "物理意象描述格式不正确");
+    } else if (
+      physicalImageDescription.length < 1 ||
+      physicalImageDescription.length > 500
+    ) {
+      collect(
+        errs,
+        "physicalImageDescription",
+        "物理意象描述长度需在1-500字符之间"
+      );
+    }
   }
 
   // extendedMeanings (optional)
@@ -414,17 +418,18 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     }
   }
 
-  // physicalImageType (optional)
+  // physicalImageType (optional — 可置空)
   if (physicalImageType !== undefined && physicalImageType !== null) {
     if (typeof physicalImageType !== "string") {
       collect(errs, "physicalImageType", "物理意象类型格式不正确");
     } else if (
+      physicalImageType !== "" &&
       !(PHYSICAL_IMAGE_TYPES as readonly string[]).includes(physicalImageType)
     ) {
       collect(
         errs,
         "physicalImageType",
-        `物理意象类型必须为以下之一：${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}`
+        `物理意象类型必须为以下之一：${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}，或为空字符串`
       );
     }
   }
@@ -437,8 +442,9 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     if (typeof physicalImageDescription !== "string") {
       collect(errs, "physicalImageDescription", "物理意象描述格式不正确");
     } else if (
-      physicalImageDescription.length < 1 ||
-      physicalImageDescription.length > 500
+      physicalImageDescription !== "" &&
+      (physicalImageDescription.length < 1 ||
+      physicalImageDescription.length > 500)
     ) {
       collect(
         errs,

@@ -117,8 +117,8 @@
           </view>
         </view>
 
-        <!-- Physical image -->
-        <view class="admin-words__section">
+        <!-- Physical image — 仅当有物理意象类型或自定义 SVG 时显示 -->
+        <view v-if="form.coreImageType || form.coreImageSvg" class="admin-words__section">
           <SectionLabel>核心义图（物理意象）</SectionLabel>
           <view class="admin-words__card">
             <view class="admin-words__image-preview">

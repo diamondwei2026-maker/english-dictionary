@@ -19,8 +19,8 @@
         <text class="word-detail-page__phonetic">{{ word.phonetic }}</text>
       </view>
 
-      <!-- Physical image -->
-      <view class="word-detail-page__section">
+      <!-- Physical image — 仅当有物理意象类型或自定义 SVG 时显示 -->
+      <view v-if="word.coreImageType || word.coreImageSvg" class="word-detail-page__section">
         <SectionLabel>物理意象</SectionLabel>
         <view class="word-detail-page__image-wrap">
           <PhysicalImage :type="word.coreImageType" :svg-content="word.coreImageSvg" />

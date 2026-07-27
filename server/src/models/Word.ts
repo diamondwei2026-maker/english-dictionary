@@ -13,7 +13,7 @@ const PHYSICAL_IMAGE_TYPES = [
   "yield",
 ] as const;
 
-type PhysicalImageType = (typeof PHYSICAL_IMAGE_TYPES)[number];
+type PhysicalImageType = (typeof PHYSICAL_IMAGE_TYPES)[number] | "";
 
 const PART_OF_SPEECH_TYPES = [
   "noun",
@@ -90,10 +90,10 @@ const WordSchema = new Schema<IWord>(
     coreExampleZh: { type: String, required: true },
     physicalImageType: {
       type: String,
-      required: true,
-      enum: PHYSICAL_IMAGE_TYPES,
+      default: "",
+      enum: { values: [...PHYSICAL_IMAGE_TYPES, ""], message: "无效的物理意象类型" },
     },
-    physicalImageDescription: { type: String, required: true },
+    physicalImageDescription: { type: String, default: "" },
     coreImageSvg: { type: String, default: "" },
     extendedMeanings: [ExtendedMeaningSchema],
     collocations: [{ type: String }],

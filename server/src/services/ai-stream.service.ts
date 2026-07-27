@@ -118,16 +118,16 @@ export async function* generateWordStream(
     }
   }
 
-  // === 5. Phase 2: V4 Flash 生成核心义 SVG ===
+  // === 5. Phase 2: V4 Flash 生成核心义 SVG（仅当有物理意象描述时） ===
   let coreImageSvg = "";
-  if (llmEntry && provider.regenerateImage) {
-    try {
-      coreImageSvg = await provider.regenerateImage(
-        wordName.trim(),
-        String(llmEntry.physical_image_description),
-      );
-    } catch (err) {
-      console.warn(`[AI Stream] SVG generation failed for "${wordName.trim()}", continuing without SVG:`, err);
+  if (llmEntry) {
+    const imageDesc = String(llmEntry.physical_image_description ?? "");
+    if (imageDesc !== "" && provider.regenerateImage) {
+      try {
+        coreImageSvg = await provider.regenerateImage(wordName.trim(), imageDesc);
+      } catch (err) {
+        console.warn(`[AI Stream] SVG generation failed for "${wordName.trim()}", continuing without SVG:`, err);
+      }
     }
   }
 

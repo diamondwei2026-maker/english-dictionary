@@ -338,8 +338,6 @@ function parseLLMResponse(content: string): LLMWordEntry {
 
   // 校验必要字段
   const requiredFields = [
-    "physical_image",
-    "physical_image_description",
     "core_meaning",
     "core_example_en",
     "core_example_zh",
@@ -388,8 +386,8 @@ function parseLLMResponse(content: string): LLMWordEntry {
   }
 
   return {
-    physical_image: String(obj.physical_image),
-    physical_image_description: String(obj.physical_image_description),
+    physical_image: typeof obj.physical_image === "string" ? obj.physical_image : "",
+    physical_image_description: typeof obj.physical_image_description === "string" ? obj.physical_image_description : "",
     core_meaning: String(obj.core_meaning),
     core_example_en: String(obj.core_example_en),
     core_example_zh: String(obj.core_example_zh),
@@ -479,7 +477,12 @@ Return a JSON object with the following structure:
 
 ## Guidelines
 
-1. **physical_image**: Choose ONE from the 8 types based on the word's most fundamental physical/spatial experience:
+0. **Decide whether the word has a physical/spatial image schema at all**:
+   - If the word's core meaning is rooted in bodily experience (action, perception, motion, force, contact with objects), choose one of the 8 types below. Provide a meaningful physical_image_description in Chinese (1-2 sentences).
+   - If the word is purely functional, relational, or abstract with NO bodily-spatial grounding — prepositions that express correspondence rather than force (e.g., "for", "of"), conjunctions (e.g., "if", "because", "although"), articles, pure function words — set physical_image to "" (empty string) and physical_image_description to "" (empty string).
+   - **CRITICAL**: An empty string IS the correct answer for function words. DO NOT invent a physical metaphor where none exists. Forcing a false image (e.g., classifying "for" as DRIVE) produces actively misleading pedagogy.
+
+1. **physical_image**: Choose ONE from the 8 types based on the word's most fundamental physical/spatial experience (skip this step if the word has no physical image — see rule 0):
    - FLOW: movement, change, passage (e.g., "run", "go", "time")
    - GRASP: holding, understanding, seizing (e.g., "get", "catch", "take")
    - BREAK: division, interruption, separation (e.g., "cut", "split", "part")
@@ -489,7 +492,7 @@ Return a JSON object with the following structure:
    - LEVERAGE: using, applying, utilizing (e.g., "use", "apply", "tool")
    - YIELD: giving, producing, resulting (e.g., "give", "produce", "offer")
 
-2. **core_meaning**: The primary physical/spatial meaning, NOT the most common abstract usage.
+2. **core_meaning**: For words with a physical image, describe the primary physical/spatial meaning — NOT the most common abstract usage. For function words without a physical image, describe the word's core relational/functional logic in Chinese (e.g., "for" = "以某事物为目标，建立朝向它的对应关联关系").
 
 3. **extended_meanings**: Provide at least 3, ordered from most concrete to most abstract. Each must include an "evolution_description" explaining the cognitive mapping (e.g., "FROM physically grasping an object → TO mentally grasping an idea").
 

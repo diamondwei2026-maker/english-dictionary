@@ -544,7 +544,7 @@ const options: swaggerJsdoc.Options = {
               "application/json": {
                 schema: {
                   type: "object",
-                  required: ["word", "wordbankId", "coreMeaning", "coreExampleEn", "coreExampleZh", "physicalImageType", "physicalImageDescription"],
+                  required: ["word", "wordbankId", "coreMeaning", "coreExampleEn", "coreExampleZh"],
                   properties: {
                     word: { type: "string", example: "grasp" },
                     wordbankId: { type: "string", example: "64a1b2c3d4e5f6a7b8c9d0e1" },

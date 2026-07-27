@@ -14,11 +14,12 @@ function ensureValidId(id: string): void {
 
 /**
  * 检查数据库中单词是否已有完整词条内容
+ * 注意：physicalImageType / physicalImageDescription 为可选字段，
+ * 功能词可以没有物理意象，此时 coreMeaning + extendedMeanings 即视为完整。
  */
 function hasCompleteEntry(word: IWord): boolean {
   return (
     !!word.coreMeaning &&
-    !!word.physicalImageDescription &&
     word.extendedMeanings.length > 0
   );
 }
@@ -31,16 +32,20 @@ export function mapLLMEntryToWordData(
   wordbankId: string,
   llmEntry: LLMWordEntry
 ): Record<string, unknown> {
-  // 物理意象类型 — 转小写后校验
-  const physicalImageType = llmEntry.physical_image.toLowerCase();
-  if (
-    !(PHYSICAL_IMAGE_TYPES as readonly string[]).includes(physicalImageType)
-  ) {
-    throw new AppError(
-      502,
-      "LLM_PARSE_ERROR",
-      `AI 返回的物理意象类型 "${llmEntry.physical_image}" 不在有效枚举中。有效值: ${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}`
-    );
+  // 物理意象类型 — 转小写后校验（空字符串表示无物理意象）
+  const rawType = llmEntry.physical_image?.toLowerCase?.() ?? "";
+  let physicalImageType = "";
+  if (rawType !== "") {
+    if (
+      !(PHYSICAL_IMAGE_TYPES as readonly string[]).includes(rawType)
+    ) {
+      throw new AppError(
+        502,
+        "LLM_PARSE_ERROR",
+        `AI 返回的物理意象类型 "${llmEntry.physical_image}" 不在有效枚举中。有效值: ${(PHYSICAL_IMAGE_TYPES as readonly string[]).join(", ")}`
+      );
+    }
+    physicalImageType = rawType;
   }
 
   // 映射引申义数组
@@ -120,14 +125,12 @@ export async function generateWord(
   const provider = createLLMProvider("deepseek");
   const llmEntry = await provider.generateWordEntry(wordName);
 
-  // 5. Phase 2: V4 Flash 生成核心义 SVG
+  // 5. Phase 2: V4 Flash 生成核心义 SVG（仅当有物理意象描述时）
   let coreImageSvg = "";
-  if (provider.regenerateImage) {
+  const imageDesc = String(llmEntry.physical_image_description ?? "");
+  if (imageDesc !== "" && provider.regenerateImage) {
     try {
-      coreImageSvg = await provider.regenerateImage(
-        wordName,
-        String(llmEntry.physical_image_description),
-      );
+      coreImageSvg = await provider.regenerateImage(wordName, imageDesc);
     } catch (err) {
       console.warn(`[AI] SVG generation failed for "${wordName}", continuing without SVG:`, err);
     }
