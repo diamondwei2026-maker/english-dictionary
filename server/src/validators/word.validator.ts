@@ -20,6 +20,7 @@ export interface CreateWordInput {
   coreExampleZh: string;
   physicalImageType: string;
   physicalImageDescription: string;
+  coreImageSvg?: string;
   extendedMeanings?: ExtendedMeaningInput[];
   collocations?: string[];
 }
@@ -32,6 +33,7 @@ export interface UpdateWordInput {
   coreExampleZh?: string;
   physicalImageType?: string;
   physicalImageDescription?: string;
+  coreImageSvg?: string;
   extendedMeanings?: ExtendedMeaningInput[];
   collocations?: string[];
 }
@@ -157,6 +159,7 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     coreExampleZh,
     physicalImageType,
     physicalImageDescription,
+    coreImageSvg,
     extendedMeanings,
     collocations,
   } = body as Record<string, unknown>;
@@ -313,6 +316,7 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     coreExampleZh: coreExampleZh as string,
     physicalImageType: physicalImageType as string,
     physicalImageDescription: physicalImageDescription as string,
+    coreImageSvg: coreImageSvg as string | undefined,
     extendedMeanings: parsedExtendedMeanings,
     collocations: collocations as string[] | undefined,
   };
@@ -335,6 +339,7 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     coreExampleZh,
     physicalImageType,
     physicalImageDescription,
+    coreImageSvg,
     extendedMeanings,
     collocations,
   } = body as Record<string, unknown>;
@@ -348,6 +353,7 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     coreExampleZh,
     physicalImageType,
     physicalImageDescription,
+    coreImageSvg,
     extendedMeanings,
     collocations,
   ].some((v) => v !== undefined);
@@ -510,6 +516,8 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     physicalImageDescription !== null
   )
     result.physicalImageDescription = physicalImageDescription as string;
+  if (coreImageSvg !== undefined && coreImageSvg !== null)
+    result.coreImageSvg = coreImageSvg as string;
   if (
     extendedMeanings !== undefined &&
     extendedMeanings !== null &&

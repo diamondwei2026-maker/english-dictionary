@@ -10,6 +10,7 @@ export interface LLMWordEntry {
   core_meaning: string;
   core_example_en: string;
   core_example_zh: string;
+  core_image_svg?: string;
   extended_meanings: Array<{
     evolution_description: string;
     meaning: string;
@@ -49,6 +50,8 @@ export interface LLMProvider {
   generateWordEntry(wordName: string): Promise<LLMWordEntry>;
   /** 流式生成（可选 — 仅 supportsStreaming=true 的 Provider 实现） */
   generateWordEntryStream?(wordName: string): AsyncGenerator<SSEChunk>;
+  /** 仅再生核心义 SVG 图片（可选） */
+  regenerateImage?(wordName: string, physicalImageDescription: string): Promise<string>;
 }
 
 /**

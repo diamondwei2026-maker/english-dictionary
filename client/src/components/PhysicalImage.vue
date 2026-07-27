@@ -2,7 +2,10 @@
   <!-- Ported from figma-prototype PhysicalImage.tsx — 8 physics concept SVG illustrations -->
   <!-- H5: inline SVG preserved; Mini Program: PNG fallback via <image> -->
   <view class="physical-image">
+    <!-- Custom AI-generated SVG: rendered on H5, fallback to static on Mini Program -->
     <!-- #ifdef H5 -->
+    <view v-if="svgContent" class="physical-image__svg" v-html="svgContent" />
+    <template v-else>
     <view v-if="type === 'flow'" class="physical-image__svg">
       <svg viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
         <rect width="400" height="220" rx="20" fill="#EFF6FF" />
@@ -186,6 +189,7 @@
         <text x="200" y="200" font-family="Inter,sans-serif" font-size="11" fill="#94A3B8" text-anchor="middle" letter-spacing="1">物理意象</text>
       </svg>
     </view>
+    </template>
     <!-- #endif -->
     <!-- #ifndef H5 -->
     <image
@@ -200,6 +204,7 @@
 <script setup lang="ts">
 defineProps<{
   type: string;
+  svgContent?: string;
 }>();
 </script>
 
@@ -213,6 +218,11 @@ defineProps<{
   &__svg {
     width: 100%;
     aspect-ratio: 400 / 220;
+
+    :deep(svg) {
+      width: 100%;
+      height: 100%;
+    }
   }
 
   &__fallback {

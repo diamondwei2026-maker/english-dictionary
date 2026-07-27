@@ -41,6 +41,7 @@ export interface CreateWordInput {
   coreExampleZh: string;
   physicalImageType: string;
   physicalImageDescription: string;
+  coreImageSvg?: string;
   extendedMeanings: Array<{
     evolutionDescription: string;
     meaning: string;

@@ -8,7 +8,7 @@ import type { Word, WordLibrary, ExtendedMeaning, User } from "../data/types";
 // ---- 后端原始类型（仅在适配器中使用） ----
 
 interface BackendExtendedMeaning {
-  _id: string;
+  _id?: string;
   evolutionDescription: string;
   meaning: string;
   partOfSpeech: string;
@@ -17,7 +17,7 @@ interface BackendExtendedMeaning {
 }
 
 interface BackendWord {
-  _id: string;
+  _id?: string;
   word: string;
   wordbankId: string;
   phonetic?: string;
@@ -26,6 +26,7 @@ interface BackendWord {
   coreExampleZh: string;
   physicalImageType: string;
   physicalImageDescription: string;
+  coreImageSvg?: string;
   extendedMeanings: BackendExtendedMeaning[];
   collocations: string[];
   createdAt?: string;
@@ -99,7 +100,7 @@ export function mapPosToBackend(frontPos: string): string {
 
 function adaptExtendedMeaning(be: BackendExtendedMeaning): ExtendedMeaning {
   return {
-    id: String(be._id),
+    id: be._id ? String(be._id) : "",
     logicalEvolution: be.evolutionDescription,
     meaning: be.meaning,
     partOfSpeech: mapPosToFront(be.partOfSpeech),
@@ -110,12 +111,13 @@ function adaptExtendedMeaning(be: BackendExtendedMeaning): ExtendedMeaning {
 
 export function adaptWord(be: BackendWord): Word {
   return {
-    id: String(be._id),
+    id: be._id ? String(be._id) : "",
     libraryId: String(be.wordbankId),
     word: be.word,
     phonetic: be.phonetic || "",
     coreMeaning: be.coreMeaning,
     coreImageType: be.physicalImageType,
+    coreImageSvg: be.coreImageSvg || "",
     coreImageDescription: be.physicalImageDescription || "",
     coreExampleSentence: be.coreExampleEn,
     coreExampleTranslation: be.coreExampleZh,

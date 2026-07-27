@@ -15,10 +15,12 @@ export class DeepSeekProvider implements LLMProvider {
   readonly supportsStreaming = true;
 
   private readonly apiKey: string;
+  private readonly proApiKey: string;
   private readonly baseUrl: string;
 
   constructor() {
     this.apiKey = config.deepseekApiKey;
+    this.proApiKey = config.deepseekProApiKey;
     this.baseUrl = config.deepseekBaseUrl;
 
     if (!this.apiKey) {
@@ -38,11 +40,11 @@ export class DeepSeekProvider implements LLMProvider {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
+          "Authorization": `Bearer ${this.proApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: "deepseek-v4-pro",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             {
@@ -123,11 +125,11 @@ export class DeepSeekProvider implements LLMProvider {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: "deepseek-v4-flash",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             {
@@ -212,6 +214,100 @@ export class DeepSeekProvider implements LLMProvider {
           data: { code: "LLM_SERVICE_ERROR", message: "AI 服务暂时不可用，请稍后重试" },
         };
       }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * 仅再生核心义 SVG 图片 — 使用 V4 Flash 保证低延迟。
+   *
+   * @param wordName 单词名（用于提示上下文）
+   * @param physicalImageDescription 物理意象中文描述
+   * @returns 安全清洗后的 SVG 字符串
+   */
+  async regenerateImage(
+    wordName: string,
+    physicalImageDescription: string
+  ): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "deepseek-v4-flash",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT_SVG_ONLY },
+            {
+              role: "user",
+              content: [
+                `Word: "${wordName}"`,
+                `Physical image description: ${physicalImageDescription}`,
+                "",
+                "Generate an SVG diagram that illustrates this word's physical image.",
+              ].join("\n"),
+            },
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        console.error(
+          `[DeepSeek V4 Pro] SVG API returned ${response.status}: ${await response.text().catch(() => "<unreadable>")}`
+        );
+        throw new AppError(
+          502,
+          "LLM_SERVICE_ERROR",
+          "AI 图片服务暂时不可用，请稍后重试"
+        );
+      }
+
+      const body = (await response.json()) as {
+        choices: Array<{ message: { content: string } }>;
+      };
+
+      const content = body?.choices?.[0]?.message?.content;
+      if (!content) {
+        throw new AppError(502, "LLM_PARSE_ERROR", "AI 返回内容为空，请重试");
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        console.error("[DeepSeek V4 Pro] Failed to parse SVG JSON:", content.slice(0, 500));
+        throw new AppError(502, "LLM_PARSE_ERROR", "AI 返回格式异常，请重试");
+      }
+
+      const obj = parsed as Record<string, unknown>;
+      const rawSvg = obj?.core_image_svg;
+      if (!rawSvg || typeof rawSvg !== "string") {
+        throw new AppError(502, "LLM_PARSE_ERROR", "AI 未返回有效的 SVG 图片");
+      }
+
+      const svg = sanitizeSvg(rawSvg);
+      if (!svg) {
+        throw new AppError(502, "LLM_PARSE_ERROR", "AI 返回的 SVG 图片无效");
+      }
+
+      console.log(`[DeepSeek V4 Pro] Generated SVG for "${wordName}" (${svg.length} chars)`);
+      return svg;
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new AppError(504, "LLM_TIMEOUT", "AI 图片服务响应超时，请稍后重试");
+      }
+      console.error("[DeepSeek V4 Pro] Unexpected error:", err);
+      throw new AppError(502, "LLM_SERVICE_ERROR", "AI 图片服务暂时不可用，请稍后重试");
     } finally {
       clearTimeout(timeoutId);
     }
@@ -301,6 +397,56 @@ function parseLLMResponse(content: string): LLMWordEntry {
     collocations: obj.collocations as string[],
   };
 }
+
+/**
+ * SVG 安全清洗 — 移除潜在 XSS 风险标签/属性
+ */
+function sanitizeSvg(raw: string): string {
+  let result = raw.trim();
+
+  // 移除 markdown 代码围栏（如果 LLM 不小心包了）
+  result = result.replace(/^```(?:svg|html|xml)?\s*/i, "").replace(/\s*```$/i, "");
+
+  // 移除 <script>...</script>
+  result = result.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "");
+  // 移除 on* 事件属性
+  result = result.replace(/\s+on\w+\s*=\s*"[^"]*"/gi, "");
+  result = result.replace(/\s+on\w+\s*=\s*'[^']*'/gi, "");
+  // 移除 <foreignObject>...</foreignObject>
+  result = result.replace(/<foreignObject\b[^>]*>[\s\S]*?<\/foreignObject\s*>/gi, "");
+
+  // 校验结果包含有效 SVG 标签
+  if (!/<svg\b/i.test(result)) {
+    console.warn("[DeepSeek] SVG sanitization failed — no valid <svg> tag found");
+    return "";
+  }
+
+  return result;
+}
+
+/**
+ * SVG 专用再生 System Prompt — 精简版，仅生成 SVG 图片
+ */
+const SYSTEM_PROMPT_SVG_ONLY = `You are an educational diagram designer for a cognitive linguistics English dictionary app for Chinese native speakers.
+
+Given a word and its physical image description, generate a clean SVG illustration.
+
+## Output Format
+
+Return ONLY a JSON object:
+{ "core_image_svg": "<svg>...</svg>" }
+
+## SVG Requirements
+
+- viewBox="0 0 400 220"
+- Background rect with rx="16" rounded corners, light pastel fill
+- 2-4 muted, harmonious colors — no neon, no high saturation
+- Clean geometric shapes and simple line art — diagram-like (educational), NOT artistic illustration
+- 1-2 Chinese labels in 10-11px sans-serif font
+- Clear, uncluttered design suitable for a language learning app
+- The SVG must visually represent the given physical image description
+
+IMPORTANT: Return ONLY valid JSON. The SVG must be valid XML. No markdown fences around the SVG.`;
 
 /**
  * 认知语言学词条生成 System Prompt

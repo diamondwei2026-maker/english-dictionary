@@ -17,12 +17,12 @@ export const generate = asyncHandler(
     const input = validateGenerateWordInput(req.body);
     const force = req.query.force === "true";
 
-    const word = await aiService.generateWord(input.wordName, input.wordbankId, {
+    const wordData = await aiService.generateWord(input.wordName, input.wordbankId, {
       force,
     });
 
-    // force=true 时为更新操作返回 200，新建返回 201
-    res.status(force ? 200 : 201).json(word);
+    // 不持久化，始终返回 200
+    res.status(200).json(wordData);
   }
 );
 
@@ -95,5 +95,31 @@ export const generateStream = asyncHandler(
         res.end();
       }
     }
+  }
+);
+
+/**
+ * POST /api/v1/words/regenerate-image
+ *
+ * AI 核心义图 SVG 再生 — 仅管理员可调用。
+ * 仅根据物理意象描述重新生成 SVG 图片，不重新分析词条。
+ */
+export const regenerateImage = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const { wordName, physicalImageDescription } = req.body as Record<string, unknown>;
+
+    if (!wordName || typeof wordName !== "string" || wordName.trim().length === 0) {
+      throw new AppError(400, "VALIDATION_ERROR", "单词名不能为空");
+    }
+    if (!physicalImageDescription || typeof physicalImageDescription !== "string") {
+      throw new AppError(400, "VALIDATION_ERROR", "物理意象描述不能为空");
+    }
+
+    const result = await aiService.regenerateImage(
+      wordName.trim(),
+      physicalImageDescription,
+    );
+
+    res.status(200).json(result);
   }
 );

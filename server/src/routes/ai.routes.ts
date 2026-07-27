@@ -25,4 +25,13 @@ router.post(
   aiController.generateStream,
 );
 
+// AI 核心义图 SVG 再生 — 仅管理员
+router.post(
+  "/words/regenerate-image",
+  authMiddleware,
+  adminMiddleware,
+  aiLimiter,
+  aiController.regenerateImage,
+);
+
 export const aiRoutes: RouterType = router;

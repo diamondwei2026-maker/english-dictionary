@@ -16,6 +16,7 @@ export interface Word {
   phonetic: string;
   coreMeaning: string;
   coreImageType: string;
+  coreImageSvg?: string;
   coreImageDescription: string;
   coreExampleSentence: string;
   coreExampleTranslation: string;

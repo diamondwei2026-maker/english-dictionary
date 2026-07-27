@@ -118,31 +118,28 @@ export async function* generateWordStream(
     }
   }
 
-  // === 5. 持久化 + 发送 done（持久化后的文档格式与客户端 adaptWord 兼容） ===
-  if (llmEntry) {
+  // === 5. Phase 2: V4 Flash 生成核心义 SVG ===
+  let coreImageSvg = "";
+  if (llmEntry && provider.regenerateImage) {
     try {
-      const wordData = mapLLMEntryToWordData(
+      coreImageSvg = await provider.regenerateImage(
         wordName.trim(),
-        wordbankId,
-        llmEntry
+        String(llmEntry.physical_image_description),
       );
-      const word = await Word.findOneAndUpdate(
-        { wordbankId, word: wordName.trim() },
-        { $set: wordData },
-        { new: true, upsert: true, runValidators: true }
-      );
-      console.log(`[AI Stream] Persisted generated word "${wordName.trim()}"`);
-      // 发送持久化后的文档（camelCase），而非原始 LLMWordEntry（snake_case）
-      yield { event: "done", data: word };
     } catch (err) {
-      console.error(
-        `[AI Stream] Failed to persist generated word "${wordName.trim()}":`,
-        err
-      );
-      yield {
-        event: "error",
-        data: { code: "INTERNAL_ERROR", message: "AI 生成成功但保存失败，请重试" },
-      };
+      console.warn(`[AI Stream] SVG generation failed for "${wordName.trim()}", continuing without SVG:`, err);
     }
+  }
+
+  // === 6. 映射 LLM 结果并通过 done 事件发送（不持久化，由用户确认后手动保存） ===
+  if (llmEntry) {
+    const wordData = mapLLMEntryToWordData(
+      wordName.trim(),
+      wordbankId,
+      llmEntry
+    );
+    wordData.coreImageSvg = coreImageSvg;
+    console.log(`[AI Stream] Generated word "${wordName.trim()}" (not persisted)`);
+    yield { event: "done", data: wordData };
   }
 }

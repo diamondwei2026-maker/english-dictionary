@@ -29,6 +29,8 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   deepseekApiKey: process.env.DEEPSEEK_API_KEY || "",
+  deepseekProApiKey:
+    process.env.DEEPSEEK_PRO_API_KEY || process.env.DEEPSEEK_API_KEY || "",
   deepseekBaseUrl:
     process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com/v1",
 

@@ -8,7 +8,7 @@ import { adaptWord } from "./adapters";
 import type { Word } from "../data/types";
 
 interface BackendWordResponse {
-  _id: string;
+  _id?: string;
   word: string;
   wordbankId: string;
   phonetic?: string;
@@ -50,6 +50,29 @@ export async function generateWord(
   });
 
   return adaptWord(res);
+}
+
+// ============================================================
+// 核心义图 SVG 再生
+// ============================================================
+
+interface RegenerateImageResponse {
+  coreImageSvg: string;
+}
+
+/**
+ * AI 核心义图 SVG 再生 — 仅根据物理意象描述重新生成 SVG。
+ * POST /api/v1/words/regenerate-image
+ */
+export async function regenerateImage(
+  wordName: string,
+  physicalImageDescription: string
+): Promise<RegenerateImageResponse> {
+  const res = await request<RegenerateImageResponse>("/api/v1/words/regenerate-image", {
+    method: "POST",
+    data: { wordName, physicalImageDescription },
+  });
+  return res;
 }
 
 // ============================================================

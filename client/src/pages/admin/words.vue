@@ -122,11 +122,19 @@
           <SectionLabel>核心义图（物理意象）</SectionLabel>
           <view class="admin-words__card">
             <view class="admin-words__image-preview">
-              <PhysicalImage :type="form.coreImageType" />
+              <PhysicalImage :type="form.coreImageType" :svg-content="form.coreImageSvg" />
             </view>
-            <view class="admin-words__regen-btn" @click="handleRegenImg">
-              <text class="iconfont admin-words__regen-btn-icon">&#xe010;</text>
-              <text>重新生成</text>
+            <view
+              class="admin-words__regen-btn"
+              :class="{ 'admin-words__regen-btn--loading': regenImgLoading }"
+              @click="handleRegenImg"
+            >
+              <view v-if="regenImgLoading" class="admin-words__spinner" />
+              <image v-else
+                src="/static/images/refresh.png"
+                mode="scaleToFill"
+              />
+              <text>{{ regenImgLoading ? '正在重新生成...' : '重新生成' }}</text>
             </view>
           </view>
         </view>
@@ -297,10 +305,12 @@ import {
   updateWord,
   deleteWord,
   generateWord,
+  generateWordStream,
+  regenerateImage,
   mapPosToBackend,
 } from '@/api';
 import type { CreateWordInput } from '@/api';
-import { genId, IMAGE_TYPES, POS_OPTIONS } from '@/utils/helpers';
+import { genId, POS_OPTIONS } from '@/utils/helpers';
 import { useInputFocus } from '@/composables/useInputFocus';
 import PageHeader from '@/components/PageHeader.vue';
 import SectionLabel from '@/components/SectionLabel.vue';
@@ -375,6 +385,7 @@ interface EditForm {
   phonetic: string;
   coreMeaning: string;
   coreImageType: string;
+  coreImageSvg: string;
   coreImageDescription: string;
   coreExampleSentence: string;
   coreExampleTranslation: string;
@@ -389,6 +400,7 @@ const form = reactive<EditForm>({
   phonetic: '',
   coreMeaning: '',
   coreImageType: 'flow',
+  coreImageSvg: '',
   coreImageDescription: '',
   coreExampleSentence: '',
   coreExampleTranslation: '',
@@ -410,6 +422,7 @@ function resetForm() {
   form.phonetic = '';
   form.coreMeaning = '';
   form.coreImageType = 'flow';
+  form.coreImageSvg = '';
   form.coreImageDescription = '';
   form.coreExampleSentence = '';
   form.coreExampleTranslation = '';
@@ -435,6 +448,7 @@ function openEdit(w: Word) {
   form.phonetic = w.phonetic;
   form.coreMeaning = w.coreMeaning;
   form.coreImageType = w.coreImageType;
+  form.coreImageSvg = w.coreImageSvg || '';
   form.coreImageDescription = w.coreImageDescription || '';
   form.coreExampleSentence = w.coreExampleSentence;
   form.coreExampleTranslation = w.coreExampleTranslation;
@@ -459,30 +473,65 @@ async function handleAI() {
     uni.showToast({ title: '请先输入单词并选择词库', icon: 'none' });
     return;
   }
+  if (aiLoading.value) return;
   aiLoading.value = true;
   aiDone.value = false;
-  try {
-    const generated = await generateWord(form.word, form.libraryId);
-    form.phonetic = generated.phonetic;
-    form.coreMeaning = generated.coreMeaning;
-    form.coreImageType = generated.coreImageType;
-    form.coreImageDescription = generated.coreImageDescription;
-    form.coreExampleSentence = generated.coreExampleSentence;
-    form.coreExampleTranslation = generated.coreExampleTranslation;
-    form.extendedMeanings = generated.extendedMeanings;
-    form.collocations = generated.collocations;
-    colInput.value = generated.collocations.join('、');
+
+  const applyWord = (word: Word) => {
+    form.phonetic = word.phonetic;
+    form.coreMeaning = word.coreMeaning;
+    form.coreImageType = word.coreImageType;
+    form.coreImageSvg = word.coreImageSvg || '';
+    form.coreImageDescription = word.coreImageDescription;
+    form.coreExampleSentence = word.coreExampleSentence;
+    form.coreExampleTranslation = word.coreExampleTranslation;
+    form.extendedMeanings = word.extendedMeanings;
+    form.collocations = word.collocations;
+    colInput.value = word.collocations.join('、');
     aiDone.value = true;
-  } catch (err: any) {
-    uni.showToast({ title: err?.message || 'AI 生成失败', icon: 'none' });
+  };
+
+  try {
+    // 优先走 SSE 流式，避免 V4 Pro 非流式超时
+    await generateWordStream(form.word, form.libraryId, !!form.coreMeaning, {
+      onThinking(msg) {
+        // 仅改变按钮文案让用户感知进度
+        // aiLoading 已是 true，按钮已显示 spinner + "正在生成..."
+      },
+      onDone(word) {
+        applyWord(word);
+      },
+    });
+  } catch {
+    // SSE 失败（如小程序端不支持 ReadableStream），降级到非流式
+    try {
+      const generated = await generateWord(form.word, form.libraryId);
+      applyWord(generated);
+    } catch (err: any) {
+      uni.showToast({ title: err?.message || 'AI 生成失败', icon: 'none' });
+    }
   } finally {
     aiLoading.value = false;
   }
 }
 
-function handleRegenImg() {
-  const cur = form.coreImageType || 'flow';
-  form.coreImageType = IMAGE_TYPES[(IMAGE_TYPES.indexOf(cur) + 1) % IMAGE_TYPES.length];
+const regenImgLoading = ref(false);
+
+async function handleRegenImg() {
+  if (!form.word || !form.coreImageDescription) {
+    uni.showToast({ title: '请先生成词条内容', icon: 'none' });
+    return;
+  }
+  if (regenImgLoading.value) return;
+  regenImgLoading.value = true;
+  try {
+    const result = await regenerateImage(form.word, form.coreImageDescription);
+    form.coreImageSvg = result.coreImageSvg;
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '重新生成失败', icon: 'none' });
+  } finally {
+    regenImgLoading.value = false;
+  }
 }
 
 // ── Extended meanings ──
@@ -530,6 +579,7 @@ async function handleSave() {
     coreExampleZh: form.coreExampleTranslation,
     physicalImageType: form.coreImageType,
     physicalImageDescription: form.coreImageDescription,
+    coreImageSvg: form.coreImageSvg || undefined,
     extendedMeanings: form.extendedMeanings.map(ext => ({
       evolutionDescription: ext.logicalEvolution,
       meaning: ext.meaning,
@@ -733,7 +783,12 @@ function goBack() {
     font-size: 26rpx;
     font-weight: 500;
     box-sizing: border-box;
+    image{
+      width: 30rpx;
+      height:30rpx
+    }
 
+    &--loading { opacity: 0.6; pointer-events: none; }
     &-icon { font-size: 26rpx; }
   }
 

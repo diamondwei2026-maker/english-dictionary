@@ -49,6 +49,7 @@ export interface IWord extends Document {
   coreExampleZh: string;
   physicalImageType: PhysicalImageType;
   physicalImageDescription: string;
+  coreImageSvg?: string;
   extendedMeanings: IExtendedMeaning[];
   collocations: string[];
   createdAt: Date;
@@ -93,6 +94,7 @@ const WordSchema = new Schema<IWord>(
       enum: PHYSICAL_IMAGE_TYPES,
     },
     physicalImageDescription: { type: String, required: true },
+    coreImageSvg: { type: String, default: "" },
     extendedMeanings: [ExtendedMeaningSchema],
     collocations: [{ type: String }],
   },

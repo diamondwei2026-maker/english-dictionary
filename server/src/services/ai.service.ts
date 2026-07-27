@@ -91,7 +91,7 @@ export async function generateWord(
   wordName: string,
   wordbankId: string,
   options: { force: boolean }
-): Promise<IWord> {
+): Promise<Record<string, unknown>> {
   const { force } = options;
 
   // 1. 校验 wordbankId
@@ -115,23 +115,58 @@ export async function generateWord(
     }
   }
 
-  // 4. 调用 LLM
+  // 4. Phase 1: V4 Pro 词条分析（不含 SVG）
   const startedAt = Date.now();
   const provider = createLLMProvider("deepseek");
   const llmEntry = await provider.generateWordEntry(wordName);
 
-  // 5. 映射结果
-  const wordData = mapLLMEntryToWordData(wordName, wordbankId, llmEntry);
+  // 5. Phase 2: V4 Flash 生成核心义 SVG
+  let coreImageSvg = "";
+  if (provider.regenerateImage) {
+    try {
+      coreImageSvg = await provider.regenerateImage(
+        wordName,
+        String(llmEntry.physical_image_description),
+      );
+    } catch (err) {
+      console.warn(`[AI] SVG generation failed for "${wordName}", continuing without SVG:`, err);
+    }
+  }
 
-  // 6. 存储：使用 atomic upsert 避免 TOCTOU 竞态条件
-  const word = await Word.findOneAndUpdate(
-    { wordbankId, word: wordName },
-    { $set: wordData },
-    { new: true, upsert: true, runValidators: true }
-  );
+  // 6. 映射并合并结果（不持久化，由用户确认后手动保存）
+  const wordData = mapLLMEntryToWordData(wordName, wordbankId, llmEntry);
+  wordData.coreImageSvg = coreImageSvg;
 
   const elapsedMs = Date.now() - startedAt;
-  console.log(`[AI] Generated entry for "${wordName}" in ${elapsedMs}ms`);
+  console.log(`[AI] Generated entry for "${wordName}" in ${elapsedMs}ms (not persisted)`);
 
-  return word!;
+  return wordData;
+}
+
+/**
+ * 仅重新生成核心义 SVG 图片 — 使用 V4 Pro 获得更好的视觉质量。
+ *
+ * @param wordName 单词名
+ * @param physicalImageDescription 物理意象中文描述
+ */
+export async function regenerateImage(
+  wordName: string,
+  physicalImageDescription: string,
+): Promise<{ coreImageSvg: string }> {
+  const provider = createLLMProvider("deepseek");
+
+  if (!provider.regenerateImage) {
+    throw new AppError(
+      501,
+      "NOT_IMPLEMENTED",
+      "当前 LLM Provider 不支持图片再生功能"
+    );
+  }
+
+  const startedAt = Date.now();
+  const svg = await provider.regenerateImage(wordName, physicalImageDescription);
+  const elapsedMs = Date.now() - startedAt;
+  console.log(`[AI] Regenerated SVG for "${wordName}" in ${elapsedMs}ms`);
+
+  return { coreImageSvg: svg };
 }

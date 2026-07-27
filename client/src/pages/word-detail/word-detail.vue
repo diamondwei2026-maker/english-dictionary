@@ -23,7 +23,7 @@
       <view class="word-detail-page__section">
         <SectionLabel>物理意象</SectionLabel>
         <view class="word-detail-page__image-wrap">
-          <PhysicalImage :type="word.coreImageType" />
+          <PhysicalImage :type="word.coreImageType" :svg-content="word.coreImageSvg" />
         </view>
       </view>
 

@@ -40,7 +40,7 @@ export type { DailyWordResponse } from "./daily-word";
 export { fetchDashboard } from "./dashboard";
 export type { DashboardResponse } from "./dashboard";
 
-export { generateWord, generateWordStream } from "./ai";
+export { generateWord, generateWordStream, regenerateImage } from "./ai";
 export type { GenerateWordStreamCallbacks } from "./ai";
 
 export { fetchMyNotes, fetchNotesByWord, createNote, deleteNote } from "./notes";
