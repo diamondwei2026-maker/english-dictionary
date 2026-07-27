@@ -39,12 +39,13 @@ export const generateStream = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     // SSE 事件写入辅助
     const sendEvent = (chunk: SSEChunk): void => {
-      const lines = [
-        `event: ${chunk.event}`,
-        `data: ${JSON.stringify(chunk.data)}`,
-        "", // SSE 分隔空行
-      ];
-      res.write(lines.join("\n"));
+      // SSE 规范要求每个事件以 \n\n 结尾（data 行后跟一个空行）
+      // 构造: "event: xxx\ndata: {...}\n\n"
+      res.write(`event: ${chunk.event}\ndata: ${JSON.stringify(chunk.data)}\n\n`);
+      // 强制立即推送 — 禁用 Node.js 内部 HTTP 缓冲
+      if (typeof res.flush === "function") {
+        res.flush();
+      }
     };
 
     // 1. 校验输入（在设置 SSE headers 之前，校验失败仍返回普通 JSON 错误）

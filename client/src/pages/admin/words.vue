@@ -501,6 +501,10 @@ async function handleAI() {
       onDone(word) {
         applyWord(word);
       },
+      onError(code, message) {
+        // SSE 流内错误必须 throw 出去，触发外层 catch 降级到非流式接口
+        throw new Error(message || code || "SSE 流式生成失败");
+      },
     });
   } catch {
     // SSE 失败（如小程序端不支持 ReadableStream），降级到非流式

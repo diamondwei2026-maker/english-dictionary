@@ -2,7 +2,7 @@ import { config } from "../config/index.js";
 import { AppError } from "../utils/errors.js";
 import type { LLMProvider, LLMWordEntry, SSEChunk } from "./llm.js";
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 60_000;
 
 /**
  * DeepSeek Chat API Provider
