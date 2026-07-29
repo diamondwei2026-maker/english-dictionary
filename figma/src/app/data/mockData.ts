@@ -1,4 +1,4 @@
-import type { Word, WordLibrary, User } from './types';
+import type { Word, WordLibrary, User, Note } from './types';
 
 export const mockLibraries: WordLibrary[] = [
   {
@@ -352,6 +352,20 @@ export const mockUsers: User[] = [
   { id: 'u3', username: '王芳', phone: '13800000003', role: 'user', joinedAt: '2024-03-22', learnedWords: 89 },
   { id: 'u4', username: 'chen_jie', phone: '13800000004', role: 'user', joinedAt: '2024-04-01', learnedWords: 234 },
   { id: 'u5', username: '刘洋', phone: '13800000005', role: 'user', joinedAt: '2024-04-18', learnedWords: 67 },
+];
+
+export const mockNotes: Note[] = [
+  // flow (w1)
+  { id: 'n1', wordId: 'w1', userId: 'u3', authorName: '王芳', content: '把 flow 想象成一条河，水自然地往低处走，不需要外力。理解 "the conversation flowed" 就顺了——话题像水一样自己流动。', createdAt: '2024-05-02', likedBy: ['u2', 'u4', 'u5'] },
+  { id: 'n2', wordId: 'w1', userId: 'u2', authorName: 'Li Wei', content: 'cash flow 现金流：钱像水一样进进出出，不是一个静止的量。', createdAt: '2024-05-10', likedBy: ['u3'] },
+  { id: 'n3', wordId: 'w1', userId: 'u4', authorName: 'chen_jie', content: '"go with the flow" 顺其自然，别逆着水流游。', createdAt: '2024-05-15', likedBy: ['u2', 'u3', 'u5', 'u1'] },
+  // grasp (w2)
+  { id: 'n4', wordId: 'w2', userId: 'u2', authorName: 'Li Wei', content: '核心就是手用力抓住。抽象到 "grasp an idea" 就是牢牢抓住一个想法=理解。', createdAt: '2024-05-04', likedBy: ['u3', 'u4', 'u5'] },
+  { id: 'n5', wordId: 'w2', userId: 'u5', authorName: '刘洋', content: '和 catch 区别：grasp 强调抓住后握紧不放，力度更大。', createdAt: '2024-05-12', likedBy: ['u2'] },
+  { id: 'n6', wordId: 'w2', userId: 'u3', authorName: '王芳', content: 'beyond one\'s grasp 够不着——手伸出去也抓不到。', createdAt: '2024-05-18', likedBy: [] },
+  // break (w3)
+  { id: 'n7', wordId: 'w3', userId: 'u4', authorName: 'chen_jie', content: '想象一个完整的东西出现裂纹然后断开。break the silence 打破沉默，沉默像一个整体被震裂。', createdAt: '2024-05-06', likedBy: ['u2', 'u3', 'u5'] },
+  { id: 'n8', wordId: 'w3', userId: 'u5', authorName: '刘洋', content: 'coffee break 休息一下——把连续的工作"断开"一小段。', createdAt: '2024-05-14', likedBy: ['u4'] },
 ];
 
 export const AI_GENERATED_TEMPLATES: Record<string, Partial<Word>> = {

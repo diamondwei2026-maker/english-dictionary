@@ -47,22 +47,17 @@
 
       <!-- Admin: management entry -->
       <view v-if="isAdmin" class="profile-page__admin-entry">
-        <view class="profile-page__menu-item" @click="goAdmin">
-          <view class="profile-page__menu-item-left">
-            <view
-              class="profile-page__menu-item-icon profile-page__menu-item-icon--purple"
-            >
-              <text class="iconfont">&#xe00d;</text>
-            </view>
-            <view>
-              <text class="profile-page__menu-item-label">管理后台</text>
-              <text class="profile-page__menu-item-desc"
-                >词库、单词与用户管理</text
-              >
-            </view>
-          </view>
-          <view class="css-arrow profile-page__menu-item-chevron" />
-        </view>
+        <MenuRow
+          label="管理后台"
+          desc="词库、单词与用户管理"
+          color="#7C3AED"
+          bg="#FAF5FF"
+          @click="goAdmin"
+        >
+          <template #icon>
+            <text class="iconfont">&#xe00d;</text>
+          </template>
+        </MenuRow>
       </view>
 
       <!-- Regular user: learning stats -->
@@ -90,39 +85,40 @@
         </view>
       </view>
 
-      <!-- Notes entry — regular users only -->
+      <!-- Notes + Favorites entry — regular users only -->
       <view v-if="user && !isAdmin" class="profile-page__notes-entry">
-        <view class="profile-page__menu-item" @click="goNotes">
-          <view class="profile-page__menu-item-left">
-            <view
-              class="profile-page__menu-item-icon profile-page__menu-item-icon--blue"
-            >
-              <image src="\static\images\file-blue.png" mode="scaleToFill" />
-            </view>
-            <view>
-              <text class="profile-page__menu-item-label">我的笔记</text>
-              <text class="profile-page__menu-item-desc"
-                >{{ noteCount }} 条笔记</text
-              >
-            </view>
-          </view>
-          <view class="css-arrow profile-page__menu-item-chevron" />
-        </view>
+        <MenuRow
+          label="我的笔记"
+          :desc="`${noteCount} 条笔记`"
+          color="#2563EB"
+          bg="#EFF6FF"
+          @click="goNotes"
+        >
+          <template #icon>
+            <image src="/static/images/file-blue.png" mode="scaleToFill" class="profile-page__menu-icon-img" />
+          </template>
+        </MenuRow>
+        <view class="profile-page__menu-item-separator" />
+        <MenuRow
+          label="我的收藏"
+          :desc="`${favoriteCount} 个单词`"
+          color="#EA580C"
+          bg="#FFF7ED"
+          @click="goFavorites"
+        >
+          <template #icon>
+            <BookmarkIcon :size="16" stroke-color="#EA580C" />
+          </template>
+        </MenuRow>
       </view>
 
       <!-- Settings -->
       <view class="profile-page__settings">
-        <view class="profile-page__menu-item">
-          <view class="profile-page__menu-item-left">
-            <view
-              class="profile-page__menu-item-icon profile-page__menu-item-icon--gray"
-            >
-              <image src="/static/images/setting.png" mode="scaleToFill" />
-            </view>
-            <text class="profile-page__menu-item-label">设置</text>
-          </view>
-          <view class="css-arrow profile-page__menu-item-chevron" />
-        </view>
+        <MenuRow label="设置" color="#6B7280" bg="#F3F4F6">
+          <template #icon>
+            <image src="/static/images/setting.png" mode="scaleToFill" class="profile-page__menu-icon-img" />
+          </template>
+        </MenuRow>
       </view>
 
       <!-- Logout -->
@@ -137,8 +133,10 @@
 import { ref, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { userStore, logout } from "@/store/user";
-import { fetchUserStats, fetchMyNotes } from "@/api";
+import { fetchUserStats, fetchMyNotes, fetchFavorites } from "@/api";
 import PrimaryButton from "@/components/PrimaryButton.vue";
+import MenuRow from "@/components/MenuRow.vue";
+import BookmarkIcon from "@/components/icons/BookmarkIcon.vue";
 
 const user = computed(() => userStore.user);
 const isAdmin = computed(() => user.value?.role === "admin");
@@ -149,6 +147,7 @@ const stats = ref({
   todayLearnedCount: 0,
 });
 const noteCount = ref(0);
+const favoriteCount = ref(0);
 
 onShow(async () => {
   if (user.value && !isAdmin.value) {
@@ -164,6 +163,12 @@ onShow(async () => {
     try {
       const notes = await fetchMyNotes();
       noteCount.value = notes.length;
+    } catch {
+      // API 不可用时保留默认值
+    }
+    try {
+      const favResult = await fetchFavorites({ pageSize: 1 });
+      favoriteCount.value = favResult.pagination.total;
     } catch {
       // API 不可用时保留默认值
     }
@@ -184,6 +189,10 @@ function goAdmin() {
 
 function goNotes() {
   uni.navigateTo({ url: "/pages/notes/notes" });
+}
+
+function goFavorites() {
+  uni.navigateTo({ url: "/pages/favorites/favorites" });
 }
 
 function handleLogout() {
@@ -441,6 +450,16 @@ function handleLogout() {
         background: #f3f4f6;
         color: #6b7280;
       }
+      &--orange {
+        background: #fff7ed; /* Phase1(src): ProfileView.tsx:189 */
+        color: #ea580c; /* Phase1(src): ProfileView.tsx:188 */
+      }
+    }
+
+    &-separator {
+      height: 1px;
+      background: #f1f5f9; /* Phase1(src): ProfileView.tsx:183 */
+      margin-left: 128rpx; /* Phase1(src): ProfileView.tsx — 64px → 128rpx */
     }
 
     &-label {
@@ -476,6 +495,17 @@ function handleLogout() {
     overflow: hidden;
     margin-bottom: 28rpx;
     box-shadow: 0 4rpx 32rpx rgba(0, 0, 0, 0.04);
+  }
+
+  &__menu-icon-img {
+    width: 36rpx;
+    height: 36rpx;
+  }
+
+  &__menu-item-separator {
+    height: 1px;
+    background: #f1f5f9;
+    margin-left: 128rpx;
   }
 
   /* ── Logout ── */

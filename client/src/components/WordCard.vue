@@ -24,8 +24,9 @@
           libraryName
         }}</text>
       </view>
-      <!-- ArrowRight icon -->
+      <!-- ArrowRight icon (default variant) or custom actions slot (favorites) -->
       <view v-if="variant === 'default'" class="css-arrow word-card__arrow" />
+      <slot name="actions" />
     </view>
   </view>
 </template>

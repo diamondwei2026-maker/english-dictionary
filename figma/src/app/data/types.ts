@@ -48,8 +48,10 @@ export interface Note {
   id: string;
   wordId: string;
   userId: string;
+  authorName: string;
   content: string;
   createdAt: string;
+  likedBy: string[];
 }
 
 export type ViewState =
@@ -60,6 +62,7 @@ export type ViewState =
   | { name: 'profile' }
   | { name: 'login' }
   | { name: 'register' }
+  | { name: 'favorites' }
   | { name: 'admin'; tab: AdminTab }
   | { name: 'adminWordEdit'; wordId?: string; libraryId?: string }
   | { name: 'notes' };

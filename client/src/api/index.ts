@@ -43,7 +43,7 @@ export type { DashboardResponse } from "./dashboard";
 export { generateWord, generateWordStream, regenerateImage } from "./ai";
 export type { GenerateWordStreamCallbacks } from "./ai";
 
-export { fetchMyNotes, fetchNotesByWord, createNote, deleteNote } from "./notes";
+export { fetchMyNotes, fetchNotesByWord, createNote, deleteNote, fetchPublicNotesByWord, toggleLikeNote } from "./notes";
 
 export {
   adaptWord,

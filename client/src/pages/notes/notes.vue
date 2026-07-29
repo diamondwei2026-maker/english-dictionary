@@ -98,6 +98,7 @@
 import { ref, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { fetchMyNotes, deleteNote as apiDeleteNote, fetchWords } from "@/api";
+import { TOAST } from "@/utils/helpers";
 import type { Note } from "@/data/types";
 
 const notes = ref<Note[]>([]);
@@ -122,7 +123,7 @@ async function loadData() {
     });
     wordMap.value = map;
   } catch {
-    uni.showToast({ title: "加载失败，请检查网络", icon: "none" });
+    uni.showToast({ title: TOAST.LOAD_FAILED, icon: "none" });
   }
   loading.value = false;
 }
@@ -163,7 +164,7 @@ async function handleDeleteNote(id: string) {
       selectedWordId.value = null;
     }
   } catch (err: any) {
-    uni.showToast({ title: err?.message || "删除失败", icon: "none" });
+    uni.showToast({ title: err?.message || TOAST.DELETE_FAILED, icon: "none" });
   }
 }
 

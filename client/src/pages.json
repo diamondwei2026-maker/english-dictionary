@@ -43,6 +43,13 @@
       }
     },
     {
+      "path": "pages/favorites/favorites",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/word-detail/word-detail",
       "style": {
         "navigationBarTitleText": "",

@@ -1,4 +1,4 @@
-import { User, Settings, Shield, LogOut, ChevronRight, BookOpen, Target, FileText } from 'lucide-react';
+import { User, Settings, Shield, LogOut, ChevronRight, BookOpen, Target, FileText, Bookmark } from 'lucide-react';
 import type { AuthUser, ViewState, Note } from '../data/types';
 
 interface ProfileViewProps {
@@ -6,9 +6,10 @@ interface ProfileViewProps {
   navigate: (view: ViewState) => void;
   onLogout: () => void;
   notes: Note[];
+  favorites: string[];
 }
 
-export function ProfileView({ user, navigate, onLogout, notes }: ProfileViewProps) {
+export function ProfileView({ user, navigate, onLogout, notes, favorites }: ProfileViewProps) {
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', background: '#F7F9FC' }}>
@@ -178,6 +179,15 @@ export function ProfileView({ user, navigate, onLogout, notes }: ProfileViewProp
                 color="#2563EB"
                 bg="#EFF6FF"
                 onClick={() => navigate({ name: 'notes' })}
+              />
+              <div style={{ height: '1px', background: '#F1F5F9', marginLeft: '64px' }} />
+              <MenuRow
+                icon={<Bookmark size={16} />}
+                label="我的收藏"
+                sub={`${favorites.length} 个单词`}
+                color="#EA580C"
+                bg="#FFF7ED"
+                onClick={() => navigate({ name: 'favorites' })}
               />
             </div>
           </div>

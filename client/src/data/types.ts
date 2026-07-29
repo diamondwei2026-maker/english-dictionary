@@ -52,8 +52,10 @@ export interface Note {
   id: string;
   wordId: string;
   userId: string;
+  authorName: string;
   content: string;
   createdAt: string;
+  likedBy: string[];
 }
 
 export type AdminTab = 'overview' | 'libraries' | 'words' | 'users';

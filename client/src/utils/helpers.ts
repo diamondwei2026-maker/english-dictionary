@@ -34,3 +34,11 @@ export function isValidPhone(p: string): boolean {
 
 export const IMAGE_TYPES = ['flow', 'grasp', 'break', 'bear', 'drive', 'light', 'leverage', 'yield'];
 export const POS_OPTIONS = ['n.', 'v.', 'adj.', 'adv.', 'v./n.', 'adj./adv.', 'prep.'];
+
+/** 全局 Toast 消息常量 — 统一错误提示文案 */
+export const TOAST = {
+  LOAD_FAILED: '加载失败，请检查网络',
+  OP_FAILED: '操作失败，请重试',
+  SAVE_FAILED: '保存失败',
+  DELETE_FAILED: '删除失败',
+} as const;

@@ -29,6 +29,10 @@ const NoteSchema = new Schema<INote>(
       trim: true,
       maxlength: 5000,
     },
+    likedBy: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: [],
+    },
   },
   { timestamps: true }
 );

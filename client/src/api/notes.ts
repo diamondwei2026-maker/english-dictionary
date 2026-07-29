@@ -10,8 +10,10 @@ interface BackendNoteResponse {
   _id: string;
   wordId: string;
   userId: string;
+  authorName?: string;
   content: string;
   createdAt: string;
+  likedBy?: string[];
 }
 
 /** 适配后端笔记 → 前端 Note 接口 */
@@ -20,8 +22,10 @@ function adaptNote(raw: BackendNoteResponse): Note {
     id: raw._id,
     wordId: raw.wordId,
     userId: raw.userId,
+    authorName: raw.authorName || "",
     content: raw.content,
     createdAt: raw.createdAt?.slice(0, 10) || "",
+    likedBy: raw.likedBy || [],
   };
 }
 
@@ -66,5 +70,27 @@ export function createNote(params: {
 export function deleteNote(id: string): Promise<void> {
   return request<void>(`/api/v1/notes/${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+}
+
+/**
+ * 获取某单词下所有用户的笔记（公开，无需认证），按点赞数降序。
+ * GET /api/v1/notes/public?wordId=xxx
+ */
+export function fetchPublicNotesByWord(wordId: string): Promise<Note[]> {
+  return request<BackendNoteResponse[]>(
+    `/api/v1/notes/public?wordId=${encodeURIComponent(wordId)}`
+  ).then(adaptNoteList);
+}
+
+/**
+ * 点赞切换（有则取消，无则添加）。
+ * POST /api/v1/notes/:id/like
+ */
+export function toggleLikeNote(
+  noteId: string
+): Promise<{ likedBy: string[]; likeCount: number }> {
+  return request(`/api/v1/notes/${encodeURIComponent(noteId)}/like`, {
+    method: "POST",
   });
 }

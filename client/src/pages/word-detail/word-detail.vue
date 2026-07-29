@@ -15,8 +15,22 @@
     <view class="word-detail-page__body">
       <!-- Word heading -->
       <view class="word-detail-page__heading">
-        <text class="word-detail-page__word">{{ word.word }}</text>
-        <text class="word-detail-page__phonetic">{{ word.phonetic }}</text>
+        <view class="word-detail-page__heading-left">
+          <text class="word-detail-page__word">{{ word.word }}</text>
+          <text class="word-detail-page__phonetic">{{ word.phonetic }}</text>
+        </view>
+        <view
+          class="word-detail-page__bookmark"
+          :class="{ 'word-detail-page__bookmark--active': isFavorited }"
+          @click="handleToggleFavorite"
+        >
+          <BookmarkIcon
+            :size="20"
+            :filled="isFavorited"
+            :stroke-color="isFavorited ? '#2563EB' : '#9CA3AF'"
+            filled-color="#2563EB"
+          />
+        </view>
       </view>
 
       <!-- Physical image — 仅当有物理意象类型或自定义 SVG 时显示 -->
@@ -104,56 +118,120 @@
         </view>
       </view>
 
-      <!-- Notes — only for logged-in users -->
-      <view
-        v-if="userStore.user"
-        class="word-detail-page__card word-detail-page__card--notes"
-      >
+      <!-- Community notes — visible to everyone -->
+      <view class="word-detail-page__card word-detail-page__card--notes">
         <view class="word-detail-page__notes-head">
           <image src="\static\images\file.png" mode="scaleToFill" />
-          <text class="word-detail-page__notes-head-label">我的笔记</text>
+          <text class="word-detail-page__notes-head-label">社区笔记</text>
         </view>
 
-        <!-- Existing notes -->
-        <view
-          v-if="wordNotes.length > 0"
-          class="word-detail-page__notes-existing"
-        >
+        <!-- Tab switch -->
+        <view class="word-detail-page__notes-tabs">
           <view
-            v-for="note in wordNotes"
-            :key="note.id"
-            class="word-detail-page__notes-item"
+            class="word-detail-page__notes-tab-btn"
+            :class="{ 'word-detail-page__notes-tab-btn--active': noteTab === 'all' }"
+            @click="noteTab = 'all'"
           >
-            <text class="word-detail-page__notes-item-content">{{
-              note.content
-            }}</text>
-            <text class="word-detail-page__notes-item-date">{{
-              note.createdAt
-            }}</text>
+            <text>所有笔记 {{ allNotes.length }}</text>
+          </view>
+          <view
+            v-if="userStore.user"
+            class="word-detail-page__notes-tab-btn"
+            :class="{ 'word-detail-page__notes-tab-btn--active': noteTab === 'mine' }"
+            @click="noteTab = 'mine'"
+          >
+            <text>我的笔记 {{ myNotes.length }}</text>
           </view>
         </view>
 
-        <!-- Input -->
-        <textarea
-          v-model="noteInput"
-          class="word-detail-page__notes-input"
-          :class="{
-            'word-detail-page__notes-input--focused': noteInputFocused,
-          }"
-          placeholder="添加笔记，记录你的理解..."
-          @focus="noteInputFocused = true"
-          @blur="noteInputFocused = false"
-        ></textarea>
-
+        <!-- Notes list -->
         <view
-          class="word-detail-page__notes-save-btn"
-          :class="{
-            'word-detail-page__notes-save-btn--disabled':
-              !noteInput.trim() || saving,
-          }"
-          @click="handleSaveNote"
+          v-if="displayedNotes.length > 0"
+          class="word-detail-page__notes-list"
         >
-          <text>{{ saving ? "保存中..." : "保存笔记" }}</text>
+          <view
+            v-for="note in displayedNotes"
+            :key="note.id"
+            class="word-detail-page__notes-item"
+          >
+            <!-- Note header -->
+            <view class="word-detail-page__notes-item-header">
+              <text class="word-detail-page__notes-item-author">
+                {{ note.authorName }}<text
+                  v-if="userStore.user && note.userId === userStore.user.id"
+                  class="word-detail-page__notes-item-me"
+                >（我）</text>
+              </text>
+              <text class="word-detail-page__notes-item-date">{{ note.createdAt }}</text>
+            </view>
+            <!-- Note content -->
+            <text class="word-detail-page__notes-item-content">{{
+              note.content
+            }}</text>
+            <!-- Heart like button -->
+            <view
+              class="word-detail-page__notes-like-btn"
+              :class="{ 'word-detail-page__notes-like-btn--active': userStore.user && note.likedBy.includes(userStore.user.id) }"
+              @click="handleToggleLike(note.id)"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                  :fill="(userStore.user && note.likedBy.includes(userStore.user.id)) ? '#2563EB' : 'none'"
+                  :stroke="(userStore.user && note.likedBy.includes(userStore.user.id)) ? '#2563EB' : '#9CA3AF'"
+                />
+              </svg>
+              <text>{{ note.likedBy.length }}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Empty state -->
+        <view v-else class="word-detail-page__notes-empty">
+          <text>{{ noteTab === 'mine' ? '你还没有为该单词写笔记' : '暂无笔记，来写下第一条吧' }}</text>
+        </view>
+
+        <!-- Note input — only for logged-in users -->
+        <template v-if="userStore.user">
+          <textarea
+            v-model="noteInput"
+            class="word-detail-page__notes-input"
+            :class="{
+              'word-detail-page__notes-input--focused': noteInputFocused,
+            }"
+            placeholder="添加笔记，记录你的理解..."
+            @focus="noteInputFocused = true"
+            @blur="noteInputFocused = false"
+          ></textarea>
+
+          <view
+            class="word-detail-page__notes-save-btn"
+            :class="{
+              'word-detail-page__notes-save-btn--disabled':
+                !noteInput.trim() || saving,
+            }"
+            @click="handleSaveNote"
+          >
+            <text>{{ saving ? "保存中..." : "保存笔记" }}</text>
+          </view>
+        </template>
+
+        <!-- Login prompt for non-logged-in users -->
+        <view
+          v-else
+          class="word-detail-page__notes-login-prompt"
+          @click="goLogin"
+        >
+          <text>登录后可点赞和添加笔记</text>
         </view>
       </view>
     </view>
@@ -172,20 +250,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import {
   fetchWordDetail,
   fetchWordbankById,
-  fetchNotesByWord,
+  fetchPublicNotesByWord,
   createNote,
+  favoriteWord,
+  unfavoriteWord,
+  toggleLikeNote,
 } from "@/api";
-import { getPosColor } from "@/utils/helpers";
+import { getPosColor, TOAST } from "@/utils/helpers";
 import { userStore } from "@/store/user";
 import type { Word, WordDetail } from "@/api";
 import type { Note } from "@/data/types";
 import SectionLabel from "@/components/SectionLabel.vue";
 import PhysicalImage from "@/components/PhysicalImage.vue";
+import BookmarkIcon from "@/components/icons/BookmarkIcon.vue";
 
 const wordId = ref("");
 const word = ref<Word | WordDetail | null>(null);
@@ -193,16 +275,48 @@ const libraryName = ref("");
 const loading = ref(true);
 
 // ── Notes state ──
-const wordNotes = ref<Note[]>([]);
+const allNotes = ref<Note[]>([]);
+const noteTab = ref<"all" | "mine">("all");
 const noteInput = ref("");
 const saving = ref(false);
 const noteInputFocused = ref(false);
+
+const myNotes = computed(() =>
+  userStore.user
+    ? allNotes.value.filter((n) => n.userId === userStore.user!.id)
+    : []
+);
+const displayedNotes = computed(() =>
+  noteTab.value === "mine" ? myNotes.value : allNotes.value
+);
+
+// ── Favorite state ──
+const isFavorited = ref(false);
+
+async function handleToggleFavorite() {
+  if (!userStore.user) {
+    uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
+    return;
+  }
+  try {
+    if (isFavorited.value) {
+      await unfavoriteWord(wordId.value);
+      isFavorited.value = false;
+    } else {
+      await favoriteWord(wordId.value);
+      isFavorited.value = true;
+    }
+  } catch {
+    uni.showToast({ title: TOAST.OP_FAILED, icon: "none" });
+  }
+}
 
 onLoad(async (options: any) => {
   wordId.value = options?.wordId || "";
   try {
     const detail = await fetchWordDetail(wordId.value);
     word.value = detail;
+    isFavorited.value = detail.isFavorited ?? false;
     // 查找词库名
     try {
       const lib = await fetchWordbankById(detail.libraryId);
@@ -211,21 +325,55 @@ onLoad(async (options: any) => {
       libraryName.value = "";
     }
   } catch {
-    uni.showToast({ title: "加载失败，请检查网络", icon: "none" });
+    uni.showToast({ title: TOAST.LOAD_FAILED, icon: "none" });
   }
   loading.value = false;
 
-  // 加载笔记
-  if (userStore.user) {
-    loadNotes();
-  }
+  // 加载社区笔记（任何人都可查看）
+  loadNotes();
 });
 
 async function loadNotes() {
   try {
-    wordNotes.value = await fetchNotesByWord(wordId.value);
+    allNotes.value = await fetchPublicNotesByWord(wordId.value);
   } catch {
     // 笔记加载失败不阻塞页面
+  }
+}
+
+async function handleToggleLike(noteId: string) {
+  if (!userStore.user) {
+    uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
+    return;
+  }
+  const note = allNotes.value.find((n) => n.id === noteId);
+  if (!note) return;
+  const wasLiked = note.likedBy.includes(userStore.user.id);
+
+  // Optimistic update
+  if (wasLiked) {
+    note.likedBy = note.likedBy.filter((id) => id !== userStore.user.id);
+  } else {
+    note.likedBy = [...note.likedBy, userStore.user.id];
+  }
+  // Re-sort by likedBy length
+  allNotes.value = [...allNotes.value].sort(
+    (a, b) => b.likedBy.length - a.likedBy.length
+  );
+
+  try {
+    await toggleLikeNote(noteId);
+  } catch {
+    // Rollback on failure
+    if (wasLiked) {
+      note.likedBy = [...note.likedBy, userStore.user.id];
+    } else {
+      note.likedBy = note.likedBy.filter((id) => id !== userStore.user.id);
+    }
+    allNotes.value = [...allNotes.value].sort(
+      (a, b) => b.likedBy.length - a.likedBy.length
+    );
+    uni.showToast({ title: TOAST.OP_FAILED, icon: "none" });
   }
 }
 
@@ -241,6 +389,10 @@ async function handleSaveNote() {
   } finally {
     saving.value = false;
   }
+}
+
+function goLogin() {
+  uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
 }
 
 function getPosStyle(pos: string) {
@@ -306,7 +458,15 @@ function goBack() {
 
   /* ── Word heading ── */
   &__heading {
-    margin-bottom: 48rpx;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24rpx; /* Phase1(src): WordDetailView.tsx:119 — 12px → 24rpx */
+    margin-bottom: 48rpx; /* Phase1(src): WordDetailView.tsx:119 — 24px → 48rpx */
+  }
+
+  &__heading-left {
+    min-width: 0;
   }
 
   &__word {
@@ -324,6 +484,28 @@ function goBack() {
     font-size: 32rpx;
     color: #9ca3af;
     letter-spacing: 1rpx;
+  }
+
+  /* ── Bookmark button ── */
+  &__bookmark {
+    flex-shrink: 0;
+    width: 88rpx; /* Phase1(src): WordDetailView.tsx:133 — 44px → 88rpx */
+    height: 88rpx; /* Phase1(src): WordDetailView.tsx:134 — 44px → 88rpx */
+    margin-top: 8rpx; /* Phase1(src): WordDetailView.tsx:135 — 4px → 8rpx */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28rpx; /* Phase1(src): WordDetailView.tsx:139 — 14px → 28rpx */
+    border: none;
+    background: #f1f5f9; /* Phase1(src): WordDetailView.tsx:142 — inactive bg */
+    /* #ifdef H5 */
+    cursor: pointer;
+    transition: all 0.2s;
+    /* #endif */
+
+    &--active {
+      background: #eff6ff; /* Phase1(src): WordDetailView.tsx:142 — active bg */
+    }
   }
 
   /* ── Sections ── */
@@ -514,11 +696,6 @@ function goBack() {
     }
   }
 
-  &__notes-head-icon {
-    font-size: 28rpx;
-    color: #9cafc6;
-  }
-
   &__notes-head-label {
     font-size: 22rpx;
     font-weight: 600;
@@ -527,31 +704,113 @@ function goBack() {
     text-transform: uppercase;
   }
 
-  &__notes-existing {
+  /* ── Tab switch ── */
+  &__notes-tabs {
+    display: flex;
+    gap: 8rpx; /* Phase1(src): WordDetailView.tsx:313 — 4px → 8rpx */
+    padding: 8rpx; /* Phase1(src): WordDetailView.tsx:314 — 4px → 8rpx */
+    background: #f1f5f9; /* Phase1(src): WordDetailView.tsx:315 */
+    border-radius: 28rpx; /* Phase1(src): WordDetailView.tsx:316 — 14px → 28rpx */
+    margin-bottom: 32rpx; /* Phase1(src): WordDetailView.tsx:317 — 16px → 32rpx */
+  }
+
+  &__notes-tab-btn {
+    flex: 1;
+    padding: 18rpx; /* Phase1(src): WordDetailView.tsx:323 — 9px → 18rpx */
+    border: none;
+    border-radius: 20rpx; /* Phase1(src): WordDetailView.tsx:325 — 10px → 20rpx */
+    font-size: 26rpx; /* Phase1(src): WordDetailView.tsx:327 — 13px → 26rpx */
+    font-weight: 600;
+    background: transparent;
+    color: #9cafc6;
+    text-align: center;
+    /* #ifdef H5 */
+    cursor: pointer;
+    transition: all 0.2s;
+    /* #endif */
+
+    &--active {
+      background: #fff; /* Phase1(src): WordDetailView.tsx:329 */
+      color: #111827; /* Phase1(src): WordDetailView.tsx:330 */
+      box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08); /* Phase1(src): WordDetailView.tsx:331 — 0 1px 4px → rpx×2 */
+    }
+  }
+
+  /* ── Notes list ── */
+  &__notes-list {
     display: flex;
     flex-direction: column;
-    gap: 20rpx;
-    margin-bottom: 32rpx;
+    gap: 20rpx; /* Phase1(src): WordDetailView.tsx:361 — 10px → 20rpx */
+    margin-bottom: 32rpx; /* Phase1(src): WordDetailView.tsx:361 — 16px → 32rpx */
   }
 
   &__notes-item {
-    padding: 28rpx 32rpx;
-    background: #f8fafc;
-    border-radius: 28rpx;
-    border-left: 6rpx solid #2563eb;
+    padding: 28rpx 32rpx; /* Phase1(src): WordDetailView.tsx:369 — 14px 16px → 28rpx 32rpx */
+    background: #f8fafc; /* Phase1(src): WordDetailView.tsx:370 */
+    border-radius: 28rpx; /* Phase1(src): WordDetailView.tsx:371 — 14px → 28rpx */
+    border-left: 6rpx solid #2563eb; /* Phase1(src): WordDetailView.tsx:372 — 3px → 6rpx */
+  }
+
+  &__notes-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16rpx; /* Phase1(src): WordDetailView.tsx:375 — 8px → 16rpx */
+    margin-bottom: 16rpx; /* Phase1(src): WordDetailView.tsx:375 — 8px → 16rpx */
+  }
+
+  &__notes-item-author {
+    font-size: 26rpx; /* Phase1(src): WordDetailView.tsx:376 — 13px → 26rpx */
+    font-weight: 600;
+    color: #374151;
+  }
+
+  &__notes-item-me {
+    color: #2563eb; /* Phase1(src): WordDetailView.tsx:377 */
+    font-weight: 500;
+  }
+
+  &__notes-item-date {
+    font-size: 22rpx; /* Phase1(src): WordDetailView.tsx:379 — 11px → 22rpx */
+    color: #cbd5e1;
   }
 
   &__notes-item-content {
     display: block;
-    font-size: 28rpx;
+    font-size: 28rpx; /* Phase1(src): WordDetailView.tsx:381 — 14px → 28rpx */
     color: #374151;
-    margin: 0 0 12rpx;
+    margin: 0 0 24rpx; /* Phase1(src): WordDetailView.tsx:381 — 12px → 24rpx */
     line-height: 1.7;
   }
 
-  &__notes-item-date {
-    display: block;
-    font-size: 22rpx;
+  /* ── Heart like button ── */
+  &__notes-like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12rpx; /* Phase1(src): WordDetailView.tsx:387 — 6px → 12rpx */
+    padding: 10rpx 24rpx; /* Phase1(src): WordDetailView.tsx:388 — 5px 12px → 10rpx 24rpx */
+    border-radius: 40rpx; /* Phase1(src): WordDetailView.tsx:389 — 20px → 40rpx */
+    border: none;
+    font-size: 26rpx; /* Phase1(src): WordDetailView.tsx:392 — 13px → 26rpx */
+    font-weight: 600;
+    background: #f1f5f9; /* Phase1(src): WordDetailView.tsx:394 */
+    color: #9cafc6; /* Phase1(src): WordDetailView.tsx:395 */
+    /* #ifdef H5 */
+    cursor: pointer;
+    transition: all 0.2s;
+    /* #endif */
+
+    &--active {
+      background: #eff6ff; /* Phase1(src): WordDetailView.tsx:394 */
+      color: #2563eb; /* Phase1(src): WordDetailView.tsx:395 */
+    }
+  }
+
+  /* ── Empty state ── */
+  &__notes-empty {
+    padding: 64rpx 0; /* Phase1(src): WordDetailView.tsx:407 — 32px → 64rpx */
+    text-align: center;
+    font-size: 26rpx; /* Phase1(src): WordDetailView.tsx:408 — 13px → 26rpx */
     color: #cbd5e1;
   }
 
@@ -604,6 +863,25 @@ function goBack() {
       cursor: default;
       /* #endif */
     }
+  }
+
+  /* ── Login prompt for non-logged-in users ── */
+  &__notes-login-prompt {
+    width: 100%;
+    padding: 26rpx; /* Phase1(src): WordDetailView.tsx:465 — 13px → 26rpx */
+    background: #eff6ff; /* Phase1(src): WordDetailView.tsx:466 */
+    color: #2563eb; /* Phase1(src): WordDetailView.tsx:467 */
+    border: none;
+    border-radius: 28rpx; /* Phase1(src): WordDetailView.tsx:469 — 14px → 28rpx */
+    font-size: 28rpx; /* Phase1(src): WordDetailView.tsx:470 — 14px → 28rpx */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* #ifdef H5 */
+    cursor: pointer;
+    /* #endif */
   }
 
   /* ── Loading ── */
