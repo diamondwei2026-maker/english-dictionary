@@ -1,3 +1,45 @@
+# 社区笔记撰写体验重构（小红书式底部弹层）
+
+## Context
+
+当前 `WordDetailView.tsx` 社区笔记区把"输入框 + 保存笔记按钮"放在笔记列表**下方**。随着笔记增多，写笔记入口被越推越远，用户要滚动很久才能写笔记，体验很差。参考小红书评论区的做法：写入口固定、常驻，撰写时从底部弹出输入面板，不受列表长度影响。目标是让"写笔记"入口始终触手可及。
+
+## 方案概览
+
+1. 移除笔记列表下方内嵌的 textarea + 保存按钮（第 414–477 行整块）。
+2. 在页面底部放一个**常驻的撰写栏**（小红书风格），点击后弹出**底部输入弹层（bottom sheet）**完成撰写与保存。
+3. 撰写栏与弹层均沿用 `BottomNav.tsx` 的固定居中写法：`position: fixed; left: 50%; transform: translateX(-50%); width:100%; maxWidth:430px`，保证在 430px 容器内居中、不与全局底栏冲突。
+
+## 详情页改动（`src/app/components/WordDetailView.tsx`）
+
+### 1. 常驻撰写栏（固定底部）
+- 新增一个 fixed 定位的胶囊输入条，显示占位文案"写下你对这个词的理解…"，位于全局 `BottomNav`（高 60px）之上：`bottom: calc(60px + env(safe-area-inset-bottom, 0px))`，`zIndex: 90`。
+- 登录用户点击 → 打开撰写弹层；未登录点击 → `navigate({ name: 'login' })`（占位文案改为"登录后可点赞和写笔记"）。
+- 因为多出一条固定栏，页面根容器（第 63 行 `minHeight:100vh`）底部内边距需增加（如内容区 `paddingBottom` 增加约 72px），避免最后的笔记被撰写栏遮挡。
+
+### 2. 撰写弹层（bottom sheet）
+- 新增本地 state `const [composerOpen, setComposerOpen] = useState(false);`
+- 结构：一层半透明遮罩（`position: fixed; inset:0; background: rgba(0,0,0,0.35); zIndex:200`，点击关闭）+ 底部面板（固定居中、maxWidth 430、圆角顶部 24px、白底、slide-up）。
+- 面板内含：标题"写笔记"、复用现有 textarea 样式（自动聚焦）、右上角关闭、底部"保存笔记"按钮（复用现有 `handleSave` 逻辑；保存成功后 `setComposerOpen(false)`）。
+- 复用现有 `noteInput` / `saving` state 与 `handleSave`；`handleSave` 末尾增加 `setComposerOpen(false)`。
+
+### 3. 笔记列表区
+- 保留"社区笔记"标题、所有/我的切换、列表与点赞按钮不变；仅去掉底部内嵌输入区。
+- 空态文案保留。
+
+## 设计一致性
+- 沿用 `#2563EB` 主蓝、24px 圆角、柔和阴影、Inter 字体、无 emoji。
+- 固定栏/弹层的居中方式与 `BottomNav.tsx` 完全一致，视觉与现有底栏协调。
+
+## 验证
+1. 单词详情页向下滚动，无论笔记多少，底部撰写栏始终可见、可点。
+2. 未登录点击撰写栏 → 跳登录页。
+3. 登录后点击撰写栏 → 底部弹出输入面板，输入并保存 → 弹层关闭，新笔记出现在"我的笔记/所有笔记"中。
+4. 点遮罩可关闭弹层；最后一条笔记不被固定栏遮挡。
+5. 全局底部导航（搜索/词库/我的）仍正常显示且不与撰写栏重叠。
+
+---
+
 # 单词收藏功能（详情页收藏按钮 + 个人中心"我的收藏"）
 
 ## Context

@@ -5,6 +5,7 @@ export interface INote extends Document {
   userId: Types.ObjectId;
   wordId: Types.ObjectId;
   content: string;
+  likedBy: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

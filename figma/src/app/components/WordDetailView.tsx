@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, FileText, Heart, Bookmark } from 'lucide-react';
+import { ArrowLeft, ChevronRight, FileText, Heart, Bookmark, X } from 'lucide-react';
 import { mockWords, mockLibraries } from '../data/mockData';
 import { PhysicalImage } from './PhysicalImage';
 import type { ViewState, AuthUser, Note } from '../data/types';
@@ -38,6 +38,7 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
   const [noteInput, setNoteInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [noteTab, setNoteTab] = useState<'all' | 'mine'>('all');
+  const [composerOpen, setComposerOpen] = useState(false);
 
   if (!word) {
     return (
@@ -64,6 +65,7 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
       onSaveNote({ wordId, userId: user.id, authorName: user.username, content: noteInput.trim() });
       setNoteInput('');
       setSaving(false);
+      setComposerOpen(false);
     }, 300);
   };
 
@@ -114,7 +116,7 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
         )}
       </div>
 
-      <div style={{ padding: '8px 24px 40px' }}>
+      <div style={{ padding: '8px 24px 112px' }}>
         {/* Word heading */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '24px' }}>
           <div style={{ minWidth: 0 }}>
@@ -410,73 +412,132 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
               </p>
             </div>
           )}
-
-          {/* Input — only for logged-in users */}
-          {user ? (
-            <>
-              <textarea
-                value={noteInput}
-                onChange={e => setNoteInput(e.target.value)}
-                placeholder="添加笔记，记录你的理解..."
-                style={{
-                  width: '100%',
-                  padding: '13px 14px',
-                  borderRadius: '14px',
-                  border: '1.5px solid #E5E7EB',
-                  background: '#F8FAFC',
-                  fontSize: '14px',
-                  color: '#111827',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  lineHeight: 1.7,
-                  resize: 'none',
-                  minHeight: '88px',
-                  fontFamily: 'inherit',
-                  transition: 'border-color 0.2s',
-                  marginBottom: '10px',
-                }}
-                onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff'; }}
-                onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.background = '#F8FAFC'; }}
-              />
-              <button
-                onClick={handleSave}
-                disabled={!noteInput.trim() || saving}
-                style={{
-                  width: '100%',
-                  padding: '13px',
-                  background: !noteInput.trim() || saving ? '#DBEAFE' : '#2563EB',
-                  color: !noteInput.trim() || saving ? '#93C5FD' : '#fff',
-                  border: 'none',
-                  borderRadius: '14px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  cursor: !noteInput.trim() || saving ? 'default' : 'pointer',
-                  transition: 'background 0.2s',
-                }}
-              >
-                {saving ? '保存中...' : '保存笔记'}
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => navigate({ name: 'login' })}
-              style={{
-                width: '100%',
-                padding: '13px',
-                background: '#EFF6FF',
-                color: '#2563EB',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              登录后可点赞和添加笔记
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Persistent composer bar — Xiaohongshu style */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: '430px',
+          padding: '10px 20px',
+          background: 'rgba(247,249,252,0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderTop: '1px solid rgba(0,0,0,0.05)',
+          boxSizing: 'border-box',
+          zIndex: 90,
+        }}
+      >
+        <button
+          onClick={() => { if (user) { setComposerOpen(true); } else { navigate({ name: 'login' }); } }}
+          style={{
+            width: '100%',
+            padding: '12px 18px',
+            textAlign: 'left',
+            background: '#fff',
+            border: '1.5px solid #E5E7EB',
+            borderRadius: '22px',
+            fontSize: '14px',
+            color: '#9CA3AF',
+            cursor: 'pointer',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+          }}
+        >
+          {user ? '写下你对这个词的理解…' : '登录后可点赞和写笔记'}
+        </button>
+      </div>
+
+      {/* Composer bottom sheet */}
+      {composerOpen && user && (
+        <div
+          onClick={() => setComposerOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 200,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '430px',
+              background: '#fff',
+              borderTopLeftRadius: '24px',
+              borderTopRightRadius: '24px',
+              padding: '20px 24px calc(24px + env(safe-area-inset-bottom, 0px))',
+              boxSizing: 'border-box',
+              boxShadow: '0 -8px 32px rgba(0,0,0,0.12)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827', margin: 0 }}>写笔记</p>
+              <button
+                onClick={() => setComposerOpen(false)}
+                aria-label="关闭"
+                style={{
+                  width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: '#F1F5F9', border: 'none', borderRadius: '10px', cursor: 'pointer',
+                }}
+              >
+                <X size={18} color="#6B7280" />
+              </button>
+            </div>
+            <textarea
+              autoFocus
+              value={noteInput}
+              onChange={e => setNoteInput(e.target.value)}
+              placeholder="添加笔记，记录你的理解..."
+              style={{
+                width: '100%',
+                padding: '13px 14px',
+                borderRadius: '14px',
+                border: '1.5px solid #E5E7EB',
+                background: '#F8FAFC',
+                fontSize: '14px',
+                color: '#111827',
+                outline: 'none',
+                boxSizing: 'border-box',
+                lineHeight: 1.7,
+                resize: 'none',
+                minHeight: '120px',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+                marginBottom: '14px',
+              }}
+              onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff'; }}
+              onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.background = '#F8FAFC'; }}
+            />
+            <button
+              onClick={handleSave}
+              disabled={!noteInput.trim() || saving}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: !noteInput.trim() || saving ? '#DBEAFE' : '#2563EB',
+                color: !noteInput.trim() || saving ? '#93C5FD' : '#fff',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '15px',
+                fontWeight: 600,
+                cursor: !noteInput.trim() || saving ? 'default' : 'pointer',
+                transition: 'background 0.2s',
+              }}
+            >
+              {saving ? '保存中...' : '保存笔记'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

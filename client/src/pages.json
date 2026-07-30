@@ -53,7 +53,8 @@
       "path": "pages/word-detail/word-detail",
       "style": {
         "navigationBarTitleText": "",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "disableScroll": true
       }
     },
     {

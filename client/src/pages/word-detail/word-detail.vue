@@ -1,6 +1,7 @@
 <template>
-  <!-- Ported from figma-prototype/WordDetailView.tsx -->
-  <view v-if="word" class="word-detail-page">
+  <view>
+    <!-- Ported from figma-prototype/WordDetailView.tsx -->
+    <view v-if="word" class="word-detail-page">
     <!-- Top sticky bar -->
     <view class="word-detail-page__topbar">
       <view class="word-detail-page__topbar-left" @click="goBack">
@@ -200,52 +201,52 @@
           <text>{{ noteTab === 'mine' ? '你还没有为该单词写笔记' : '暂无笔记，来写下第一条吧' }}</text>
         </view>
 
-        <!-- Note input — only for logged-in users -->
-        <template v-if="userStore.user">
-          <textarea
-            v-model="noteInput"
-            class="word-detail-page__notes-input"
-            :class="{
-              'word-detail-page__notes-input--focused': noteInputFocused,
-            }"
-            placeholder="添加笔记，记录你的理解..."
-            @focus="noteInputFocused = true"
-            @blur="noteInputFocused = false"
-          ></textarea>
+      </view>
+    </view>
 
-          <view
-            class="word-detail-page__notes-save-btn"
-            :class="{
-              'word-detail-page__notes-save-btn--disabled':
-                !noteInput.trim() || saving,
-            }"
-            @click="handleSaveNote"
-          >
-            <text>{{ saving ? "保存中..." : "保存笔记" }}</text>
-          </view>
-        </template>
+    <!-- Persistent composer bar — 固定在页面底部，tabBar 之上 -->
+    <view class="word-detail-page__composer-bar" @click="openComposer">
+      <text>{{ userStore.user ? '写下你对这个词的理解…' : '登录后可点赞和写笔记' }}</text>
+    </view>
+  </view>
 
-        <!-- Login prompt for non-logged-in users -->
-        <view
-          v-else
-          class="word-detail-page__notes-login-prompt"
-          @click="goLogin"
-        >
-          <text>登录后可点赞和添加笔记</text>
+  <!-- Composer bottom sheet overlay — outside .word-detail-page so it covers the composer bar -->
+  <view v-if="composerSheetVisible" class="composer-overlay" @click="closeComposer">
+    <view class="composer-sheet" @click.stop>
+      <view class="composer-sheet-header">
+        <text class="composer-sheet-title">写笔记</text>
+        <view class="composer-sheet-close" @click="closeComposer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </view>
+      </view>
+      <textarea
+        v-model="noteInput"
+        class="composer-sheet-textarea"
+        placeholder="添加笔记，记录你的理解..."
+      ></textarea>
+      <view
+        class="composer-sheet-save"
+        :class="{ 'composer-sheet-save--disabled': !noteInput.trim() || saving }"
+        @click="handleSaveNote"
+      >
+        <text>{{ saving ? '保存中...' : '保存笔记' }}</text>
       </view>
     </view>
   </view>
 
   <!-- Loading -->
-  <view v-else-if="loading" class="word-detail-page__loading">
+  <view v-if="!word && loading" class="word-detail-page__loading">
     <text>加载中...</text>
   </view>
 
   <!-- Word not found -->
-  <view v-else class="word-detail-page__not-found">
+  <view v-if="!word && !loading" class="word-detail-page__not-found">
     <text>单词不存在</text>
     <view class="word-detail-page__not-found-btn" @click="goBack">返回</view>
+  </view>
   </view>
 </template>
 
@@ -279,7 +280,7 @@ const allNotes = ref<Note[]>([]);
 const noteTab = ref<"all" | "mine">("all");
 const noteInput = ref("");
 const saving = ref(false);
-const noteInputFocused = ref(false);
+const composerSheetVisible = ref(false);
 
 const myNotes = computed(() =>
   userStore.user
@@ -377,22 +378,32 @@ async function handleToggleLike(noteId: string) {
   }
 }
 
+// ── Composer ──
+function openComposer() {
+  if (!userStore.user) {
+    uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
+    return;
+  }
+  composerSheetVisible.value = true;
+}
+
+function closeComposer() {
+  composerSheetVisible.value = false;
+}
+
 async function handleSaveNote() {
   if (!noteInput.value.trim() || saving.value) return;
   saving.value = true;
   try {
     await createNote({ wordId: wordId.value, content: noteInput.value.trim() });
     noteInput.value = "";
+    closeComposer();
     await loadNotes();
   } catch (err: any) {
     uni.showToast({ title: err?.message || "保存失败", icon: "none" });
   } finally {
     saving.value = false;
   }
-}
-
-function goLogin() {
-  uni.navigateTo({ url: "/pages/auth/auth?mode=login" });
 }
 
 function getPosStyle(pos: string) {
@@ -408,6 +419,10 @@ function goBack() {
 <style scoped lang="scss">
 .word-detail-page {
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #f7f9fc;
 
   /* ── Top bar ── */
@@ -453,7 +468,9 @@ function goBack() {
 
   /* ── Body ── */
   &__body {
-    padding: 16rpx 48rpx 80rpx;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16rpx 48rpx 48rpx; /* composer bar is now in flow, no extra bottom padding needed */
   }
 
   /* ── Word heading ── */
@@ -884,6 +901,38 @@ function goBack() {
     /* #endif */
   }
 
+  /* ── Composer bar (persistent, fixed at viewport bottom via flex layout) ── */
+  &__composer-bar {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 860rpx; /* Phase1(src): WordDetailView.tsx:425 — 430px → 860rpx */
+    padding: 20rpx 40rpx; /* Phase1(src): WordDetailView.tsx:425 — 10px 20px → 20rpx 40rpx */
+    margin: 0 auto;
+    background: rgba(247, 249, 252, 0.92); /* Phase1(src): WordDetailView.tsx:426 */
+    border-top: 2rpx solid rgba(0, 0, 0, 0.05); /* Phase1(src): WordDetailView.tsx:429 */
+    box-sizing: border-box;
+    z-index: 90; /* Phase1(src): WordDetailView.tsx:431 */
+    /* #ifdef H5 */
+    backdrop-filter: blur(32rpx);
+    -webkit-backdrop-filter: blur(32rpx);
+    cursor: pointer;
+    /* #endif */
+
+    text {
+      width: 100%;
+      padding: 24rpx 36rpx; /* Phase1(src): WordDetailView.tsx:438 — 12px 18px → 24rpx 36rpx */
+      text-align: left;
+      background: #fff; /* Phase1(src): WordDetailView.tsx:440 */
+      border: 3rpx solid #e5e7eb; /* Phase1(src): WordDetailView.tsx:441 — 1.5px → 3rpx */
+      border-radius: 44rpx; /* Phase1(src): WordDetailView.tsx:442 — 22px → 44rpx */
+      font-size: 28rpx; /* Phase1(src): WordDetailView.tsx:443 — 14px → 28rpx */
+      color: #9ca3af; /* Phase1(src): WordDetailView.tsx:444 */
+      box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04); /* Phase1(src): WordDetailView.tsx:446 */
+      display: block;
+      box-sizing: border-box;
+    }
+  }
+
   /* ── Loading ── */
   &__loading {
     display: flex;
@@ -907,6 +956,115 @@ function goBack() {
       margin-top: 24rpx;
       color: #2563eb;
     }
+  }
+}
+
+/* ── Composer bottom sheet overlay (outside .word-detail-page, fullscreen fixed) ── */
+.composer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: composer-fade-in 0.25s ease;
+}
+
+@keyframes composer-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.composer-sheet {
+  width: 100%;
+  max-width: 860rpx;
+  background: #fff;
+  border-radius: 48rpx 48rpx 0 0;
+  padding: 40rpx 48rpx 48rpx;
+  box-sizing: border-box;
+  box-shadow: 0 -16rpx 64rpx rgba(0, 0, 0, 0.12);
+  animation: composer-slide-up 0.3s ease;
+}
+
+@keyframes composer-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.composer-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.composer-sheet-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.composer-sheet-close {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 20rpx;
+  /* #ifdef H5 */
+  cursor: pointer;
+  /* #endif */
+}
+
+.composer-sheet-textarea {
+  width: 100%;
+  padding: 26rpx 28rpx;
+  border-radius: 28rpx;
+  border: 3rpx solid #e5e7eb;
+  background: #f8fafc;
+  font-size: 28rpx;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.7;
+  resize: none;
+  min-height: 240rpx;
+  font-family: inherit;
+  margin-bottom: 28rpx;
+  /* #ifdef H5 */
+  transition: border-color 0.2s;
+  /* #endif */
+}
+
+.composer-sheet-save {
+  width: 100%;
+  padding: 28rpx;
+  border-radius: 28rpx;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* #ifdef H5 */
+  cursor: pointer;
+  transition: background 0.2s;
+  /* #endif */
+
+  &--disabled {
+    background: #dbeafe;
+    color: #93c5fd;
+    /* #ifdef H5 */
+    cursor: default;
+    /* #endif */
   }
 }
 </style>
