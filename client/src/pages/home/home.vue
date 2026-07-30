@@ -79,7 +79,7 @@
               v-for="word in allWords"
               :key="word.id"
               :word="word"
-              :library-name="''"
+              :library-name="getLibraryById(word.libraryId)?.name ?? ''"
               :show-library="true"
               variant="default"
               @click="goWordDetail(word.id)"
@@ -95,8 +95,8 @@
 import { ref, computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { filterWords } from "@/utils/helpers";
-import { fetchWords, fetchDailyWord } from "@/api";
-import type { Word } from "@/data/types";
+import { fetchWords, fetchDailyWord, fetchWordbanks } from "@/api";
+import type { Word, WordLibrary } from "@/data/types";
 import SearchBar from "@/components/SearchBar.vue";
 import WordCard from "@/components/WordCard.vue";
 import EmptyState from "@/components/EmptyState.vue";
@@ -105,18 +105,21 @@ const query = ref("");
 const allWords = ref<Word[]>([]);
 const loading = ref(true);
 const todayWord = ref<Word | null>(null);
+const libraries = ref<WordLibrary[]>([]);
 
 onShow(async () => {
   // 并行加载单词列表和今日一词
   try {
-    const [wordResult, dailyResult] = await Promise.all([
+    const [wordResult, dailyResult, libResult] = await Promise.all([
       fetchWords({ pageSize: 200 }),
       fetchDailyWord(),
+      fetchWordbanks({ pageSize: 50 }),
     ]);
     allWords.value = wordResult.words;
     if (dailyResult.word) {
       todayWord.value = dailyResult.word;
     }
+    libraries.value = libResult.libraries;
   } catch {
     uni.showToast({ title: "加载失败，请检查网络", icon: "none" });
   }
@@ -138,6 +141,10 @@ const results = computed(() => {
 
 function goWordDetail(wordId: string) {
   uni.navigateTo({ url: `/pages/word-detail/word-detail?wordId=${wordId}` });
+}
+
+function getLibraryById(id: string): WordLibrary | undefined {
+  return libraries.value.find(l => l.id === id);
 }
 </script>
 
