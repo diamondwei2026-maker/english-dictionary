@@ -338,6 +338,7 @@ function parseLLMResponse(content: string): LLMWordEntry {
 
   // 校验必要字段
   const requiredFields = [
+    "phonetic",
     "core_meaning",
     "core_example_en",
     "core_example_zh",
@@ -386,6 +387,7 @@ function parseLLMResponse(content: string): LLMWordEntry {
   }
 
   return {
+    phonetic: typeof obj.phonetic === "string" ? obj.phonetic : "",
     physical_image: typeof obj.physical_image === "string" ? obj.physical_image : "",
     physical_image_description: typeof obj.physical_image_description === "string" ? obj.physical_image_description : "",
     core_meaning: String(obj.core_meaning),
@@ -458,6 +460,7 @@ For each word, analyze it through the lens of COGNITIVE LINGUISTICS and PHYSICAL
 Return a JSON object with the following structure:
 
 {
+  "phonetic": "<IPA phonetic transcription, e.g. /fləʊ/>",
   "physical_image": "<one of: FLOW, GRASP, BREAK, BEAR, DRIVE, LIGHT, LEVERAGE, YIELD>",
   "physical_image_description": "<Chinese description of the physical image this word evokes, 1-2 sentences>",
   "core_meaning": "<the core spatial/physical meaning in Chinese, 1 sentence>",
@@ -498,7 +501,9 @@ Return a JSON object with the following structure:
 
 4. **collocations**: 3-5 common phrases containing this word.
 
-5. Language requirements:
+5. **phonetic**: Provide the IPA (International Phonetic Alphabet) transcription of the word, wrapped in slashes (e.g., /fləʊ/, /ˈkæri/, /breɪk/). Use standard British or American pronunciation.
+
+6. Language requirements:
    - Chinese (面向中文母语者): core_meaning, physical_image_description, evolution_description, meaning, core_example_zh, example_zh
    - English: core_example_en, example_en, collocations
 

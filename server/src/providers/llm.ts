@@ -5,6 +5,7 @@ import { DeepSeekProvider } from "./deepseek.js";
  * LLM 返回的词条结构化数据（snake_case，匹配 AI 响应 JSON）
  */
 export interface LLMWordEntry {
+  phonetic: string;
   physical_image: string;
   physical_image_description: string;
   core_meaning: string;

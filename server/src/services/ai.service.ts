@@ -72,7 +72,7 @@ export function mapLLMEntryToWordData(
   return {
     word: wordName,
     wordbankId,
-    phonetic: "",
+    phonetic: llmEntry.phonetic,
     coreMeaning: llmEntry.core_meaning,
     coreExampleEn: llmEntry.core_example_en,
     coreExampleZh: llmEntry.core_example_zh,
