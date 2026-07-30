@@ -2,9 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v2.0 |
+| 版本 | v2.1 |
 | 状态 | 已实现 |
-| 最后更新 | 2026-07-29 |
+| 最后更新 | 2026-07-30 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [后端 ADR](./server.md) |
@@ -28,7 +28,7 @@
 | 用户认证（登录/注册/忘记密码） | ✅ | ✅ |
 | 个人中心（用户信息 + 学习统计 + 笔记入口） | ✅ | ✅ |
 | 我的笔记（二级导航） | ✅ | ✅ |
-| 我的收藏 | ⚠️ API 就绪/缺页面 | ✅ mock |
+| 我的收藏 | ✅ | ✅ mock |
 | 管理后台（概览 + 词库/单词/用户管理 + AI 生成） | ✅ | ✅ |
 | 今日一词 | ✅ | ✅ |
 
@@ -101,12 +101,13 @@
 | 页面 | 路径 | 说明 |
 |------|------|------|
 | 首页 | pages/home/home | 搜索 + 今日一词 + 词表 |
-| 单词详情 | pages/word-detail/word-detail | 物理意象 + 引申义 + 搭配 + 笔记 |
+| 单词详情 | pages/word-detail/word-detail | 物理意象 + 引申义 + 搭配 + 笔记（持久化底部创作栏 + slide-up 面板） |
 | 词库列表 | pages/libraries/libraries | 词库卡片列表 |
 | 词库详情 | pages/library-words/library-words | 词库内单词列表 |
 | 个人中心 | pages/profile/profile | 用户信息 + 统计 + 笔记入口 |
 | 认证 | pages/auth/auth | 登录/注册/忘记密码（Tab 切换） |
 | 笔记 | pages/notes/notes | 二级导航（单词列表 → 笔记列表） |
+| 收藏 | pages/favorites/favorites | 收藏单词列表 + 取消收藏 |
 | 管理-概览 | pages/admin/overview | 数据统计卡片 + 入口 |
 | 管理-词库 | pages/admin/libraries | 词库 CRUD |
 | 管理-单词 | pages/admin/words | 单词 CRUD + AI 生成 + SSE 流式 |
@@ -117,6 +118,8 @@
 | 页面 | 说明 |
 |------|------|
 | 收藏 (FavoritesView) | 收藏单词列表（mock 数据，未接入后端 API） |
+| 社区笔记 | 单词详情页内嵌社区笔记 Tab（公开笔记按点赞排序 + 点赞切换） |
+| 笔记创作面板 | 持久化底部创作栏 + slide-up 底部面板（小红书风格） |
 
 ## 4. 架构设计
 
@@ -168,6 +171,7 @@ client/
 │   │   ├── profile/profile.vue
 │   │   ├── auth/auth.vue
 │   │   ├── notes/notes.vue
+│   │   ├── favorites/favorites.vue
 │   │   └── admin/
 │   │       ├── overview.vue
 │   │       ├── libraries.vue
@@ -302,7 +306,6 @@ figma/
 | uni-app 3.0 alpha 版本不稳定 | 编译异常或 API 变更 | 锁定版本号，关注官方 Release |
 | 两套前端代码库维护成本 | 功能不同步 | Figma 原型明确定位为设计验证工具，不要求功能对等 |
 | uni.storage 在小程序环境容量受限（10MB） | Token 存储无影响 | 仅存 Token 字符串，远低于限制 |
-| 收藏功能 client/ 缺页面 | 用户无法查看收藏 | API 已就绪，页面为下一迭代任务 |
 
 ### 权衡记录
 
@@ -324,7 +327,7 @@ figma/
 | 路由 | useNavigate ViewState 栈 | uni 页面路由 + pages.json |
 | TabBar | 自定义 CustomTabBar 组件 | uni 原生 tabBar (PNG 图标) |
 | API 层 | `api/` (fetch) | `api/` (uni.request) — 接口模块结构保持一致 |
-| 收藏页面 | 无 | client/ 缺页面，figma/ 有 mock 页面 |
+| 收藏页面 | 无 | client/ favorites.vue + figma/ FavoritesView.tsx |
 
 ### 已完成功能
 
@@ -337,3 +340,5 @@ figma/
 7. ✅ figma/ 收藏：FavoritesView 页面（mock 数据）
 8. ✅ figma/ 笔记：NotesView 二级导航页面（mock 数据）
 9. ✅ 忘记密码：三步流程（client/ + figma/ 均已实现）
+10. ✅ 笔记创作面板：持久化底部创作栏 + slide-up 底部面板（小红书风格），替换原内嵌 textarea
+11. ✅ AI 词条 IPA 音标：DeepSeek Prompt 新增 IPA 音标输出要求，解析器校验并自动填充 phonetic 字段

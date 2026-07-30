@@ -2,9 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.3 |
+| 版本 | v1.4 |
 | 状态 | 已实现 |
-| 最后更新 | 2026-07-29 |
+| 最后更新 | 2026-07-30 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [前端 ADR](./client.md) |
@@ -68,7 +68,7 @@
 ### 3.4 AI 词条生成
 
 - **选定方案**：DeepSeek 双模型两阶段管线
-  - **Phase 1**：DeepSeek V4 Pro（非流式，JSON 结构化输出）— 生成完整词条（物理意象、核心义、引申义链、搭配）
+  - **Phase 1**：DeepSeek V4 Pro（非流式，JSON 结构化输出）— 生成完整词条（IPA 音标、物理意象、核心义、引申义链、搭配）
   - **Phase 2**：DeepSeek V4 Flash — 流式文本生成（SSE 推送）+ 独立 SVG 图片生成（`regenerateImage`）
 - **双 API Key 策略**：`DEEPSEEK_PRO_API_KEY`（V4 Pro）+ `DEEPSEEK_API_KEY`（V4 Flash），均通过环境变量注入
 - **候选方案**：OpenAI (GPT-4o) / Anthropic Claude
@@ -399,6 +399,7 @@ User (用户)
   userId: ObjectId;                   // 用户引用
   wordId: ObjectId;                   // 单词引用
   content: string;                    // 笔记内容（trim, max 5000）
+  likedBy: ObjectId[];                // 点赞用户 ID 数组（引用 User 集合）
   createdAt: Date;
   updatedAt: Date;
 }
