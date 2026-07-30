@@ -159,13 +159,14 @@
               </view>
               <view class="admin-words__field">
                 <text class="admin-words__label">逻辑演化描述</text>
-                <input
+                <textarea
                   v-model="ext.logicalEvolution"
-                  class="admin-words__input"
-                  placeholder="物理感知 → 抽象延伸..."
+                  class="admin-words__textarea admin-words__textarea--short"
+                  placeholder="从物理感知出发，描述语义演化路径..."
+                  auto-height
                   @focus="onFieldFocus"
                   @blur="onFieldBlur"
-                ></input>
+                ></textarea>
               </view>
               <view class="admin-words__ext-row">
                 <view class="admin-words__field admin-words__field--grow">
