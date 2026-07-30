@@ -43,8 +43,8 @@ export const generateStream = asyncHandler(
       // 构造: "event: xxx\ndata: {...}\n\n"
       res.write(`event: ${chunk.event}\ndata: ${JSON.stringify(chunk.data)}\n\n`);
       // 强制立即推送 — 禁用 Node.js 内部 HTTP 缓冲
-      if (typeof res.flush === "function") {
-        res.flush();
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
       }
     };
 
