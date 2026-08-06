@@ -1,4 +1,4 @@
-import type { Word, WordLibrary, User, Note } from './types';
+import type { Word, WordLibrary, User, Note, QuizItem, QuizDirection } from './types';
 
 export const mockLibraries: WordLibrary[] = [
   {
@@ -375,3 +375,26 @@ export const AI_GENERATED_TEMPLATES: Record<string, Partial<Word>> = {
   bear: mockWords.find(w => w.word === 'bear') || {},
   drive: mockWords.find(w => w.word === 'drive') || {},
 };
+
+export const mockQuizItems: QuizItem[] = [
+  ['q1','w1','健康的现金流是企业的生命线。','flow · 资金沿渠道持续移动','Healthy cash flow is the lifeblood of a business.',['healthy','cash','flow','lifeblood'],'“现金周转”的“转”容易让人想到 turn；这里英语锚定的是液体沿渠道持续移动的意象，因此用 cash flow。'],
+  ['q2','w1','新高速公路上的车流很顺畅。','flow · 交通如液体持续移动','Traffic flows smoothly on the new highway.',['traffic','flows','smoothly','highway'],'把车流看成沿通道不断移动的液体，英语自然使用 flow。'],
+  ['q3','w1','她完全沉浸在绘画中，进入了心流状态。','flow · 无阻的专注状态','She was in a state of flow while painting.',['state','flow','painting'],'从顺畅流动延伸到思维与行动毫无阻力的状态，英语说 a state of flow。'],
+  ['q4','w2','请在截止日期前提交这份报告。','submit · 把东西放到权威面前','Please submit the report before the deadline.',['submit','report','before','deadline'],'submit 的核心动作是“把东西交到审查者面前”，不是随意的 send。'],
+  ['q5','w2','所有申请必须通过网上系统提交。','submit · 正式交付','All applications must be submitted online.',['applications','must','submitted','online'],'这里强调正式交付到制度化渠道，用 submit 而不是 hand over。'],
+  ['q6','w2','他不愿意服从这个不合理的决定。','submit · 在压力下让步','He refused to submit to the unfair decision.',['refused','submit','unfair','decision'],'“交出去”的意象可延伸为在权力前让步；submit to 表示屈从。'],
+  ['q7','w3','这个方案会对环境产生重大影响。','impact · 物体撞击留下效果','The plan will have a significant impact on the environment.',['plan','significant','impact','environment'],'impact 原是撞击，抽象到一个行动在另一事物上留下的强烈效果。'],
+  ['q8','w3','她的演讲给观众留下了深刻印象。','impact · 强烈作用','Her speech made a strong impact on the audience.',['speech','strong','impact','audience'],'不是“印象”的直译；英语从一次有力撞击的结果来表达影响力。'],
+  ['q9','w3','新政策可能会影响小型企业。','impact · 作用于','The new policy may impact small businesses.',['new','policy','impact','small','businesses'],'动词 impact 把政策看作施加作用的力量，语气比 affect 更直接。'],
+  ['q10','w4','我们需要一个清晰的项目框架。','framework · 支撑结构','We need a clear framework for the project.',['need','clear','framework','project'],'framework 原是支撑物的骨架；在抽象任务中，它是组织思考的支撑结构。'],
+  ['q11','w4','这个框架帮助团队做出一致的决定。','framework · 组织判断的骨架','The framework helps the team make consistent decisions.',['framework','helps','team','consistent','decisions'],'这里的框架不是“盒子”，而是让判断有共同支点的结构。'],
+  ['q12','w4','先搭建框架，再补充具体细节。','framework · 先有结构后有内容','Build the framework first, then add the details.',['build','framework','first','add','details'],'英语先建立承重结构，再填入细节；这正是 framework 的核心画面。'],
+  ['q13','w5','这项研究提供了有力的证据。','evidence · 可被看见的证明','The study provides strong evidence.',['study','provides','strong','evidence'],'evidence 指能让人“看出”结论的材料，强调可检验的依据。'],
+  ['q14','w5','没有证据表明这种方法有效。','evidence · 支持结论的依据','There is no evidence that this method works.',['no','evidence','method','works'],'中文“证明”常诱导使用 proof；这里说的是支持判断的材料，应用 evidence。'],
+  ['q15','w6','请评估这个决定带来的风险。','assess · 坐下来仔细判断','Please assess the risks of this decision.',['assess','risks','decision'],'assess 是经过观察与衡量后形成判断，不只是快速地 guess。'],
+  ['q16','w6','经理正在评估团队的表现。','assess · 系统判断','The manager is assessing the team performance.',['manager','assessing','team','performance'],'评估是把对象放进一套标准中仔细衡量，故用 assess。'],
+  ['q17','w7','这个账户由两个人共同管理。','joint · 两者连接在一起','The account is jointly managed by two people.',['account','jointly','managed','two','people'],'joint 的物理画面是连接处；jointly 表示两个主体连接着共同承担动作。'],
+  ['q18','w7','我们发布了一份联合声明。','joint · 连接后的共同产物','We issued a joint statement.',['issued','joint','statement'],'联合声明是多个来源在同一连接点上发出的共同产物。'],
+  ['q19','w8','她通过每天练习逐渐建立了自信。','build · 一层层搭起','She built confidence through daily practice.',['built','confidence','daily','practice'],'build 的核心是逐层搭建；自信也是靠重复经验一点点累积起来的。'],
+  ['q20','w8','公司正在建立与客户的长期关系。','build · 逐步构造','The company is building long-term relationships with clients.',['company','building','long-term','relationships','clients'],'关系不是瞬间“得到”的，而是像建筑一样在持续互动中逐步构造。'],
+].map(([id, wordId, prompt, hint, reference, keywords, analysis]) => ({ id, wordId, direction: 'zh2en' as QuizDirection, prompt, hint, reference, keywords: keywords as string[], analysis }));

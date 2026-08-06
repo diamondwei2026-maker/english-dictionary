@@ -51,12 +51,23 @@ export async function listWordbanks(options: {
     WordBank.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * pageSize)
-      .limit(pageSize),
+      .limit(pageSize)
+      .lean(),
     WordBank.countDocuments(filter),
   ]);
 
+  // 为每个词库统计单词数量
+  const wordCounts = await Promise.all(
+    data.map((wb) => Word.countDocuments({ wordbankId: wb._id }))
+  );
+
+  const dataWithCounts = data.map((wb, i) => ({
+    ...wb,
+    wordCount: wordCounts[i],
+  }));
+
   const result = {
-    data,
+    data: dataWithCounts as unknown as IWordBank[],
     pagination: { total, page, pageSize },
   };
 

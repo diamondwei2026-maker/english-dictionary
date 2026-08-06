@@ -22,6 +22,21 @@
       }
     },
     {
+      "path": "pages/training/training",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/quiz/quiz",
+      "style": {
+        "navigationBarTitleText": "",
+        "navigationStyle": "custom",
+        "disableScroll": true
+      }
+    },
+    {
       "path": "pages/auth/auth",
       "style": {
         "navigationBarTitleText": "",
@@ -111,6 +126,12 @@
         "iconPath": "static/images/tab-libraries.png",
         "selectedIconPath": "static/images/tab-libraries-active.png",
         "text": "词库"
+      },
+      {
+        "pagePath": "pages/training/training",
+        "iconPath": "static/images/tab-training.png",
+        "selectedIconPath": "static/images/tab-training-active.png",
+        "text": "训练"
       },
       {
         "pagePath": "pages/profile/profile",

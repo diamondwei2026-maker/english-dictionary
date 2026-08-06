@@ -1,6 +1,6 @@
-import { Search, BookOpen, User } from 'lucide-react';
+import { Search, BookOpen, Dumbbell, User } from 'lucide-react';
 
-type Tab = 'home' | 'libraries' | 'profile';
+type Tab = 'home' | 'libraries' | 'training' | 'profile';
 
 interface BottomNavProps {
   currentTab: Tab;
@@ -10,6 +10,7 @@ interface BottomNavProps {
 const tabs: { id: Tab; label: string; Icon: typeof Search }[] = [
   { id: 'home', label: '搜索', Icon: Search },
   { id: 'libraries', label: '词库', Icon: BookOpen },
+  { id: 'training', label: '训练', Icon: Dumbbell },
   { id: 'profile', label: '我的', Icon: User },
 ];
 

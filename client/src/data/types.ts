@@ -59,3 +59,28 @@ export interface Note {
 }
 
 export type AdminTab = 'overview' | 'libraries' | 'words' | 'users';
+
+// ============================================================
+// Quiz / Training types (ported from figma/src/app/data/types.ts)
+// ============================================================
+
+export type QuizDirection = 'zh2en' | 'en2zh';
+
+export interface QuizItem {
+  id: string;
+  wordId?: string;
+  direction: QuizDirection;
+  prompt: string;
+  hint: string;
+  reference: string;
+  keywords: string[];
+  analysis: string;
+}
+
+export interface QuizResult {
+  correct: boolean;
+  score: number;
+  matched: string[];
+  missing: string[];
+  analysis: string;
+}

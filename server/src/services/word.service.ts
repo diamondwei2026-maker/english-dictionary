@@ -249,6 +249,8 @@ export async function updateWord(
     // 失效缓存
     tryCacheDel(`words:detail:${id}`);
     tryCacheDelByPrefix("words:list:");
+    tryCacheDel(`wordbanks:detail:${word.wordbankId}`);
+    tryCacheDelByPrefix("wordbanks:list:");
 
     return word;
   } catch (err) {
@@ -284,6 +286,7 @@ export async function deleteWord(id: string): Promise<void> {
   tryCacheDel(`words:detail:${id}`);
   tryCacheDelByPrefix("words:list:");
   tryCacheDel(`wordbanks:detail:${word.wordbankId}`);
+  tryCacheDelByPrefix("wordbanks:list:");
 }
 
 export async function getWordsByWordbankId(

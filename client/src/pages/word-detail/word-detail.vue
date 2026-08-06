@@ -119,6 +119,25 @@
         </view>
       </view>
 
+      <!-- Targeted practice entry — Ported from WordDetailView.tsx:299-303 -->
+      <view class="word-detail-page__practice-card" @click="goPractice">
+        <view class="word-detail-page__practice-icon">
+          <!-- Dumbbell icon (lucide) -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.4 14.4 9.6 9.6" />
+            <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" />
+            <path d="m21.5 21.5-1.4-1.4" />
+            <path d="M3.9 3.9 2.5 2.5" />
+            <path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.767 1.768a2 2 0 1 1 2.828 2.829z" />
+          </svg>
+        </view>
+        <view class="word-detail-page__practice-info">
+          <text class="word-detail-page__practice-title">用 {{ word.word }} 造句练习</text>
+          <text class="word-detail-page__practice-desc">在句子中巩固这个词的核心意象</text>
+        </view>
+        <view class="css-arrow word-detail-page__practice-chevron" />
+      </view>
+
       <!-- Community notes — visible to everyone -->
       <view class="word-detail-page__card word-detail-page__card--notes">
         <view class="word-detail-page__notes-head">
@@ -414,6 +433,12 @@ function getPosStyle(pos: string) {
 function goBack() {
   uni.navigateBack();
 }
+
+function goPractice() {
+  uni.navigateTo({
+    url: `/pages/quiz/quiz?direction=zh2en&wordId=${wordId.value}`,
+  });
+}
 </script>
 
 <style scoped lang="scss">
@@ -695,6 +720,61 @@ function goBack() {
     color: #374151;
     font-style: italic;
     line-height: 1;
+  }
+
+  /* ── Targeted practice entry ── */
+  /* Phase1(src): WordDetailView.tsx:299-303 */
+  &__practice-card {
+    display: flex;
+    align-items: center;
+    gap: 28rpx; /* Phase1(src): WordDetailView.tsx:299 — 14px → 28rpx */
+    background: #fff;
+    border: 2rpx solid #e5e7eb; /* Phase1(src): WordDetailView.tsx:299 — 1px → 2rpx */
+    border-radius: 48rpx; /* Phase1(src): WordDetailView.tsx:299 — 24px → 48rpx */
+    padding: 40rpx; /* Phase1(src): WordDetailView.tsx:299 — 20px → 40rpx */
+    margin-bottom: 32rpx; /* Phase1(src): WordDetailView.tsx:299 — 16px → 32rpx */
+    box-shadow: 0 4rpx 32rpx rgba(0, 0, 0, 0.04); /* Phase1(src): WordDetailView.tsx:299 — 0 2px 16px → rpx×2 */
+    /* #ifdef H5 */
+    cursor: pointer;
+    /* #endif */
+  }
+
+  &__practice-icon {
+    width: 84rpx; /* Phase1(src): WordDetailView.tsx:300 — 42px → 84rpx */
+    height: 84rpx; /* Phase1(src): WordDetailView.tsx:300 — 42px → 84rpx */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28rpx; /* Phase1(src): WordDetailView.tsx:300 — 14px → 28rpx */
+    background: #eff6ff; /* Phase1(src): WordDetailView.tsx:300 */
+  }
+
+  &__practice-info {
+    flex: 1;
+  }
+
+  &__practice-title {
+    display: block;
+    margin: 0 0 10rpx; /* Phase1(src): WordDetailView.tsx:301 — 0 0 5px → rpx×2 */
+    font-size: 30rpx; /* Phase1(src): WordDetailView.tsx:301 — 15px → 30rpx */
+    font-weight: 650;
+    color: #111827;
+  }
+
+  &__practice-desc {
+    display: block;
+    margin: 0;
+    font-size: 24rpx; /* Phase1(src): WordDetailView.tsx:301 — 12px → 24rpx */
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  &__practice-chevron {
+    --arrow-chevron: 18rpx;
+    --arrow-stroke: 3rpx;
+    color: #2563eb;
+    flex-shrink: 0;
   }
 
   /* ── Notes section ── */

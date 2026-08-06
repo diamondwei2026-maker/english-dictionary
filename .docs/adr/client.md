@@ -2,9 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v2.1 |
+| 版本 | v2.2 |
 | 状态 | 已实现 |
-| 最后更新 | 2026-07-30 |
+| 最后更新 | 2026-08-06 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [后端 ADR](./server.md) |
@@ -31,6 +31,7 @@
 | 我的收藏 | ✅ | ✅ mock |
 | 管理后台（概览 + 词库/单词/用户管理 + AI 生成） | ✅ | ✅ |
 | 今日一词 | ✅ | ✅ |
+| 短句翻译训练（训练首页 + 答题 + 专项练习入口） | ✅ | ✅ |
 
 ## 2. 跨切面决策
 
@@ -91,7 +92,7 @@
 
 ### 3.4 路由方案
 
-- **client/ (uni-app)**：uni-app 页面路由（`pages.json` 声明式 pages 列表 + tabBar 配置）。原生 uni tabBar（3 Tab：首页/词库/我的）。管理后台全屏覆盖 tabBar。自定义 `navigateTo` / `switchTab` 导航。
+- **client/ (uni-app)**：uni-app 页面路由（`pages.json` 声明式 pages 列表 + tabBar 配置）。原生 uni tabBar（4 Tab：首页/词库/训练/我的）。管理后台全屏覆盖 tabBar。自定义 `navigateTo` / `switchTab` 导航。
 - **figma/ (原型)**：自定义 `ViewState` discriminated union（`{ name: 'home' }` | `{ name: 'wordDetail'; wordId: string }` …），通过 `useState` + 条件渲染模拟路由。非真实 URL 路由。
 
 ### 3.5 页面结构
@@ -108,6 +109,8 @@
 | 认证 | pages/auth/auth | 登录/注册/忘记密码（Tab 切换） |
 | 笔记 | pages/notes/notes | 二级导航（单词列表 → 笔记列表） |
 | 收藏 | pages/favorites/favorites | 收藏单词列表 + 取消收藏 |
+| 训练首页 | pages/training/training | 中译英/英译中（禁用）训练入口卡片 |
+| 答题 | pages/quiz/quiz | 逐题判分 + 反馈动画 + 完成页 + 逐题回顾 |
 | 管理-概览 | pages/admin/overview | 数据统计卡片 + 入口 |
 | 管理-词库 | pages/admin/libraries | 词库 CRUD |
 | 管理-单词 | pages/admin/words | 单词 CRUD + AI 生成 + SSE 流式 |
@@ -120,6 +123,7 @@
 | 收藏 (FavoritesView) | 收藏单词列表（mock 数据，未接入后端 API） |
 | 社区笔记 | 单词详情页内嵌社区笔记 Tab（公开笔记按点赞排序 + 点赞切换） |
 | 笔记创作面板 | 持久化底部创作栏 + slide-up 底部面板（小红书风格） |
+| 训练 (TrainingView + QuizView) | 短句中译英训练（每轮 10 题，逐题判分） + 英译中预留（禁用态）；纯前端 mock 实现 |
 
 ## 4. 架构设计
 
@@ -342,3 +346,4 @@ figma/
 9. ✅ 忘记密码：三步流程（client/ + figma/ 均已实现）
 10. ✅ 笔记创作面板：持久化底部创作栏 + slide-up 底部面板（小红书风格），替换原内嵌 textarea
 11. ✅ AI 词条 IPA 音标：DeepSeek Prompt 新增 IPA 音标输出要求，解析器校验并自动填充 phonetic 字段
+12. ✅ 短句翻译训练：训练首页 + 答题页（逐题判分 + 意象分析反馈动画 + 完成页 + 逐题回顾）+ 单词详情页专项练习入口 + 底部导航第四 Tab"训练"。本地模拟模式（mockQuizItems + 纯前端 quizEngine），英译中入口预留（禁用态）

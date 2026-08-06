@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, FileText, Heart, Bookmark, X } from 'lucide-react';
+import { ArrowLeft, ChevronRight, FileText, Heart, Bookmark, X, Dumbbell } from 'lucide-react';
 import { mockWords, mockLibraries } from '../data/mockData';
 import { PhysicalImage } from './PhysicalImage';
 import type { ViewState, AuthUser, Note } from '../data/types';
@@ -294,6 +294,13 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
             ))}
           </div>
         </div>
+
+        {/* Targeted practice */}
+        <button onClick={() => navigate({ name: 'quiz', direction: 'zh2en', wordId })} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '14px', textAlign: 'left', background: '#fff', border: '1px solid #E5E7EB', borderRadius: '24px', padding: '20px', marginBottom: '16px', boxShadow: '0 2px 16px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+          <div style={{ width: '42px', height: '42px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '14px', background: '#EFF6FF', color: '#2563EB' }}><Dumbbell size={20} /></div>
+          <div style={{ flex: 1 }}><p style={{ margin: '0 0 5px', fontSize: '15px', fontWeight: 650, color: '#111827' }}>用 {word.word} 造句练习</p><p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>在句子中巩固这个词的核心意象</p></div>
+          <ChevronRight size={18} color="#2563EB" />
+        </button>
 
         {/* Community notes — visible to everyone */}
         <div style={{

@@ -9,12 +9,15 @@ import { AuthView } from './components/AuthView';
 import { AdminView } from './components/AdminView';
 import { NotesView } from './components/NotesView';
 import { FavoritesView } from './components/FavoritesView';
+import { TrainingView } from './components/TrainingView';
+import { QuizView } from './components/QuizView';
 import { mockNotes } from './data/mockData';
 
-type Tab = 'home' | 'libraries' | 'profile';
+type Tab = 'home' | 'libraries' | 'training' | 'profile';
 
 function tabFromView(view: ViewState): Tab {
   if (view.name === 'libraries' || view.name === 'libraryWords') return 'libraries';
+  if (view.name === 'training' || view.name === 'quiz') return 'training';
   if (view.name === 'profile' || view.name === 'login' || view.name === 'register' || view.name === 'notes' || view.name === 'favorites') return 'profile';
   return 'home';
 }
@@ -68,6 +71,7 @@ export default function App() {
   const handleTabChange = (tab: Tab) => {
     if (tab === 'home') navigate({ name: 'home' });
     else if (tab === 'libraries') navigate({ name: 'libraries' });
+    else if (tab === 'training') navigate({ name: 'training' });
     else if (tab === 'profile') navigate({ name: 'profile' });
   };
 
@@ -102,6 +106,8 @@ export default function App() {
               />
             )}
             {view.name === 'libraries' && <LibrariesView navigate={navigate} />}
+            {view.name === 'training' && <TrainingView navigate={navigate} />}
+            {view.name === 'quiz' && <QuizView direction={view.direction} wordId={view.wordId} navigate={navigate} />}
             {view.name === 'libraryWords' && <LibraryWordsView libraryId={view.libraryId} navigate={navigate} />}
             {view.name === 'profile' && (
               <ProfileView user={user} navigate={navigate} onLogout={handleLogout} notes={notes} favorites={favorites} />
