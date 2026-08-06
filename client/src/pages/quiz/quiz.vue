@@ -2,7 +2,8 @@
   <!-- Ported from figma/QuizView.tsx -->
   <view class="quiz-page">
     <!-- ========== 完成页 ========== -->
-    <view v-if="done" class="quiz-page__done">
+    <view v-if="done" class="quiz-page__body">
+      <view class="quiz-page__done">
       <view class="quiz-page__back-btn" @click="goBack">
         <view class="css-arrow-left" />
         <text>返回</text>
@@ -72,28 +73,11 @@
           <text>第 {{ i + 1 }} 题 · {{ answer.score }} 分</text>
         </view>
       </view>
-
-      <view class="quiz-page__btn-primary" @click="reset">
-        <!-- RotateCcw icon -->
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="1 4 1 10 7 10" />
-          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-        </svg>
-        <text>再来一组</text>
       </view>
     </view>
 
     <!-- ========== 答题中 ========== -->
-    <template v-else>
+    <view v-else class="quiz-page__body">
       <!-- 顶栏 -->
       <view class="quiz-page__topbar">
         <view class="quiz-page__back-btn" @click="goBack">
@@ -117,7 +101,52 @@
       <view class="quiz-page__question-card">
         <text class="quiz-page__question-label">翻译成英语</text>
         <text class="quiz-page__question-prompt">{{ item.prompt }}</text>
-        <text class="quiz-page__question-hint">{{ item.hint }}</text>
+        <view class="quiz-page__question-row">
+          <text class="quiz-page__question-hint">{{ item.hint }}</text>
+          <view class="quiz-page__hint-btn" @click="showHint = !showHint">
+            <!-- BookOpen icon (lucide) -->
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <text>{{ showHint ? '收起提示' : '查看提示' }}</text>
+          </view>
+        </view>
+        <!-- 词汇提示面板 -->
+        <view v-if="showHint && glossary" class="quiz-page__glossary">
+          <text class="quiz-page__glossary-title">句中词汇提示</text>
+          <view v-if="glossary.verbs.length > 0" class="quiz-page__glossary-group">
+            <text class="quiz-page__glossary-label">动词</text>
+            <view
+              v-for="(gItem, gIdx) in glossary.verbs"
+              :key="'v' + gIdx"
+              class="quiz-page__glossary-item"
+            >
+              <text class="quiz-page__glossary-word">{{ gItem.word }}</text>
+              <text class="quiz-page__glossary-meaning">{{ gItem.meaning }}</text>
+            </view>
+          </view>
+          <view v-if="glossary.nouns.length > 0" class="quiz-page__glossary-group">
+            <text class="quiz-page__glossary-label">名词</text>
+            <view
+              v-for="(gItem, gIdx) in glossary.nouns"
+              :key="'n' + gIdx"
+              class="quiz-page__glossary-item"
+            >
+              <text class="quiz-page__glossary-word">{{ gItem.word }}</text>
+              <text class="quiz-page__glossary-meaning">{{ gItem.meaning }}</text>
+            </view>
+          </view>
+        </view>
       </view>
 
       <!-- 输入框 -->
@@ -174,17 +203,45 @@
         <text class="quiz-page__feedback-text">{{ result.analysis }}</text>
       </view>
 
-      <!-- 提交/下一题按钮 -->
-      <view class="quiz-page__btn-primary" @click="submit">
-        <text>{{
-          result
-            ? index === items.length - 1
-              ? '查看结果'
-              : '下一题'
-            : '提交'
-        }}</text>
-      </view>
-    </template>
+    </view>
+
+    <!-- 固定底部操作条 -->
+    <view class="quiz-page__action-bar">
+      <template v-if="done">
+        <view class="quiz-page__btn-primary" @click="reset">
+          <!-- RotateCcw icon -->
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
+          <text>再来一组</text>
+        </view>
+      </template>
+      <template v-else>
+        <view
+          class="quiz-page__btn-primary"
+          :class="{ 'quiz-page__btn-primary--disabled': !canSubmit }"
+          @click="submit"
+        >
+          <text>{{
+            result
+              ? index === items.length - 1
+                ? '查看结果'
+                : '下一题'
+              : '提交'
+          }}</text>
+        </view>
+      </template>
+    </view>
   </view>
 </template>
 
@@ -204,11 +261,45 @@ const input = ref("");
 const result = ref<QuizResult | null>(null);
 const answers = ref<QuizResult[]>([]);
 const showReview = ref(false);
+const showHint = ref(false);
+
+// ── Glossary data (ported from figma/QuizView.tsx sentenceGlossary) ──
+type GlossaryItem = { word: string; meaning: string };
+type SentenceGlossary = { verbs: GlossaryItem[]; nouns: GlossaryItem[] };
+
+const sentenceGlossary: Record<string, SentenceGlossary> = {
+  q1: { verbs: [], nouns: [{ word: 'cash flow', meaning: '现金流；资金持续进出企业的流动' }, { word: 'lifeblood', meaning: '生命线；维持事物运转的关键资源' }, { word: 'business', meaning: '企业；商业活动' }] },
+  q2: { verbs: [{ word: 'flow', meaning: '流动；顺畅地移动' }], nouns: [{ word: 'traffic', meaning: '交通流量；车流' }, { word: 'highway', meaning: '高速公路' }] },
+  q3: { verbs: [{ word: 'paint', meaning: '绘画' }], nouns: [{ word: 'state', meaning: '状态' }, { word: 'flow', meaning: '心流；高度投入且顺畅的状态' }] },
+  q4: { verbs: [{ word: 'submit', meaning: '正式提交；递交给审核方' }], nouns: [{ word: 'report', meaning: '报告' }, { word: 'deadline', meaning: '截止日期' }] },
+  q5: { verbs: [{ word: 'submit', meaning: '正式提交；递交' }], nouns: [{ word: 'application', meaning: '申请；申请材料' }, { word: 'system', meaning: '系统' }] },
+  q6: { verbs: [{ word: 'refuse', meaning: '拒绝' }, { word: 'submit to', meaning: '屈从于；服从' }], nouns: [{ word: 'decision', meaning: '决定' }] },
+  q7: { verbs: [{ word: 'have', meaning: '产生；带来（影响）' }], nouns: [{ word: 'plan', meaning: '方案；计划' }, { word: 'impact', meaning: '重大影响；强烈作用' }, { word: 'environment', meaning: '环境' }] },
+  q8: { verbs: [{ word: 'make', meaning: '造成；带来' }], nouns: [{ word: 'speech', meaning: '演讲' }, { word: 'impact', meaning: '影响；冲击' }, { word: 'audience', meaning: '观众' }] },
+  q9: { verbs: [{ word: 'impact', meaning: '影响；对……产生作用' }], nouns: [{ word: 'policy', meaning: '政策' }, { word: 'business', meaning: '企业' }] },
+  q10: { verbs: [{ word: 'need', meaning: '需要' }], nouns: [{ word: 'framework', meaning: '框架；支撑结构' }, { word: 'project', meaning: '项目' }] },
+  q11: { verbs: [{ word: 'help', meaning: '帮助；促使' }, { word: 'make', meaning: '做出（决定）' }], nouns: [{ word: 'framework', meaning: '框架' }, { word: 'team', meaning: '团队' }, { word: 'decision', meaning: '决定' }] },
+  q12: { verbs: [{ word: 'build', meaning: '搭建；建立' }, { word: 'add', meaning: '补充；添加' }], nouns: [{ word: 'framework', meaning: '框架' }, { word: 'detail', meaning: '细节' }] },
+  q13: { verbs: [{ word: 'provide', meaning: '提供' }], nouns: [{ word: 'study', meaning: '研究' }, { word: 'evidence', meaning: '证据；可检验的依据' }] },
+  q14: { verbs: [{ word: 'work', meaning: '起作用；有效' }], nouns: [{ word: 'evidence', meaning: '证据' }, { word: 'method', meaning: '方法' }] },
+  q15: { verbs: [{ word: 'assess', meaning: '评估；衡量后作出判断' }], nouns: [{ word: 'risk', meaning: '风险' }, { word: 'decision', meaning: '决定' }] },
+  q16: { verbs: [{ word: 'assess', meaning: '评估；系统判断' }], nouns: [{ word: 'manager', meaning: '经理' }, { word: 'team', meaning: '团队' }, { word: 'performance', meaning: '表现；绩效' }] },
+  q17: { verbs: [{ word: 'manage', meaning: '管理' }], nouns: [{ word: 'account', meaning: '账户' }, { word: 'people', meaning: '人们' }] },
+  q18: { verbs: [{ word: 'issue', meaning: '发布；正式发出' }], nouns: [{ word: 'statement', meaning: '声明' }] },
+  q19: { verbs: [{ word: 'build', meaning: '建立；逐步搭建' }], nouns: [{ word: 'confidence', meaning: '自信' }, { word: 'practice', meaning: '练习' }] },
+  q20: { verbs: [{ word: 'build', meaning: '建立；逐步构建' }], nouns: [{ word: 'company', meaning: '公司' }, { word: 'relationship', meaning: '关系' }, { word: 'client', meaning: '客户' }] },
+};
+
+const glossary = computed(() => {
+  const baseId = item.value?.id?.replace(/-\d+$/, '');
+  return baseId ? sentenceGlossary[baseId] : undefined;
+});
 
 // ── Computed ──
 const done = computed(() => answers.value.length === items.value.length && items.value.length > 0);
 const item = computed(() => items.value[index.value]);
 const correctCount = computed(() => answers.value.filter((a) => a.correct).length);
+const canSubmit = computed(() => !!(result.value || input.value.trim()));
 
 // ── Methods ──
 function reset() {
@@ -218,6 +309,7 @@ function reset() {
   result.value = null;
   answers.value = [];
   showReview.value = false;
+  showHint.value = false;
 }
 
 function goBack() {
@@ -229,6 +321,7 @@ function onInput(e: any) {
 }
 
 function submit() {
+  if (!canSubmit.value) return;
   if (!result.value) {
     // 提交判分
     const judged = judgeAnswer(item.value, input.value, direction.value);
@@ -252,8 +345,18 @@ onLoad((options: any) => {
 <style scoped lang="scss">
 .quiz-page {
   min-height: 100vh;
-  padding: 96rpx 48rpx 224rpx; /* Phase1(src): QuizView.tsx:12 — 48px 24px 112px → rpx×2 */
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #f7f9fc;
+
+  /* ── Body scroll container ── */
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 96rpx 48rpx 48rpx;
+  }
 
   /* ── Back button ── */
   &__back-btn {
@@ -333,6 +436,85 @@ onLoad((options: any) => {
     font-size: 24rpx; /* Phase1(src): QuizView.tsx:12 — 12px → 24rpx */
   }
 
+  /* ── Question row (hint + glossary toggle) ── */
+  &__question-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24rpx; /* Phase1(src): QuizView.tsx:111 — 12px → 24rpx */
+  }
+
+  &__hint-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10rpx; /* Phase1(src): QuizView.tsx:113 — 5px → 10rpx */
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    padding: 10rpx 0; /* Phase1(src): QuizView.tsx:113 — 5px → 10rpx */
+    font-size: 24rpx; /* Phase1(src): QuizView.tsx:113 — 12px → 24rpx */
+    font-weight: 650;
+    /* #ifdef H5 */
+    cursor: pointer;
+    /* #endif */
+  }
+
+  /* ── Glossary panel ── */
+  &__glossary {
+    margin-top: 32rpx; /* Phase1(src): QuizView.tsx:137 — 16px → 32rpx */
+    padding: 28rpx 30rpx; /* Phase1(src): QuizView.tsx:137 — 14px 15px → rpx×2 */
+    background: #f8fafc;
+    border: 2rpx solid #e8edf4; /* Phase1(src): QuizView.tsx:137 — 1px → 2rpx */
+    border-radius: 28rpx; /* Phase1(src): QuizView.tsx:137 — 14px → 28rpx */
+    overflow: hidden;
+  }
+
+  &__glossary-title {
+    display: block;
+    margin: 0;
+    color: #475569;
+    font-size: 24rpx; /* Phase1(src): QuizView.tsx:138 — 12px → 24rpx */
+    font-weight: 700;
+    letter-spacing: 1rpx; /* Phase1(src): QuizView.tsx:138 — .5px → 1rpx */
+  }
+
+  &__glossary-group {
+    margin-top: 24rpx; /* Phase1(src): QuizView.tsx:129 — 12px → 24rpx */
+  }
+
+  &__glossary-label {
+    display: block;
+    margin: 0 0 12rpx; /* Phase1(src): QuizView.tsx:139 — 0 0 6px → rpx×2 */
+    color: #94a3b8;
+    font-size: 22rpx; /* Phase1(src): QuizView.tsx:139 — 11px → 22rpx */
+    font-weight: 700;
+    letter-spacing: 1.6rpx; /* Phase1(src): QuizView.tsx:139 — .8px → 1.6rpx */
+  }
+
+  &__glossary-item {
+    display: grid;
+    grid-template-columns: minmax(160rpx, auto) 1fr;
+    column-gap: 24rpx; /* Phase1(src): QuizView.tsx:140 — 12px → 24rpx */
+    align-items: baseline;
+    font-size: 26rpx; /* Phase1(src): QuizView.tsx:140 — 13px → 26rpx */
+    line-height: 1.5;
+    margin-bottom: 14rpx; /* Phase1(src): QuizView.tsx:129 — 7px → 14rpx gap */
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__glossary-word {
+    font-weight: 650;
+    color: #334155;
+  }
+
+  &__glossary-meaning {
+    color: #64748b;
+  }
+
   /* ── Textarea ── */
   &__textarea {
     width: 100%;
@@ -408,6 +590,14 @@ onLoad((options: any) => {
     /* #ifdef H5 */
     cursor: pointer;
     /* #endif */
+
+    &--disabled {
+      background: #cbd5e1; /* Phase1(src): QuizView.tsx:134 — #CBD5E1 */
+      box-shadow: none;
+      /* #ifdef H5 */
+      cursor: not-allowed;
+      /* #endif */
+    }
   }
 
   /* ── Done page ── */
@@ -507,6 +697,24 @@ onLoad((options: any) => {
     &--wrong {
       background: #fff1f2;
       color: #9f1239;
+    }
+  }
+
+  /* ── Persistent bottom action bar (in flex flow, always at viewport bottom) ── */
+  &__action-bar {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 860rpx; /* Phase1(src): QuizView.tsx:141 — 430px → 860rpx */
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 24rpx 48rpx 28rpx; /* Phase1(src): QuizView.tsx:141 — 12px 24px 14px → rpx×2 */
+    background: rgba(247, 249, 252, 0.92); /* Phase1(src): QuizView.tsx:141 */
+    backdrop-filter: blur(40rpx); /* Phase1(src): QuizView.tsx:141 — 20px → 40rpx */
+    -webkit-backdrop-filter: blur(40rpx);
+    border-top: 2rpx solid rgba(0, 0, 0, 0.05); /* Phase1(src): QuizView.tsx:141 — 1px → 2rpx */
+
+    .quiz-page__btn-primary {
+      margin-top: 0; /* actionBar handles spacing, remove button flow margin */
     }
   }
 }
