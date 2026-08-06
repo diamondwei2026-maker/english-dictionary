@@ -55,13 +55,14 @@ PRD 更新内容、实施进度、验证结果、最终摘要。代码和代码�
 - 涉及的 UI 组件变更（新增/修改组件、新增路由）
 - 涉及的状态管理变更（useState → store）
 
-**Step 1.2 — 执行差异分析（3 个并行 Agent）**
+**Step 1.2 — 执行差异分析（4 个并行 Agent）**
 
 | Agent | 对比维度 | 产出 |
 |-------|---------|------|
 | A — 数据层 | `figma/.../types.ts` + `figma/.../mockData.ts` ↔ `client/src/data/types.ts` + `server/src/models/` | 类型/模型差异表 |
 | B — UI 层 | `figma/.../components/` ↔ `client/src/pages/` + `client/src/components/` | 组件差异表（新增/修改/缺失） |
 | C — 路由/状态/API | `figma/.../App.tsx` ↔ `client/src/pages.json` + `client/src/store/` + `server/src/routes/` | 路由/状态/API 差异表 |
+| D — 实现完整度 | `client/src/` 代码实现质量 ↔ `server/src/` 后端覆盖 | mock/stub/占位/API 缺失检测 |
 
 **Agent A 具体检查项**：
 - `figma/.../types.ts` 中每个 interface 的字段 vs `client/src/data/types.ts` 同名字段
@@ -78,7 +79,61 @@ PRD 更新内容、实施进度、验证结果、最终摘要。代码和代码�
 - `figma/.../App.tsx` 中 `useState` 变量 → `client/src/store/` 对应状态
 - `figma/.../App.tsx` 中调用的 API 函数 → `server/src/routes/` 对应端点
 
-**Step 1.3 — 差异分类**
+**Agent D 具体检查项** — 实现完整度（堵住"文件存在但功能 mock"的盲区）：
+
+Agent D 的核心任务是判断一个功能是否 **真正实现**（而不仅仅是文件存在）。检查四个维度：
+
+**D1 — Mock 数据检测**：
+- 扫描 `client/src/` 中 `.ts`/`.vue` 文件，搜索以下信号：
+  - 硬编码大数组赋值（如 `const mockQuizItems: QuizItem[] = [`）
+  - `setTimeout(() => {...}, N)` 用于模拟 API 响应延迟
+  - 注释标记：`本地模拟版`、`mock`、`local only`、`纯前端`、`后续接`
+- 命中任意信号 → 确认该功能在 `server/src/` 是否有对应实现（grep 功能关键词）
+  - 后端有对应 API → **GAP-UI**（前端已 mock 但可对接真实 API）
+  - 后端无对应 API → **GAP-DESIGN**（需要新建后端 + 前端对接改造）
+
+**D2 — API 对接完整性**：
+- 对 figma plan 中描述的每个功能模块，反向检查：
+  - 前端是否有对应的 `client/src/api/<module>.ts` 模块？
+  - 前端页面是否 `import` 了该 API 模块并实际调用？
+  - 后端 `server/src/routes/` 是否有对应路由注册？
+- 判定矩阵：
+  - Figma 功能 → 前端无 UI → 不是本 skill 范围（可能未开始实施）
+  - Figma 功能 → 前端有 UI → 无 `api/` 调用 → **GAP-UI**（前端使用 mock/本地数据）
+  - Figma 功能 → 前端有 UI → 有 `api/` 调用 → 后端无路由 → **GAP-DESIGN**
+  - Figma 功能 → 前端有 UI → 有 `api/` 调用 → 后端有路由 → ✅ 已完整实现
+
+**D3 — 前端 stub/placeholder 检测**：
+- 扫描以下信号：
+  - 禁用态 UI：`disabled`、`opacity: 0.XX`、`cursor: default`、`pointer-events: none`
+  - 占位文案：`即将上线`、`敬请期待`、`coming soon`、`TODO`、`FIXME`
+  - 无事件绑定：组件存在但缺少 `@click` / `@tap` 等交互
+- Figma plan 描述为完整功能但前端标记为占位 → **GAP-UI**
+
+**D4 — 脚本/基础设施可用性**：
+- 检查 `server/src/seed/`、`server/scripts/` 中的脚本 `import`/`require` 路径指向的文件是否存在
+- 检查 `docker-compose.yml`、`Dockerfile` 等基础设施文件引用的路径是否有效
+- 引用不存在 → **GAP-DIFF**（基础设施缺陷）
+
+**Agent D 差异汇总**：
+
+```
+Agent D 发现 = D1(mock) + D2(API缺失) + D3(占位) + D4(基础设施)
+  → 合并去重
+  → 按以下规则分类：
+
+  发现 mock 数据 + 后端有对应 API → GAP-UI（前端待对接，纯前端工作）
+  发现 mock 数据 + 后端无对应 API → GAP-DESIGN（需新建后端 + 前端对接）
+  发现 stub/占位 + Figma 描述为完整功能 → GAP-UI
+  发现 import 路径不存在 → GAP-DIFF
+  全部通过 → 无新增差异（此维度）
+```
+
+**Step 1.3 — 差异汇总分类（合并 4 个 Agent 输出）**
+
+将 Agent A/B/C/D 四个维度的差异清单合并，按功能模块去重后统一分类。
+
+> 注意：同一功能可能在多个 Agent 中都有发现。例如训练模块：Agent B 发现文件存在且样式匹配，Agent D 发现 quizEngine 使用 mock 数据 — 以 **Agent D 的结论为准**（实现不完整），合并后定为 GAP-DESIGN。合并优先级：GAP-DESIGN > GAP-UI > GAP-DIFF。同一功能取最高严重等级。
 
 ```
 ═══════════════════════════════════════════════════════════════

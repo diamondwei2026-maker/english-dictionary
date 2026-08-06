@@ -26,7 +26,9 @@
           >
             <circle cx="12" cy="12" r="10" />
             <line x1="2" y1="12" x2="22" y2="12" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            <path
+              d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+            />
           </svg>
         </view>
         <view class="css-arrow training-page__card-chevron" />
@@ -41,7 +43,9 @@
     <view class="training-page__card training-page__card--disabled">
       <view class="training-page__coming-soon">即将上线</view>
       <view class="training-page__card-top">
-        <view class="training-page__card-icon training-page__card-icon--disabled">
+        <view
+          class="training-page__card-icon training-page__card-icon--disabled"
+        >
           <!-- BookOpenCheck icon (lucide) -->
           <svg
             width="22"
@@ -55,7 +59,9 @@
           >
             <path d="M12 21V7" />
             <path d="m16 12 2 2 4-4" />
-            <path d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3" />
+            <path
+              d="M22 6V4a1 1 0 0 0-1-1h-5a4 4 0 0 0-4 4 4 4 0 0 0-4-4H3a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6a1 1 0 0 0 1-1v-1.3"
+            />
           </svg>
         </view>
       </view>
@@ -137,7 +143,7 @@ function goQuiz(direction: QuizDirection) {
   &__card-top {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
   }
 
   &__card-icon {
