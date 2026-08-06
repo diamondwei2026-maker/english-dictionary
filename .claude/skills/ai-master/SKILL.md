@@ -23,6 +23,7 @@ description: >-
 ## 调度流程
 
 接到"继续推进项目"指令后，按以下优先级依次检查：
+  （步骤 0 → 步骤 0.5 → 步骤 0.6 → 步骤 1 → ...）
 
 ### 步骤 0：Bug 修复模式 🔴
 
@@ -99,6 +100,68 @@ description: >-
 不触发条件（不进入步骤 0.5 的阶段 0 判定）：
   → 用户明确说"继续开发"、"加功能"、"修 bug"等 → 按正常开发/修复流程处理
   → .target-project-path 不存在且 phase2-output/ 不存在 → 前端重构未执行，跳过
+```
+
+### 步骤 0.6：Figma 同步检测 🔴 🆕
+
+优先级高于步骤 1，低于步骤 0.5。
+
+```
+阶段 0：检查是否有 Figma 更新计划：
+  → 检查 figma/plans/ 目录是否存在且包含 .md 文件
+  → 不存在目录或无 .md 文件 → 跳过步骤 0.6，进入步骤 1
+
+阶段 1：判断是否有未处理的计划：
+  → 检查 .docs/figma-sync-state.md 是否存在
+  → 不存在 → 认为所有 plan 文件均为未处理（首次同步）
+  → 存在 → 读取「已处理计划」字段，与 figma/plans/*.md 文件列表对比
+    → 所有 plan 文件均在「已处理计划」中 → 跳过，进入步骤 1
+    → 存在未处理的 plan 文件 → 进入阶段 2
+
+阶段 2：调用 figma-sync：
+  → 输出提示："检测到 figma/plans/ 中有未处理的 Figma 原型更新计划：<文件名列表>。启动 figma-sync 进行差异分析和同步。"
+  → 调用 Skill("figma-sync")
+    → figma-sync 执行其 4 阶段流程（独立运行，ai-master 不介入其内部逻辑）
+    → figma-sync 在阶段 4 末尾写入 .docs/figma-sync-state.md
+  → figma-sync 调用完成后，读取 .docs/figma-sync-state.md 中的「同步结果」：
+
+阶段 3：根据同步结果分支路由：
+
+  分支 A — GAP-UI-ONLY：
+    → 判定：所有 Figma 差异均为纯前端变更，figma-sync 已直接实施到代码中
+    → 输出："✅ Figma 差异已全部通过前端修复完成（GAP-UI-ONLY），无需后端变更。进入代码审查。"
+    → 进入步骤 7（代码审查）
+    → 注意：代码审查后按步骤 7.1 判断下一路由
+
+  分支 B — HAS-GAP-DESIGN：
+    → 判定：Figma 差异涉及后端/架构变更，PRD 和 ADR 已由 figma-sync 更新
+    → 输出："🔴 Figma 差异涉及后端/架构变更（HAS-GAP-DESIGN），PRD 和 ADR 已更新。需重新规划开发计划。自动启动新需求轮次。"
+    → 从状态文件读取「新需求标识」(slug)
+    → 如果 slug 为空或无效，使用默认 slug: figma-sync-<YYYYMMDD>
+    → 输出："新需求标识：<slug>"
+    → 删除 .docs/development-plan.md（如存在）
+    → 删除 .docs/tasks.md（如存在）
+    → 注意：保留 .docs/tasks/<old-slug>/ 目录（历史 Task 记录）
+    → 进入步骤 1（project-planner），将新 slug 作为本轮需求标识
+
+  分支 C — NO-GAPS：
+    → 判定：Figma 原型与实际项目无差异
+    → 输出："✅ Figma 原型与实际项目无差异（NO-GAPS），项目状态一致。"
+    → 进入步骤 1（正常流程）
+
+阶段 4：异常处理：
+  → .docs/figma-sync-state.md 文件存在但「同步结果」字段缺失或值非法：
+    → 输出警告："⚠️ figma-sync 状态文件不完整，重新执行 figma-sync。"
+    → 重新调用 Skill("figma-sync")
+  → figma-sync 调用失败（工具返回错误）：
+    → 输出："🔴 figma-sync 执行异常：<错误信息>。跳过 Figma 同步，进入正常流程。"
+    → 进入步骤 1（不阻塞主流水线）
+  → 用户之前手动调用过 figma-sync（状态文件已存在且所有 plan 已处理）：
+    → 阶段 1 判定为跳过，直接进入步骤 1
+    → 这是预期行为——figma-sync 的 standalone 调用和 ai-master 调用互不干扰
+
+不触发条件（不进入步骤 0.6 的阶段 0 判定）：
+  → figma/plans/ 目录不存在或目录为空 → 项目从未使用 Figma 原型，跳过
 ```
 
 ### 步骤 1：检查开发计划
@@ -318,6 +381,7 @@ Task 进度：
 | 测试用例 | `.docs/tasks/<slug>/task-X.Y/test-cases.md` | test-case-generator |
 | Coding Prompt | `.docs/tasks/<slug>/task-X.Y/coding-prompt.md` | coding-prompt-generator |
 | Bug 修复报告 | `.docs/bugfix/<slug>/report.md` | bug-fixer |
+| Figma 同步状态 | `.docs/figma-sync-state.md` | figma-sync |
 
 ### tasks.md 格式约定（总览表）
 

@@ -360,7 +360,75 @@ npx tsc --noEmit                    # 服务端 TypeScript → 必须零错误
 ### 构建验证
 - client H5 build: ✅
 - server tsc: ✅
+
+### 集成状态
+- 合约文件: .docs/figma-sync-state.md ✅ 已写入
+- 同步结果: <GAP-UI-ONLY / HAS-GAP-DESIGN / NO-GAPS>
 ```
+
+**Step 4.4 — 写入集成状态文件（ai-master 合约）** 🆕
+
+> 此步骤是 figma-sync 与 ai-master 的集成合约。
+> figma-sync 写入状态文件；ai-master 读取状态文件并据此决定下一步路由。
+> figma-sync 本身不需要知道 ai-master 的存在——只需要忠实地写入合约文件。
+
+执行时机：阶段 4 所有文档收尾工作完成后，作为最后一个操作执行。
+
+1. 判定同步结果：
+   - 差异清单中只有 GAP-UI（无 GAP-DESIGN）→ `GAP-UI-ONLY`
+   - 差异清单中有任何 GAP-DESIGN → `HAS-GAP-DESIGN`
+   - 差异清单完全为空 → `NO-GAPS`
+
+2. 如果是 `HAS-GAP-DESIGN`：
+   - 生成新需求标识（slug）：格式为 `figma-sync-YYYYMMDD`
+     （如本轮执行日期为 2026-08-06，则 slug = `figma-sync-20260806`）
+   - 如果 PRD 中已有需求标识，优先使用 PRD 中的标识
+
+3. 收集已处理的计划文件列表：
+   - 从阶段 1 读取的所有 plan 文件名
+
+4. 写入 `.docs/figma-sync-state.md`，结构如下：
+
+```markdown
+# Figma 同步状态
+
+| 属性 | 值 |
+|------|-----|
+| 同步结果 | <GAP-UI-ONLY / HAS-GAP-DESIGN / NO-GAPS> |
+| 最后同步 | <当前日期时间> |
+| 已处理计划 | <本次处理的 plan 文件名，逗号分隔> |
+| 新需求标识 | <slug>（HAS-GAP-DESIGN 时必填；其他分支填 —） |
+
+## 差异摘要
+
+### GAP-UI（已直接实施）
+| # | 描述 | 涉及文件 |
+|---|------|---------|
+| ... | ... | ... |
+
+### GAP-DESIGN（PRD/ADR 已更新，待 ai-master 接管开发）
+| # | 描述 | ADR 变更 | PRD 变更 |
+|---|------|---------|---------|
+| ... | ... | ... | ... |
+
+### GAP-DIFF（已随对应分类处理）
+| # | 描述 | 处理方式 | 涉及分类 |
+|---|------|---------|---------|
+| ... | ... | ... | ... |
+
+## 同步步骤完成状态
+- [x] 阶段 1：差异发现与分类
+- [x] 阶段 2：PRD + ADR 更新
+- [x] 阶段 3：代码实施（GAP-UI 项）
+- [x] 阶段 4：文档收尾 + 构建验证
+```
+
+注意事项：
+- 「差异摘要」中的三个子表格直接从阶段 1 的差异报告提取
+- GAP-UI 表格的「涉及文件」从阶段 3 的实施记录中提取
+- GAP-DESIGN 表格的「ADR 变更」和「PRD 变更」从阶段 2 的更新记录中提取
+- GAP-DIFF 表格标注每条属于哪个分类（GAP-UI 或 GAP-DESIGN），以及处理方式
+- 「同步步骤完成状态」全部勾选（只有 figma-sync 全部完成才会执行到此步骤）
 
 ---
 
