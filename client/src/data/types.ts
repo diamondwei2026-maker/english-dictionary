@@ -66,6 +66,16 @@ export type AdminTab = 'overview' | 'libraries' | 'words' | 'users';
 
 export type QuizDirection = 'zh2en' | 'en2zh';
 
+export interface GlossaryItem {
+  word: string;
+  meaning: string;
+}
+
+export interface SentenceGlossary {
+  verbs: GlossaryItem[];
+  nouns: GlossaryItem[];
+}
+
 export interface QuizItem {
   id: string;
   wordId?: string;
@@ -75,6 +85,8 @@ export interface QuizItem {
   reference: string;
   keywords: string[];
   analysis: string;
+  /** 句中词汇提示（可选，从服务端返回） */
+  glossary?: SentenceGlossary;
 }
 
 export interface QuizResult {
@@ -83,4 +95,6 @@ export interface QuizResult {
   matched: string[];
   missing: string[];
   analysis: string;
+  /** 仅已登录用户：答题记录是否成功写入服务端 */
+  attemptSaved?: boolean;
 }

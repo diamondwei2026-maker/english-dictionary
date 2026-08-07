@@ -6,11 +6,14 @@ import { Word } from "../models/Word.js";
 import { Collocation } from "../models/Collocation.js";
 import { UserFavorite } from "../models/UserFavorite.js";
 import { LearningRecord } from "../models/LearningRecord.js";
+import { QuizAttempt } from "../models/QuizAttempt.js";
+import { QuizQuestion } from "../models/QuizQuestion.js";
 import {
   mockLibraries,
   mockWords,
   mockUsers,
-} from "../../../client/src/data/mockData.js";
+} from "../../../figma/src/app/data/mockData.js";
+import { seedQuizQuestions } from "./quiz.seed.js";
 
 // mock 数据中缺少 physicalImageDescription，按 physicalImageType 提供默认描述
 const DEFAULT_IMAGE_DESCRIPTIONS: Record<string, string> = {
@@ -84,6 +87,8 @@ async function seed(): Promise<void> {
 
   // 清空旧数据 — 按外键依赖从子到父删除，确保幂等
   console.log("Clearing old data...");
+  await QuizAttempt.deleteMany({});
+  await QuizQuestion.deleteMany({});
   await LearningRecord.deleteMany({});
   await UserFavorite.deleteMany({});
   await Collocation.deleteMany({});
@@ -150,6 +155,11 @@ async function seed(): Promise<void> {
     }),
   );
   console.log(`Inserted ${words.length} words.`);
+
+  // === 插入 Quiz Questions ===
+  console.log("Seeding quiz questions...");
+  const quizCount = await seedQuizQuestions(words);
+  console.log(`Inserted/upserted ${quizCount} quiz questions.`);
 
   // === 插入管理员用户 ===
   console.log("Seeding admin user...");

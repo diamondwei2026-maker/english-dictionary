@@ -14,3 +14,7 @@ export { DailyWord } from "./DailyWord.js";
 export type { IDailyWord } from "./DailyWord.js";
 export { Note } from "./Note.js";
 export type { INote } from "./Note.js";
+export { QuizQuestion } from "./QuizQuestion.js";
+export type { IQuizQuestion } from "./QuizQuestion.js";
+export { QuizAttempt } from "./QuizAttempt.js";
+export type { IQuizAttempt } from "./QuizAttempt.js";

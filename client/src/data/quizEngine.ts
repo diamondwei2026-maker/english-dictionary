@@ -2,10 +2,13 @@
 // Quiz Engine — 纯前端判分引擎（本地模拟版）
 // Ported from figma/src/app/data/quizEngine.ts
 //
+// 评分算法统一来自 @english-dict/shared。
 // 后续接 Supabase/LLM 时只需替换 generateQuiz 和 judgeAnswer 实现。
 // ============================================================
 
 import type { QuizDirection, QuizItem, QuizResult } from './types';
+import { fetchQuestions, submitAnswer } from '@/api/quiz';
+import { shuffle, scoreAnswer } from '@english-dict/shared';
 
 // ── 预置题库（本地模拟版）─────────────────────────────────────
 // Source: figma/src/app/data/mockData.ts mockQuizItems
@@ -33,59 +36,27 @@ const mockQuizItems: QuizItem[] = [
   { id:'q20',wordId:'w8', direction:'zh2en', prompt:'公司正在建立与客户的长期关系。', hint:'build · 逐步构造', reference:'The company is building long-term relationships with clients.', keywords:['company','building','long-term','relationships','clients'], analysis:'关系不是瞬间"得到"的，而是像建筑一样在持续互动中逐步构造。' },
 ];
 
-// ── 工具函数 ─────────────────────────────────────────────────
-
-const normalize = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[.!?。！？]+$/g, '')
-    .replace(/\s+/g, ' ');
-
-const words = (value: string) =>
-  normalize(value).match(/[a-z]+(?:'[a-z]+)?/g) ?? [];
-
-const variantMatches = (keyword: string, input: string[]) =>
-  input.some(
-    (word) =>
-      word === keyword ||
-      word.replace(/(s|es|ed|ing)$/, '') ===
-        keyword.replace(/(s|es|ed|ing)$/, '')
-  );
-
-const lcs = (a: string[], b: string[]) => {
-  const table = Array.from({ length: a.length + 1 }, () =>
-    Array(b.length + 1).fill(0)
-  );
-  for (let i = 1; i <= a.length; i++)
-    for (let j = 1; j <= b.length; j++)
-      table[i][j] =
-        a[i - 1] === b[j - 1]
-          ? table[i - 1][j - 1] + 1
-          : Math.max(table[i - 1][j], table[i][j - 1]);
-  return table[a.length][b.length];
-};
-
-const shuffle = <T>(values: T[]): T[] => {
-  const arr = [...values];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-};
-
 // ── 导出函数 ─────────────────────────────────────────────────
 
 /**
  * 生成一轮测验题目（10 题）。
- * - 有 wordId：优先取该单词题目，不足时用同词库单词补齐，再无则从通用池随机
+ * - API-first：优先从后端获取题目
+ * - 降级：API 不可用时回退本地 mockQuizItems
+ * - 有 wordId：优先取该单词题目，不足时用同方向其他题目补齐
  * - 无 wordId：从全部题库随机抽取
  */
-export function generateQuiz(
+export async function generateQuiz(
   direction: QuizDirection,
   wordId?: string
-): QuizItem[] {
+): Promise<QuizItem[]> {
+  try {
+    const items = await fetchQuestions(direction, wordId);
+    return items;
+  } catch (error) {
+    console.warn("Quiz API unavailable, falling back to local mock:", error);
+  }
+
+  // ── 降级：本地 mock 逻辑 ──
   const all = mockQuizItems.filter((item) => item.direction === direction);
 
   let pool: QuizItem[];
@@ -107,66 +78,33 @@ export function generateQuiz(
 
 /**
  * 评判用户输入。
- * - 中译英 (zh2en)：关键词命中率 70% + LCS 序列相似度 30% = 总分
- *   score ≥ 70 判对
- * - 英译中 (en2zh)：字符 bigram 重合度（本轮不启用）
+ * - API-first：优先调用后端判分
+ * - 降级：API 不可用时回退本地判分（算法与后端一致，均来自 @english-dict/shared）
+ * - 中译英 (zh2en)：关键词命中率 70% + LCS 序列相似度 30%
+ * - 英译中 (en2zh)：字符重合度
  * - 空输入直接判错
  */
-export function judgeAnswer(
+export async function judgeAnswer(
   item: QuizItem,
   userInput: string,
   direction: QuizDirection
-): QuizResult {
-  if (!normalize(userInput)) {
-    return {
-      correct: false,
-      score: 0,
-      matched: [],
-      missing: item.keywords,
-      analysis: `${item.analysis} 你还没有输入答案；参考表达：${item.reference}`,
-    };
+): Promise<QuizResult> {
+  try {
+    const result = await submitAnswer(item.id, userInput);
+    return result;
+  } catch (error) {
+    console.warn("Quiz API submit failed, falling back to local judge:", error);
   }
 
-  if (direction === 'en2zh') {
-    // 英译中：字符 bigram 重合度（本轮不启用，预留）
-    const source = normalize(userInput);
-    const ref = normalize(item.reference);
-    const score = Math.round(
-      ([...new Set(source)].filter((c) => ref.includes(c)).length /
-        Math.max(ref.length, 1)) *
-        100
-    );
-    return {
-      correct: score >= 70,
-      score,
-      matched: [],
-      missing: [],
-      analysis:
-        score >= 70
-          ? `表达正确。参考答案：${item.reference}`
-          : `${item.analysis} 参考答案：${item.reference}`,
-    };
-  }
-
-  // 中译英：关键词 + LCS
-  const inputWords = words(userInput);
-  const matched = item.keywords.filter((k) => variantMatches(k, inputWords));
-  const missing = item.keywords.filter((k) => !matched.includes(k));
-
-  const keywordScore = (matched.length / item.keywords.length) * 70;
-  const referenceWords = words(item.reference);
-  const sequenceScore =
-    (lcs(inputWords, referenceWords) / Math.max(referenceWords.length, 1)) * 30;
-  const score = Math.round(keywordScore + sequenceScore);
-  const correct = score >= 70;
-
-  return {
-    correct,
-    score,
-    matched,
-    missing,
-    analysis: correct
-      ? `表达已经抓住了这句的核心意象。参考答案：${item.reference}`
-      : `${item.analysis}${missing.length ? ` 建议补上：${missing.join('、')}。` : ''} 参考答案：${item.reference}`,
-  };
+  // ── 降级：本地判分（共享评分引擎）──
+  return scoreAnswer({
+    direction,
+    reference: item.reference,
+    keywords: item.keywords,
+    analysis: item.analysis,
+    userInput,
+  });
 }
+
+// ── Re-export: history & stats（供其他页面使用）─────────────
+export { fetchHistory, fetchStats } from '@/api/quiz';

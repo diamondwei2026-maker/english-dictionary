@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- Ported from figma/QuizView.tsx -->
   <view class="quiz-page">
     <!-- ========== 完成页 ========== -->
@@ -78,6 +78,25 @@
 
     <!-- ========== 答题中 ========== -->
     <view v-else class="quiz-page__body">
+      <!-- 加载中 -->
+      <view v-if="loading" class="quiz-page__status">
+        <text class="quiz-page__status-text">加载题目中…</text>
+      </view>
+
+      <!-- 加载失败 -->
+      <view v-else-if="loadError" class="quiz-page__status quiz-page__status--error">
+        <text class="quiz-page__status-text">{{ loadError }}</text>
+        <view class="quiz-page__btn-retry" @click="reset">重新加载</view>
+      </view>
+
+      <!-- 无可用题目（API 返回空数组） -->
+      <view v-else-if="items.length === 0 && !loading" class="quiz-page__status">
+        <text class="quiz-page__status-text">暂无可用题目，请稍后再试</text>
+        <view class="quiz-page__btn-retry" @click="reset">重新加载</view>
+      </view>
+
+      <!-- 题目区域 -->
+      <template v-else>
       <!-- 顶栏 -->
       <view class="quiz-page__topbar">
         <view class="quiz-page__back-btn" @click="goBack">
@@ -203,6 +222,7 @@
         <text class="quiz-page__feedback-text">{{ result.analysis }}</text>
       </view>
 
+      </template>
     </view>
 
     <!-- 固定底部操作条 -->
@@ -262,54 +282,37 @@ const result = ref<QuizResult | null>(null);
 const answers = ref<QuizResult[]>([]);
 const showReview = ref(false);
 const showHint = ref(false);
+const loading = ref(false);
+const loadError = ref("");
+const submitting = ref(false);
 
-// ── Glossary data (ported from figma/QuizView.tsx sentenceGlossary) ──
-type GlossaryItem = { word: string; meaning: string };
-type SentenceGlossary = { verbs: GlossaryItem[]; nouns: GlossaryItem[] };
-
-const sentenceGlossary: Record<string, SentenceGlossary> = {
-  q1: { verbs: [], nouns: [{ word: 'cash flow', meaning: '现金流；资金持续进出企业的流动' }, { word: 'lifeblood', meaning: '生命线；维持事物运转的关键资源' }, { word: 'business', meaning: '企业；商业活动' }] },
-  q2: { verbs: [{ word: 'flow', meaning: '流动；顺畅地移动' }], nouns: [{ word: 'traffic', meaning: '交通流量；车流' }, { word: 'highway', meaning: '高速公路' }] },
-  q3: { verbs: [{ word: 'paint', meaning: '绘画' }], nouns: [{ word: 'state', meaning: '状态' }, { word: 'flow', meaning: '心流；高度投入且顺畅的状态' }] },
-  q4: { verbs: [{ word: 'submit', meaning: '正式提交；递交给审核方' }], nouns: [{ word: 'report', meaning: '报告' }, { word: 'deadline', meaning: '截止日期' }] },
-  q5: { verbs: [{ word: 'submit', meaning: '正式提交；递交' }], nouns: [{ word: 'application', meaning: '申请；申请材料' }, { word: 'system', meaning: '系统' }] },
-  q6: { verbs: [{ word: 'refuse', meaning: '拒绝' }, { word: 'submit to', meaning: '屈从于；服从' }], nouns: [{ word: 'decision', meaning: '决定' }] },
-  q7: { verbs: [{ word: 'have', meaning: '产生；带来（影响）' }], nouns: [{ word: 'plan', meaning: '方案；计划' }, { word: 'impact', meaning: '重大影响；强烈作用' }, { word: 'environment', meaning: '环境' }] },
-  q8: { verbs: [{ word: 'make', meaning: '造成；带来' }], nouns: [{ word: 'speech', meaning: '演讲' }, { word: 'impact', meaning: '影响；冲击' }, { word: 'audience', meaning: '观众' }] },
-  q9: { verbs: [{ word: 'impact', meaning: '影响；对……产生作用' }], nouns: [{ word: 'policy', meaning: '政策' }, { word: 'business', meaning: '企业' }] },
-  q10: { verbs: [{ word: 'need', meaning: '需要' }], nouns: [{ word: 'framework', meaning: '框架；支撑结构' }, { word: 'project', meaning: '项目' }] },
-  q11: { verbs: [{ word: 'help', meaning: '帮助；促使' }, { word: 'make', meaning: '做出（决定）' }], nouns: [{ word: 'framework', meaning: '框架' }, { word: 'team', meaning: '团队' }, { word: 'decision', meaning: '决定' }] },
-  q12: { verbs: [{ word: 'build', meaning: '搭建；建立' }, { word: 'add', meaning: '补充；添加' }], nouns: [{ word: 'framework', meaning: '框架' }, { word: 'detail', meaning: '细节' }] },
-  q13: { verbs: [{ word: 'provide', meaning: '提供' }], nouns: [{ word: 'study', meaning: '研究' }, { word: 'evidence', meaning: '证据；可检验的依据' }] },
-  q14: { verbs: [{ word: 'work', meaning: '起作用；有效' }], nouns: [{ word: 'evidence', meaning: '证据' }, { word: 'method', meaning: '方法' }] },
-  q15: { verbs: [{ word: 'assess', meaning: '评估；衡量后作出判断' }], nouns: [{ word: 'risk', meaning: '风险' }, { word: 'decision', meaning: '决定' }] },
-  q16: { verbs: [{ word: 'assess', meaning: '评估；系统判断' }], nouns: [{ word: 'manager', meaning: '经理' }, { word: 'team', meaning: '团队' }, { word: 'performance', meaning: '表现；绩效' }] },
-  q17: { verbs: [{ word: 'manage', meaning: '管理' }], nouns: [{ word: 'account', meaning: '账户' }, { word: 'people', meaning: '人们' }] },
-  q18: { verbs: [{ word: 'issue', meaning: '发布；正式发出' }], nouns: [{ word: 'statement', meaning: '声明' }] },
-  q19: { verbs: [{ word: 'build', meaning: '建立；逐步搭建' }], nouns: [{ word: 'confidence', meaning: '自信' }, { word: 'practice', meaning: '练习' }] },
-  q20: { verbs: [{ word: 'build', meaning: '建立；逐步构建' }], nouns: [{ word: 'company', meaning: '公司' }, { word: 'relationship', meaning: '关系' }, { word: 'client', meaning: '客户' }] },
-};
-
-const glossary = computed(() => {
-  const baseId = item.value?.id?.replace(/-\d+$/, '');
-  return baseId ? sentenceGlossary[baseId] : undefined;
-});
-
-// ── Computed ──
-const done = computed(() => answers.value.length === items.value.length && items.value.length > 0);
+  // ── Computed ──
+  const glossary = computed(() => item.value?.glossary);
+  const done = computed(() => answers.value.length === items.value.length && items.value.length > 0);
 const item = computed(() => items.value[index.value]);
 const correctCount = computed(() => answers.value.filter((a) => a.correct).length);
-const canSubmit = computed(() => !!(result.value || input.value.trim()));
+const canSubmit = computed(() => !!(result.value || input.value.trim()) && !submitting.value);
 
 // ── Methods ──
 function reset() {
-  items.value = generateQuiz(direction.value, wordId.value);
-  index.value = 0;
-  input.value = "";
-  result.value = null;
-  answers.value = [];
-  showReview.value = false;
-  showHint.value = false;
+  loading.value = true;
+  loadError.value = "";
+  generateQuiz(direction.value, wordId.value)
+    .then((quizItems) => {
+      items.value = quizItems;
+      index.value = 0;
+      input.value = "";
+      result.value = null;
+      answers.value = [];
+      showReview.value = false;
+      showHint.value = false;
+    })
+    .catch((e: any) => {
+      loadError.value = e?.message || "加载题目失败，请重试";
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 }
 
 function goBack() {
@@ -323,9 +326,18 @@ function onInput(e: any) {
 function submit() {
   if (!canSubmit.value) return;
   if (!result.value) {
-    // 提交判分
-    const judged = judgeAnswer(item.value, input.value, direction.value);
-    result.value = judged;
+    // 提交判分（异步 API-first，降级由 quizEngine 内部处理）
+    submitting.value = true;
+    judgeAnswer(item.value, input.value, direction.value)
+      .then((judged) => {
+        result.value = judged;
+      })
+      .catch((e: any) => {
+        uni.showToast({ title: e?.message || "判分失败", icon: "none" });
+      })
+      .finally(() => {
+        submitting.value = false;
+      });
   } else {
     // 下一题
     answers.value = [...answers.value, result.value];
@@ -338,7 +350,18 @@ function submit() {
 onLoad((options: any) => {
   direction.value = (options?.direction as QuizDirection) || "zh2en";
   wordId.value = options?.wordId || undefined;
-  items.value = generateQuiz(direction.value, wordId.value);
+  loading.value = true;
+  loadError.value = "";
+  generateQuiz(direction.value, wordId.value)
+    .then((quizItems) => {
+      items.value = quizItems;
+    })
+    .catch((e: any) => {
+      loadError.value = e?.message || "加载题目失败，请重试";
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 });
 </script>
 
@@ -594,6 +617,7 @@ onLoad((options: any) => {
     &--disabled {
       background: #cbd5e1; /* Phase1(src): QuizView.tsx:134 — #CBD5E1 */
       box-shadow: none;
+      pointer-events: none;
       /* #ifdef H5 */
       cursor: not-allowed;
       /* #endif */
@@ -698,6 +722,32 @@ onLoad((options: any) => {
       background: #fff1f2;
       color: #9f1239;
     }
+  }
+
+  /* ── Status (loading / error) ── */
+  &__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 160rpx 48rpx 80rpx;
+  }
+
+  &__status-text {
+    font-size: 28rpx;
+    color: #6b7280;
+  }
+
+  &__btn-retry {
+    margin-top: 32rpx;
+    padding: 20rpx 48rpx;
+    border-radius: 24rpx;
+    background: #2563eb;
+    color: #fff;
+    font-size: 26rpx;
+    /* #ifdef H5 */
+    cursor: pointer;
+    /* #endif */
   }
 
   /* ── Persistent bottom action bar (in flex flow, always at viewport bottom) ── */

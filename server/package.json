@@ -13,11 +13,13 @@
     "start": "node dist/index.js",
     "lint": "eslint src/ --ext .ts",
     "test": "jest --passWithNoTests",
+    "seed": "tsx src/seed/index.ts",
     "db:init": "tsx src/seed/index.ts",
     "db:seed": "tsx src/seed/index.ts",
     "db:clean": "tsx -e \"const mongoose = require('mongoose'); require('dotenv').config(); mongoose.connect(process.env.MONGODB_URI).then(() => Promise.all([mongoose.connection.dropCollection('users'), mongoose.connection.dropCollection('words'), mongoose.connection.dropCollection('wordbanks')])).then(() => { console.log('All collections dropped'); process.exit(0); }).catch((err) => { console.error(err.message); process.exit(1); })\""
   },
   "dependencies": {
+    "@english-dict/shared": "file:../shared",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

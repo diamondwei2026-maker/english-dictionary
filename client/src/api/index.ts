@@ -45,6 +45,8 @@ export type { GenerateWordStreamCallbacks } from "./ai";
 
 export { fetchMyNotes, fetchNotesByWord, createNote, deleteNote, fetchPublicNotesByWord, toggleLikeNote } from "./notes";
 
+export { fetchQuestions, submitAnswer, fetchHistory, fetchStats } from "./quiz";
+
 export {
   adaptWord,
   adaptWordList,

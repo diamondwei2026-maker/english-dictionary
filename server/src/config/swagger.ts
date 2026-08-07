@@ -147,6 +147,7 @@ const options: swaggerJsdoc.Options = {
       { name: "AI", description: "AI 词条生成" },
       { name: "Daily Word", description: "今日一词" },
       { name: "Dashboard", description: "管理后台" },
+      { name: "Quiz", description: "短句翻译训练 — 出题、判分、答题历史与统计" },
       { name: "Health", description: "健康检查" },
     ],
     paths: {
@@ -853,6 +854,202 @@ const options: swaggerJsdoc.Options = {
                   },
                 },
               },
+            },
+          },
+        },
+      },
+
+      // ==================== Quiz ====================
+      "/api/v1/quiz/questions": {
+        get: {
+          tags: ["Quiz"],
+          summary: "获取训练题目",
+          description:
+            "按方向随机获取 10 道训练题目（或可用的最大数量）。可选认证 — 已登录用户自动排除 24h 内已答题。wordId 参数可用于单词专项练习。",
+          security: [],
+          parameters: [
+            {
+              name: "direction",
+              in: "query",
+              required: true,
+              schema: { type: "string", enum: ["zh2en", "en2zh"] },
+              description: "训练方向：zh2en=中译英，en2zh=英译中",
+            },
+            {
+              name: "wordId",
+              in: "query",
+              required: false,
+              schema: { type: "string" },
+              description: "单词 ID — 传入后优先返回围绕该单词的题目",
+            },
+          ],
+          responses: {
+            "200": {
+              description: "成功",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      data: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            _id: { type: "string" },
+                            prompt: { type: "string", example: "他牢牢地抓住了这个机会" },
+                            hint: { type: "string", example: "g****" },
+                            direction: { type: "string", example: "zh2en" },
+                            reference: { type: "string", example: "He grasped the opportunity firmly." },
+                            keywords: { type: "array", items: { type: "string" } },
+                            analysis: { type: "string" },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "参数错误",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            },
+          },
+        },
+      },
+      "/api/v1/quiz/submit": {
+        post: {
+          tags: ["Quiz"],
+          summary: "提交判分",
+          description:
+            "提交用户翻译答案，服务端按关键词命中率（70%）+ LCS 序列相似度（30%）综合判分。可选认证 — 已登录用户自动保存 QuizAttempt 记录。",
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["questionId", "userInput"],
+                  properties: {
+                    questionId: { type: "string", example: "64a1b2c3d4e5f6a7b8c9d0e1" },
+                    userInput: {
+                      type: "string",
+                      maxLength: 2000,
+                      example: "He grasped the opportunity firmly.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "判分结果",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      correct: { type: "boolean", example: true },
+                      score: { type: "integer", example: 95 },
+                      matched: { type: "array", items: { type: "string" } },
+                      missing: { type: "array", items: { type: "string" } },
+                      analysis: { type: "string" },
+                    },
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "参数校验失败",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            },
+            "404": {
+              description: "题目不存在",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            },
+          },
+        },
+      },
+      "/api/v1/quiz/history": {
+        get: {
+          tags: ["Quiz"],
+          summary: "答题历史",
+          description: "获取当前用户的答题历史，按提交时间降序排列。🔒 需认证。",
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { name: "page", in: "query", schema: { type: "integer", default: 1 }, description: "页码" },
+            { name: "limit", in: "query", schema: { type: "integer", default: 20 }, description: "每页条数" },
+          ],
+          responses: {
+            "200": {
+              description: "成功",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      data: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            questionId: { type: "string" },
+                            prompt: { type: "string" },
+                            direction: { type: "string" },
+                            userInput: { type: "string" },
+                            score: { type: "integer" },
+                            correct: { type: "boolean" },
+                            reference: { type: "string" },
+                            submittedAt: { type: "string", format: "date-time" },
+                          },
+                        },
+                      },
+                      pagination: { $ref: "#/components/schemas/Pagination" },
+                    },
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "未认证",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
+            },
+          },
+        },
+      },
+      "/api/v1/quiz/stats": {
+        get: {
+          tags: ["Quiz"],
+          summary: "训练统计",
+          description: "获取当前用户的训练统计数据（总题数、正确率、最近 7 天趋势）。🔒 需认证。",
+          security: [{ bearerAuth: [] }],
+          responses: {
+            "200": {
+              description: "成功",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      totalQuestions: { type: "integer", example: 42 },
+                      correctRate: { type: "integer", example: 71 },
+                      recentTrend: {
+                        type: "array",
+                        items: { type: "integer" },
+                        example: [3, 5, 0, 8, 2, 6, 4],
+                        description: "最近 7 天每日答题数（索引 0 = 7 天前，索引 6 = 今天）",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "未认证",
+              content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } },
             },
           },
         },

@@ -8,6 +8,7 @@ import { aiRoutes } from "./ai.routes.js";
 import { dailyWordRoutes } from "./daily-word.routes.js";
 import { dashboardRoutes } from "./dashboard.routes.js";
 import { notesRoutes } from "./notes.routes.js";
+import { quizRoutes } from "./quiz.routes.js";
 
 export const routes: RouterType = Router();
 
@@ -21,6 +22,7 @@ routes.use("/words", wordRoutes);
 routes.use("/daily-word", dailyWordRoutes);
 routes.use("/admin/dashboard", dashboardRoutes);
 routes.use("/notes", notesRoutes);
+routes.use("/quiz", quizRoutes);
 
 // 兜底 404
 routes.all("*", (_req, res) => {
