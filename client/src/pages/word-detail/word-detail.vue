@@ -274,7 +274,7 @@ import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import {
   fetchWordDetail,
-  fetchWordbankById,
+  fetchWordbanks,
   fetchPublicNotesByWord,
   createNote,
   favoriteWord,
@@ -337,9 +337,10 @@ onLoad(async (options: any) => {
     const detail = await fetchWordDetail(wordId.value);
     word.value = detail;
     isFavorited.value = detail.isFavorited ?? false;
-    // 查找词库名
+    // 查找词库名（通过 wordIds）
     try {
-      const lib = await fetchWordbankById(detail.libraryId);
+      const { libraries } = await fetchWordbanks({ pageSize: 50 });
+      const lib = libraries.find(l => l.wordIds?.includes(wordId.value));
       libraryName.value = lib?.name || "";
     } catch {
       libraryName.value = "";

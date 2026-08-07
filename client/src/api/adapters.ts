@@ -112,7 +112,6 @@ function adaptExtendedMeaning(be: BackendExtendedMeaning): ExtendedMeaning {
 export function adaptWord(be: BackendWord): Word {
   return {
     id: be._id ? String(be._id) : "",
-    libraryId: String(be.wordbankId),
     word: be.word,
     phonetic: be.phonetic || "",
     coreMeaning: be.coreMeaning,
@@ -145,6 +144,7 @@ export function adaptWordbank(
     name: be.name,
     description: be.description,
     wordCount: wordCount ?? be.wordCount ?? 0,
+    wordIds: [],
     createdAt: be.createdAt || "",
   };
 }

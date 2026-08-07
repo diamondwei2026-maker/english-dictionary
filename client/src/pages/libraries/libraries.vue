@@ -26,13 +26,13 @@
         <view class="libraries-page__card-bottom">
           <view class="libraries-page__card-stats">
             <text class="libraries-page__card-count"
-              >{{ lib.wordCount }} 个单词</text
+              >{{ lib.wordIds?.length || 0 }} 个单词</text
             >
             <text
-              v-if="lib.wordCount > 0"
+              v-if="(lib.wordIds?.length || 0) > 0"
               class="libraries-page__card-recorded"
             >
-              已收录 {{ lib.wordCount }} 个
+              已收录 {{ lib.wordIds?.length || 0 }} 个
             </text>
           </view>
           <view class="css-arrow libraries-page__card-arrow" />

@@ -26,7 +26,7 @@
           v-for="word in results"
           :key="word.id"
           :word="word"
-          :library-name="getLibraryById(word.libraryId)?.name"
+          :library-name="getLibraryByWordId(word.id)?.name"
           :show-library="true"
           variant="compact"
           @click="goWordDetail(word.id)"
@@ -79,7 +79,7 @@
               v-for="word in allWords"
               :key="word.id"
               :word="word"
-              :library-name="getLibraryById(word.libraryId)?.name ?? ''"
+              :library-name="getLibraryByWordId(word.id)?.name ?? ''"
               :show-library="true"
               variant="default"
               @click="goWordDetail(word.id)"
@@ -143,8 +143,8 @@ function goWordDetail(wordId: string) {
   uni.navigateTo({ url: `/pages/word-detail/word-detail?wordId=${wordId}` });
 }
 
-function getLibraryById(id: string): WordLibrary | undefined {
-  return libraries.value.find(l => l.id === id);
+function getLibraryByWordId(wordId: string): WordLibrary | undefined {
+  return libraries.value.find(l => l.wordIds?.includes(wordId));
 }
 </script>
 

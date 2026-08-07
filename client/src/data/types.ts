@@ -11,7 +11,6 @@ export interface ExtendedMeaning {
 
 export interface Word {
   id: string;
-  libraryId: string;
   word: string;
   phonetic: string;
   coreMeaning: string;
@@ -29,6 +28,7 @@ export interface WordLibrary {
   name: string;
   description: string;
   wordCount: number;
+  wordIds: string[];
   createdAt: string;
 }
 

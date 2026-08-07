@@ -34,7 +34,7 @@ interface BackendWordListResponse {
 
 export interface CreateWordInput {
   word: string;
-  wordbankId: string;
+  wordbankId?: string;
   phonetic?: string;
   coreMeaning: string;
   coreExampleEn: string;

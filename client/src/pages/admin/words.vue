@@ -46,14 +46,6 @@
           <SectionLabel>基本信息</SectionLabel>
           <view class="admin-words__card">
             <view class="admin-words__field">
-              <text class="admin-words__label">所属词库</text>
-              <AdaptiveSelect
-                v-model="form.libraryId"
-                :options="libraryOptions"
-                placeholder="选择词库"
-              />
-            </view>
-            <view class="admin-words__field">
               <text class="admin-words__label">音标</text>
               <input
                 v-model="form.phonetic"
@@ -236,7 +228,7 @@
 
         <!-- Save/Cancel -->
         <view class="admin-words__form-actions">
-          <PrimaryButton :disabled="!form.word || !form.libraryId || saving" :loading="saving" @click="handleSave">
+          <PrimaryButton :disabled="!form.word || saving" :loading="saving" @click="handleSave">
             {{ saving ? '保存中...' : '保存单词' }}
           </PrimaryButton>
           <PrimaryButton v-if="!isNew" ghost @click="cancelEdit">取消</PrimaryButton>
@@ -280,7 +272,6 @@
               </view>
               <text class="admin-words__list-card-meaning">{{ w.coreMeaning }}</text>
               <view class="admin-words__list-card-badges">
-                <text v-if="getLibName(w.libraryId)" class="admin-words__list-card-badge admin-words__list-card-badge--lib">{{ getLibName(w.libraryId) }}</text>
                 <text class="admin-words__list-card-badge">{{ w.extendedMeanings.length }} 个引申义</text>
               </view>
             </view>
@@ -298,10 +289,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
-import type { Word, WordLibrary, ExtendedMeaning } from '@/data/types';
+import type { Word, ExtendedMeaning } from '@/data/types';
 import {
   fetchWords,
-  fetchWordbanks,
   createWord,
   updateWord,
   deleteWord,
@@ -321,9 +311,6 @@ import SearchBar from '@/components/SearchBar.vue';
 import PhysicalImage from '@/components/PhysicalImage.vue';
 import AdaptiveSelect from '@/components/AdaptiveSelect.vue';
 
-// Libraries (loaded for dropdown options)
-const libraryMap = ref<Record<string, string>>({});
-const libraryOptions = ref<Array<{ label: string; value: string }>>([]);
 const posOptions = computed(() => POS_OPTIONS.map(p => ({ label: p, value: p })));
 
 // Word list state
@@ -351,28 +338,11 @@ async function loadWords() {
   loading.value = false;
 }
 
-async function loadLibraries() {
-  try {
-    const result = await fetchWordbanks({ pageSize: 50 });
-    libraryOptions.value = result.libraries.map(l => ({ label: l.name, value: l.id }));
-    const map: Record<string, string> = {};
-    result.libraries.forEach(l => { map[l.id] = l.name; });
-    libraryMap.value = map;
-  } catch {
-    // keep defaults
-  }
-}
-
 onShow(() => {
   if (editWord.value === null) {
     loadWords();
-    loadLibraries();
   }
 });
-
-function getLibName(libId: string): string {
-  return libraryMap.value[libId] || '';
-}
 
 // ── Edit form state ──
 
@@ -382,7 +352,6 @@ const isNew = ref(false);
 interface EditForm {
   id: string;
   word: string;
-  libraryId: string;
   phonetic: string;
   coreMeaning: string;
   coreImageType: string;
@@ -397,7 +366,6 @@ interface EditForm {
 const form = reactive<EditForm>({
   id: '',
   word: '',
-  libraryId: '',
   phonetic: '',
   coreMeaning: '',
   coreImageType: 'flow',
@@ -419,7 +387,6 @@ const inputFocus = useInputFocus();
 function resetForm() {
   form.id = '';
   form.word = '';
-  form.libraryId = libraryOptions.value[0]?.value || '';
   form.phonetic = '';
   form.coreMeaning = '';
   form.coreImageType = 'flow';
@@ -445,7 +412,6 @@ function openEdit(w: Word) {
   isNew.value = false;
   form.id = w.id;
   form.word = w.word;
-  form.libraryId = w.libraryId;
   form.phonetic = w.phonetic;
   form.coreMeaning = w.coreMeaning;
   form.coreImageType = w.coreImageType;
@@ -470,8 +436,8 @@ function onWordChange() {
 // ── AI Generation ──
 
 async function handleAI() {
-  if (!form.word || !form.libraryId) {
-    uni.showToast({ title: '请先输入单词并选择词库', icon: 'none' });
+  if (!form.word) {
+    uni.showToast({ title: '请先输入单词', icon: 'none' });
     return;
   }
   if (aiLoading.value) return;
@@ -494,7 +460,7 @@ async function handleAI() {
 
   try {
     // 优先走 SSE 流式，避免 V4 Pro 非流式超时
-    await generateWordStream(form.word, form.libraryId, !!form.coreMeaning, {
+    await generateWordStream(form.word, '', !!form.coreMeaning, {
       onThinking(msg) {
         // 仅改变按钮文案让用户感知进度
         // aiLoading 已是 true，按钮已显示 spinner + "正在生成..."
@@ -510,7 +476,7 @@ async function handleAI() {
   } catch {
     // SSE 失败（如小程序端不支持 ReadableStream），降级到非流式
     try {
-      const generated = await generateWord(form.word, form.libraryId);
+      const generated = await generateWord(form.word);
       applyWord(generated);
     } catch (err: any) {
       uni.showToast({ title: err?.message || 'AI 生成失败', icon: 'none' });
@@ -571,13 +537,12 @@ function onFieldBlur(e: any) {
 // ── Save / Delete ──
 
 async function handleSave() {
-  if (!form.word || !form.libraryId) return;
+  if (!form.word) return;
   const collocations = colInput.value.split(/[,，、]/).map(s => s.trim()).filter(Boolean);
   saving.value = true;
 
   const wordData: CreateWordInput = {
     word: form.word,
-    wordbankId: form.libraryId,
     phonetic: form.phonetic,
     coreMeaning: form.coreMeaning,
     coreExampleEn: form.coreExampleSentence,

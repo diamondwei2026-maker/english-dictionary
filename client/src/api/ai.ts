@@ -38,7 +38,7 @@ interface BackendWordResponse {
  */
 export async function generateWord(
   wordName: string,
-  wordbankId: string,
+  wordbankId?: string,
   force = false
 ): Promise<Word> {
   const query = force ? "?force=true" : "";
@@ -95,8 +95,8 @@ export interface GenerateWordStreamCallbacks {
  */
 export async function generateWordStream(
   wordName: string,
-  wordbankId: string,
-  force: boolean,
+  wordbankId?: string,
+  force: boolean = false,
   callbacks: GenerateWordStreamCallbacks
 ): Promise<void> {
   const query = force ? "?force=true" : "";

@@ -3,21 +3,32 @@
 | 属性 | 值 |
 |------|-----|
 | 同步结果 | HAS-GAP-DESIGN |
-| 最后同步 | 2026-08-06 |
-| 已处理计划 | app-whimsical-tiger.md, app-piped-torvalds.md, immutable-snacking-bear.md, app-app-ai-apple-linear-notion-inter-24-bubbly-hamming.md, app-app-apple-linear-notion-inter-24px-gentle-axolotl.md |
-| 新需求标识 | training-backend |
+| 最后同步 | 2026-08-07 |
+| 已处理计划 | app-whimsical-tiger.md, app-piped-torvalds.md, immutable-snacking-bear.md, app-app-ai-apple-linear-notion-inter-24-bubbly-hamming.md, app-app-apple-linear-notion-inter-24px-gentle-axolotl.md, app-flickering-alpaca.md |
+| 新需求标识 | training-backend, figma-sync-20260807 |
 
 ## 差异摘要
 
 ### GAP-UI（已直接实施）
-（无 — 所有 Figma 原型 UI 均已在 uni-app 项目中实现）
+
+| # | 计划 | 描述 | 涉及文件 |
+|---|------|------|---------|
+| 1 | app-flickering-alpaca | 数据层：types.ts 移除 `Word.libraryId`、WordLibrary 新增 `wordIds: string[]` | `client/src/data/types.ts` |
+| 2 | app-flickering-alpaca | 适配器：adaptWord 移除 libraryId 映射、adaptWordbank 新增 wordIds 占位 | `client/src/api/adapters.ts` |
+| 3 | app-flickering-alpaca | API 类型：CreateWordInput/ai 函数 wordbankId 改可选 | `client/src/api/words.ts`, `client/src/api/ai.ts` |
+| 4 | app-flickering-alpaca | admin/words.vue：移除"所属词库"选择器及相关逻辑 | `client/src/pages/admin/words.vue` |
+| 5 | app-flickering-alpaca | home.vue：词库名称查找从 FK 改为 wordIds 匹配 | `client/src/pages/home/home.vue` |
+| 6 | app-flickering-alpaca | word-detail.vue：词库名称查找从 fetchWordbankById 改为 wordIds 匹配 | `client/src/pages/word-detail/word-detail.vue` |
+| 7 | app-flickering-alpaca | admin/libraries.vue：新增"管理单词"功能（已收录单词管理 + 全库搜索添加） | `client/src/pages/admin/libraries.vue` |
+| 8 | app-flickering-alpaca | libraries.vue：wordCount 显示改为 wordIds.length | `client/src/pages/libraries/libraries.vue` |
 
 ### GAP-DESIGN（PRD/ADR 已更新，待 ai-master 接管开发）
 
 | # | 功能模块 | 前端现状 | 后端缺失 | 建议方案 |
 |---|---------|---------|---------|---------|
-| 1 | 短句翻译训练（中译英） | `pages/quiz/quiz.vue`（完整答题 UI）+ `data/quizEngine.ts`（20 条硬编码 mock 题目 + 本地判分引擎） | 无 quiz 路由/控制器/服务/模型；无答题记录持久化；API 层无 quiz 模块 | 新建 QuizResult 模型 + 题目池管理 API + 判分 API；前端 quizEngine.ts 改造对接真实 API |
-| 2 | 英译中训练入口 | `pages/training/training.vue`（disabled + "Coming Soon" 占位） | 同上，依赖 #1 基础设施就绪后解除 disabled | #1 完成后，扩展题目池 en2zh 方向，解除前端 disabled |
+| 1 | 短句翻译训练（中译英） | `pages/quiz/quiz.vue`（完整答题 UI）+ `data/quizEngine.ts`（20 条硬编码 mock 题目 + 本地判分引擎） | 无 quiz 路由/控制器/服务/模型 | 新建 QuizResult 模型 + 题目池管理 API + 判分 API（slug: `training-backend`） |
+| 2 | 英译中训练入口 | `pages/training/training.vue`（disabled + "Coming Soon" 占位） | 同上 | #1 完成后扩展题目池 en2zh 方向 |
+| 3 | Word ↔ WordLibrary M:N 关系（后端） | `client/src/api/adapters.ts` 中 `adaptWordbank` 的 `wordIds: []` 占位 | WordBank Model 缺 `wordIds` 字段；无管理 wordIds 的 API 端点 | WordBank Model 新增 `wordIds: ObjectId[]` + PUT/DELETE `/api/v1/wordbanks/:id/words`（slug: `figma-sync-20260807`） |
 
 ### GAP-DIFF（已随对应分类处理）
 
@@ -25,17 +36,6 @@
 
 ## 同步步骤完成状态
 - [x] 阶段 1：差异发现与分类
-- [x] 阶段 2：PRD + ADR 更新（训练模块后端 API 需 ADR 决策）
-- [ ] 阶段 3：代码实施（GAP-DESIGN 项需 ai-master 接管开发）
+- [x] 阶段 2：PRD + ADR 更新
+- [x] 阶段 3：代码实施（app-flickering-alpaca 前端已完成；training-backend 待 ai-master）
 - [x] 阶段 4：文档收尾 + 构建验证
-
-## 本次同步说明
-
-经 4 维度差异分析（数据层/UI 层/路由状态 API 层/实现完整度），NotesView 和社区笔记功能均已在前端和后端完整实现。但**短句翻译训练模块**存在后端盲区：
-
-- 前端 `quiz.vue` + `training.vue` + `quizEngine.ts` 已完整实现 UI 和交互逻辑
-- `quizEngine.ts` 明确标注"纯前端判分引擎（本地模拟版）"、"后续接 Supabase/LLM 时只需替换"
-- 但 `server/src/` 中**完全不存在** quiz/training 相关的路由、控制器、服务、模型
-- 答题结果页面离开即丢失，无持久化
-
-标记为 **HAS-GAP-DESIGN**（而非 NO-GAPS），需 ai-master 重新规划，生成后端开发 Task（slug: `training-backend`）。

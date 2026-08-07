@@ -2,9 +2,9 @@
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.4 |
+| 版本 | v1.5 |
 | 状态 | 已实现 |
-| 最后更新 | 2026-07-30 |
+| 最后更新 | 2026-08-07 |
 | 作者 | Claude (ADR Architect) |
 | 日期 | 2026-07-07 |
 | 关联文档 | [前端 ADR](./client.md) |
@@ -343,10 +343,15 @@ User (用户)
   cover_image: string;                // 封面图 URL
   gradient: string;                   // 卡片渐变色
   is_public: boolean;                 // 是否公开（默认 true）
+  wordIds: ObjectId[];                // 🆕 2026-08-07 前端已先行（M:N 关系），后端待实现
   createdAt: Date;
   updatedAt: Date;
 }
 ```
+
+> **计划变更（2026-08-07）**：Word ↔ WordBank 关系从 1:N（Word 持有 `wordbankId`）改为 M:N（WordBank 持有 `wordIds: ObjectId[]`）。
+> 前端已移除 `Word.libraryId` 并在 `WordLibrary` 新增 `wordIds: string[]`，管理后台新增"管理单词"功能。
+> 后端需同步：WordBank Model 新增 `wordIds` 字段、新增 `/api/v1/wordbanks/:id/words` 的 PUT/DELETE 端点（管理 wordIds 数组）、逐步废弃 Word 文档的 `wordbankId` 字段。
 
 #### Word
 
