@@ -6,6 +6,7 @@ export const mockLibraries: WordLibrary[] = [
     name: '基础高频词汇',
     description: '覆盖日常英语交流90%的核心词汇。从物理意象出发，重建每个词最原始的感知锚点。',
     wordCount: 156,
+    wordIds: ['w1', 'w2', 'w3', 'w4'],
     createdAt: '2024-01-15',
   },
   {
@@ -13,6 +14,7 @@ export const mockLibraries: WordLibrary[] = [
     name: '商务职场英语',
     description: '职场商务场景必备词汇。掌握词根意象后，任何商务语境都能灵活应对。',
     wordCount: 89,
+    wordIds: ['w7'],
     createdAt: '2024-02-20',
   },
   {
@@ -20,6 +22,7 @@ export const mockLibraries: WordLibrary[] = [
     name: '学术写作词汇',
     description: '学术论文高频词汇，以认知语言学方法构建精准语感，摆脱中文逻辑束缚。',
     wordCount: 234,
+    wordIds: ['w6'],
     createdAt: '2024-03-10',
   },
   {
@@ -27,6 +30,7 @@ export const mockLibraries: WordLibrary[] = [
     name: '动词专项精讲',
     description: '英语核心动词深度解析。每个动词背后的物理动作模型，是所有引申义的根源。',
     wordCount: 67,
+    wordIds: ['w5', 'w8'],
     createdAt: '2024-04-05',
   },
 ];
@@ -34,7 +38,6 @@ export const mockLibraries: WordLibrary[] = [
 export const mockWords: Word[] = [
   {
     id: 'w1',
-    libraryId: 'lib1',
     word: 'flow',
     phonetic: '/fləʊ/',
     coreMeaning: '液体受重力与压差驱动，沿阻力最小的路径持续、平稳地移动',
@@ -79,7 +82,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w2',
-    libraryId: 'lib1',
     word: 'grasp',
     phonetic: '/ɡrɑːsp/',
     coreMeaning: '手指主动弯曲，形成包围接触，通过多点摩擦力将物体牢固控制在手中',
@@ -116,7 +118,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w3',
-    libraryId: 'lib1',
     word: 'break',
     phonetic: '/breɪk/',
     coreMeaning: '外力超过物体内部结合力临界点，使连续的固体结构在应力集中处永久分离',
@@ -161,7 +162,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w4',
-    libraryId: 'lib1',
     word: 'bear',
     phonetic: '/beər/',
     coreMeaning: '身体或结构通过自身强度和稳定性，将外部施加的重量向下传导至支撑基础',
@@ -198,7 +198,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w5',
-    libraryId: 'lib4',
     word: 'drive',
     phonetic: '/draɪv/',
     coreMeaning: '施加持续力量于物体或动物，迫使其沿特定方向不断前进',
@@ -243,7 +242,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w6',
-    libraryId: 'lib3',
     word: 'illuminate',
     phonetic: '/ɪˈluːmɪneɪt/',
     coreMeaning: '光源发出的光子均匀照射在物体或空间表面，使其从黑暗不可见变为清晰可见',
@@ -272,7 +270,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w7',
-    libraryId: 'lib2',
     word: 'leverage',
     phonetic: '/ˈlevərɪdʒ/',
     coreMeaning: '利用杠杆的力学原理，以小力作用于力臂较长处，在支点另一侧产生成倍放大的力',
@@ -309,7 +306,6 @@ export const mockWords: Word[] = [
   },
   {
     id: 'w8',
-    libraryId: 'lib4',
     word: 'yield',
     phonetic: '/jiːld/',
     coreMeaning: '材料或结构在外力超过其弹性极限时，停止抵抗并发生永久形变或弯曲',

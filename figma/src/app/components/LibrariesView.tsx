@@ -35,7 +35,6 @@ export function LibrariesView({ navigate }: LibrariesViewProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {mockLibraries.map((lib, index) => {
             const color = libraryColors[index % libraryColors.length];
-            const wordsInLib = mockWords.filter(w => w.libraryId === lib.id);
 
             return (
               <button
@@ -74,16 +73,9 @@ export function LibrariesView({ navigate }: LibrariesViewProps) {
                       {lib.description}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', gap: '16px' }}>
-                        <span style={{ fontSize: '12px', color: color.accent, fontWeight: 600 }}>
-                          {lib.wordCount} 个单词
-                        </span>
-                        {wordsInLib.length > 0 && (
-                          <span style={{ fontSize: '12px', color: '#9CA3AF' }}>
-                            已收录 {wordsInLib.length} 个
-                          </span>
-                        )}
-                      </div>
+                      <span style={{ fontSize: '12px', color: color.accent, fontWeight: 600 }}>
+                        {lib.wordIds.length} 个单词
+                      </span>
                       <ArrowRight size={16} color={color.accent} />
                     </div>
                   </div>
@@ -106,7 +98,7 @@ interface LibraryWordsViewProps {
 
 export function LibraryWordsView({ libraryId, navigate }: LibraryWordsViewProps) {
   const library = mockLibraries.find(l => l.id === libraryId);
-  const words = mockWords.filter(w => w.libraryId === libraryId);
+  const words = library ? mockWords.filter(w => library.wordIds.includes(w.id)) : [];
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F9FC' }}>

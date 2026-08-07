@@ -179,7 +179,7 @@ export function HomeView({ navigate }: HomeViewProps) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {mockWords.map(word => {
-                const lib = mockLibraries.find(l => l.id === word.libraryId);
+                const lib = mockLibraries.find(l => l.wordIds.includes(word.id));
                 return (
                   <button
                     key={word.id}

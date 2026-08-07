@@ -222,27 +222,223 @@ function Overview({ libraries, words, onNavigate, onExit }: {
 }
 
 // ─── Library Manager ──────────────────────────────────────────────────────────
-function LibraryManager({ libraries, words, onAdd, onEdit, onDelete, onBack }: {
+function LibraryManager({ libraries, words, onAdd, onEdit, onDelete, onAddWordToLib, onRemoveWordFromLib, onBack }: {
   libraries: WordLibrary[];
   words: Word[];
   onAdd: (l: Omit<WordLibrary, 'id' | 'createdAt'>) => void;
   onEdit: (id: string, d: Partial<WordLibrary>) => void;
   onDelete: (id: string) => void;
+  onAddWordToLib: (libId: string, wordId: string) => void;
+  onRemoveWordFromLib: (libId: string, wordId: string) => void;
   onBack: () => void;
 }) {
   const [editTarget, setEditTarget] = useState<WordLibrary | 'new' | null>(null);
+  const [managingLibId, setManagingLibId] = useState<string | null>(null);
+  const [addingToLibId, setAddingToLibId] = useState<string | null>(null);
+  const [wordSearch, setWordSearch] = useState('');
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
 
-  const openNew = () => { setName(''); setDesc(''); setEditTarget('new'); };
-  const openEdit = (lib: WordLibrary) => { setName(lib.name); setDesc(lib.description); setEditTarget(lib); };
+  const openNew = () => { setName(''); setDesc(''); setWordSearch(''); setEditTarget('new'); };
+  const openEdit = (lib: WordLibrary) => { setName(lib.name); setDesc(lib.description); setWordSearch(''); setEditTarget(lib); };
   const handleSave = () => {
     if (!name.trim()) return;
-    if (editTarget === 'new') onAdd({ name, description: desc, wordCount: 0 });
+    if (editTarget === 'new') onAdd({ name, description: desc, wordCount: 0, wordIds: [] });
     else if (editTarget) onEdit(editTarget.id, { name, description: desc });
     setEditTarget(null);
   };
 
+  // ── 全库搜索添加子视图 ────────────────────────────────────────────────────────
+  if (addingToLibId !== null) {
+    const addingLib = libraries.find(l => l.id === addingToLibId);
+    if (!addingLib) { setAddingToLibId(null); return null; }
+
+    const searchTrimmed = wordSearch.trim().toLowerCase();
+    const searchResults = searchTrimmed
+      ? words.filter(w => w.word.toLowerCase().includes(searchTrimmed) || w.coreMeaning.includes(wordSearch.trim()))
+      : [];
+
+    return (
+      <div style={{ minHeight: '100vh', background: BG }}>
+        <PageHeader onBack={() => { setAddingToLibId(null); setWordSearch(''); }} backLabel={addingLib.name}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: 0 }}>添加单词</h1>
+        </PageHeader>
+
+        <div style={{ padding: '8px 24px 40px' }}>
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+            <input
+              value={wordSearch}
+              onChange={e => setWordSearch(e.target.value)}
+              placeholder="搜索单词名称或核心义..."
+              style={{ ...INPUT, paddingLeft: '40px' }}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              autoFocus
+            />
+            {wordSearch && (
+              <button
+                onClick={() => setWordSearch('')}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {!searchTrimmed ? (
+            <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
+              <Search size={28} style={{ marginBottom: '10px', opacity: 0.25 }} />
+              <p style={{ fontSize: '14px' }}>输入关键词搜索全库单词</p>
+            </div>
+          ) : searchResults.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF' }}>
+              <Type size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+              <p style={{ fontSize: '14px' }}>未找到匹配的单词</p>
+            </div>
+          ) : (
+            <>
+              <SLabel>找到 {searchResults.length} 个单词</SLabel>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {searchResults.map(word => {
+                  const inLib = addingLib.wordIds.includes(word.id);
+                  return (
+                    <div key={word.id} style={{ ...CARD, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
+                          <span style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>{word.word}</span>
+                          <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{word.phonetic}</span>
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {word.coreMeaning}
+                        </p>
+                      </div>
+                      {inLib ? (
+                        <span style={{ fontSize: '11px', color: '#059669', background: '#ECFDF5', padding: '4px 10px', borderRadius: '20px', fontWeight: 500, flexShrink: 0 }}>
+                          已收录
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => onAddWordToLib(addingLib.id, word.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 14px', background: '#2563EB', border: 'none', borderRadius: '20px', cursor: 'pointer', color: '#fff', fontSize: '12px', fontWeight: 600, flexShrink: 0 }}
+                        >
+                          <Plus size={12} />添加
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── 词库详情子视图（已收录单词列表）────────────────────────────────────────────
+  if (managingLibId !== null) {
+    const managingLib = libraries.find(l => l.id === managingLibId);
+    if (!managingLib) { setManagingLibId(null); return null; }
+
+    const libSearchTrimmed = wordSearch.trim().toLowerCase();
+    const addedWords = words.filter(w => managingLib.wordIds.includes(w.id));
+    const displayedWords = libSearchTrimmed
+      ? addedWords.filter(w => w.word.toLowerCase().includes(libSearchTrimmed) || w.coreMeaning.includes(wordSearch.trim()))
+      : addedWords;
+
+    return (
+      <div style={{ minHeight: '100vh', background: BG }}>
+        <PageHeader
+          onBack={() => { setManagingLibId(null); setWordSearch(''); }}
+          backLabel="词库列表"
+          right={
+            <button
+              onClick={() => { setAddingToLibId(managingLib.id); setWordSearch(''); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '20px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+            >
+              <Plus size={14} />添加单词
+            </button>
+          }
+        >
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
+            {managingLib.name}
+          </h1>
+          <p style={{ fontSize: '13px', color: '#9CA3AF', margin: 0 }}>
+            已收录 {managingLib.wordIds.length} 个单词
+          </p>
+        </PageHeader>
+
+        <div style={{ padding: '8px 24px 40px' }}>
+          {addedWords.length > 0 && (
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+              <input
+                value={wordSearch}
+                onChange={e => setWordSearch(e.target.value)}
+                placeholder="搜索已收录单词..."
+                style={{ ...INPUT, paddingLeft: '40px' }}
+                onFocus={onFocus}
+                onBlur={onBlur}
+              />
+              {wordSearch && (
+                <button
+                  onClick={() => setWordSearch('')}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+          )}
+          <SLabel>
+            {libSearchTrimmed ? `搜索结果 ${displayedWords.length} 个` : `已收录 ${addedWords.length} 个`}
+          </SLabel>
+          {addedWords.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
+              <BookOpen size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
+              <p style={{ fontSize: '14px', margin: '0 0 16px' }}>暂无收录单词</p>
+              <button
+                onClick={() => { setAddingToLibId(managingLib.id); setWordSearch(''); }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 20px', background: '#2563EB', color: '#fff', border: 'none', borderRadius: '20px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Plus size={14} />添加单词
+              </button>
+            </div>
+          ) : displayedWords.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF' }}>
+              <Type size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+              <p style={{ fontSize: '14px' }}>未找到匹配的单词</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {displayedWords.map(word => (
+                <div key={word.id} style={{ ...CARD, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>{word.word}</span>
+                      <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{word.phonetic}</span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {word.coreMeaning}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onRemoveWordFromLib(managingLib.id, word.id)}
+                    style={{ padding: '5px 12px', background: '#FEF2F2', border: 'none', borderRadius: '20px', cursor: 'pointer', color: '#DC2626', fontSize: '12px', fontWeight: 500, flexShrink: 0 }}
+                  >
+                    移除
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── 词库表单视图 ─────────────────────────────────────────────────────────────
   if (editTarget !== null) {
     const isNew = editTarget === 'new';
     return (
@@ -274,6 +470,12 @@ function LibraryManager({ libraries, words, onAdd, onEdit, onDelete, onBack }: {
     );
   }
 
+  // ── 词库列表主视图 ───────────────────────────────────────────────────────────
+  const libSearchTrimmed = wordSearch.trim().toLowerCase();
+  const filteredLibraries = libSearchTrimmed
+    ? libraries.filter(l => l.name.toLowerCase().includes(libSearchTrimmed) || l.description.toLowerCase().includes(libSearchTrimmed))
+    : libraries;
+
   return (
     <div style={{ minHeight: '100vh', background: BG }}>
       <PageHeader
@@ -291,23 +493,57 @@ function LibraryManager({ libraries, words, onAdd, onEdit, onDelete, onBack }: {
       </PageHeader>
 
       <div style={{ padding: '8px 24px 40px' }}>
-        <SLabel>共 {libraries.length} 个词库</SLabel>
+        {libraries.length > 0 && (
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }} />
+            <input
+              value={wordSearch}
+              onChange={e => setWordSearch(e.target.value)}
+              placeholder="搜索词库..."
+              style={{ ...INPUT, paddingLeft: '40px' }}
+              onFocus={onFocus}
+              onBlur={onBlur}
+            />
+            {wordSearch && (
+              <button
+                onClick={() => setWordSearch('')}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '2px', display: 'flex' }}
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+        )}
+        <SLabel>
+          {libSearchTrimmed ? `搜索结果 ${filteredLibraries.length} 个` : `共 ${libraries.length} 个词库`}
+        </SLabel>
         {libraries.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
             <BookOpen size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
             <p style={{ fontSize: '14px' }}>暂无词库，点击右上角新增</p>
           </div>
+        ) : filteredLibraries.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF' }}>
+            <BookOpen size={28} style={{ marginBottom: '10px', opacity: 0.3 }} />
+            <p style={{ fontSize: '14px' }}>未找到匹配的词库</p>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {libraries.map(lib => (
+            {filteredLibraries.map(lib => (
               <div key={lib.id} style={{ ...CARD, padding: '20px' }}>
                 <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 6px' }}>{lib.name}</p>
                 <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 14px', lineHeight: 1.6 }}>{lib.description}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '12px', color: '#2563EB', background: '#EFF6FF', padding: '3px 10px', borderRadius: '20px' }}>
-                    {words.filter(w => w.libraryId === lib.id).length} 个单词
+                    {lib.wordIds.length} 个单词
                   </span>
                   <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => { setManagingLibId(lib.id); setWordSearch(''); }}
+                      style={{ padding: '7px 16px', background: '#EFF6FF', border: 'none', borderRadius: '20px', cursor: 'pointer', color: '#2563EB', fontSize: '13px', fontWeight: 500 }}
+                    >
+                      管理单词
+                    </button>
                     <button onClick={() => openEdit(lib)} style={{ padding: '7px 16px', background: '#F1F5F9', border: 'none', borderRadius: '20px', cursor: 'pointer', color: '#374151', fontSize: '13px', fontWeight: 500 }}>
                       编辑
                     </button>
@@ -326,16 +562,14 @@ function LibraryManager({ libraries, words, onAdd, onEdit, onDelete, onBack }: {
 }
 
 // ─── Word Edit Form ───────────────────────────────────────────────────────────
-function WordEditForm({ word, libraries, isNew, onSave, onCancel }: {
+function WordEditForm({ word, isNew, onSave, onCancel }: {
   word: Partial<Word>;
-  libraries: WordLibrary[];
   isNew: boolean;
   onSave: (w: Word) => void;
   onCancel: () => void;
 }) {
   const [form, setForm] = useState<Partial<Word>>({
     id: word.id || genId(),
-    libraryId: word.libraryId || libraries[0]?.id || '',
     word: word.word || '',
     phonetic: word.phonetic || '',
     coreMeaning: word.coreMeaning || '',
@@ -386,7 +620,7 @@ function WordEditForm({ word, libraries, isNew, onSave, onCancel }: {
   };
 
   const handleSave = () => {
-    if (!form.word || !form.libraryId) return;
+    if (!form.word) return;
     onSave({ ...(form as Word), collocations: colInput.split(/[,，、]/).map(s => s.trim()).filter(Boolean) });
   };
 
@@ -435,17 +669,9 @@ function WordEditForm({ word, libraries, isNew, onSave, onCancel }: {
 
       {/* Basic info */}
       <SLabel>基本信息</SLabel>
-      <div style={{ ...CARD, padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <label style={LABEL}>所属词库</label>
-          <select value={form.libraryId || ''} onChange={e => set('libraryId', e.target.value)} style={{ ...INPUT, cursor: 'pointer' }} onFocus={onFocus} onBlur={onBlur}>
-            {libraries.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={LABEL}>音标</label>
-          <input value={form.phonetic || ''} onChange={e => set('phonetic', e.target.value)} placeholder="/fləʊ/" style={INPUT} onFocus={onFocus} onBlur={onBlur} />
-        </div>
+      <div style={{ ...CARD, padding: '20px', marginBottom: '20px' }}>
+        <label style={LABEL}>音标</label>
+        <input value={form.phonetic || ''} onChange={e => set('phonetic', e.target.value)} placeholder="/fləʊ/" style={INPUT} onFocus={onFocus} onBlur={onBlur} />
       </div>
 
       {/* Core meaning */}
@@ -555,7 +781,7 @@ function WordEditForm({ word, libraries, isNew, onSave, onCancel }: {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <PrimaryBtn onClick={handleSave} disabled={!form.word || !form.libraryId}>保存单词</PrimaryBtn>
+        <PrimaryBtn onClick={handleSave} disabled={!form.word}>保存单词</PrimaryBtn>
         {!isNew && <PrimaryBtn onClick={onCancel} ghost>取消</PrimaryBtn>}
       </div>
     </div>
@@ -563,9 +789,8 @@ function WordEditForm({ word, libraries, isNew, onSave, onCancel }: {
 }
 
 // ─── Word Manager ─────────────────────────────────────────────────────────────
-function WordManager({ words, libraries, onAdd, onEdit, onDelete, onBack }: {
+function WordManager({ words, onAdd, onEdit, onDelete, onBack }: {
   words: Word[];
-  libraries: WordLibrary[];
   onAdd: (w: Word) => void;
   onEdit: (id: string, w: Word) => void;
   onDelete: (id: string) => void;
@@ -592,7 +817,7 @@ function WordManager({ words, libraries, onAdd, onEdit, onDelete, onBack }: {
           </h1>
         </PageHeader>
         <div style={{ padding: '8px 24px 40px' }}>
-          <WordEditForm word={editWord} libraries={libraries} isNew={!words.find(x => x.id === editWord.id)} onSave={handleSave} onCancel={() => setEditWord(null)} />
+          <WordEditForm word={editWord} isNew={!words.find(x => x.id === editWord.id)} onSave={handleSave} onCancel={() => setEditWord(null)} />
         </div>
       </div>
     );
@@ -645,9 +870,7 @@ function WordManager({ words, libraries, onAdd, onEdit, onDelete, onBack }: {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {filtered.map(word => {
-              const lib = libraries.find(l => l.id === word.libraryId);
-              return (
+            {filtered.map(word => (
                 <div key={word.id} style={{ ...CARD, padding: '16px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -658,10 +881,7 @@ function WordManager({ words, libraries, onAdd, onEdit, onDelete, onBack }: {
                       <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {word.coreMeaning}
                       </p>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {lib && <span style={{ fontSize: '11px', color: '#2563EB', background: '#EFF6FF', padding: '2px 8px', borderRadius: '20px' }}>{lib.name}</span>}
-                        <span style={{ fontSize: '11px', color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: '20px' }}>{word.extendedMeanings.length} 个引申义</span>
-                      </div>
+                      <span style={{ fontSize: '11px', color: '#6B7280', background: '#F3F4F6', padding: '2px 8px', borderRadius: '20px' }}>{word.extendedMeanings.length} 个引申义</span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                       <button onClick={() => setEditWord(word)} style={{ padding: '7px 14px', background: '#F1F5F9', border: 'none', borderRadius: '20px', cursor: 'pointer', color: '#374151', fontSize: '13px', fontWeight: 500 }}>
@@ -673,8 +893,7 @@ function WordManager({ words, libraries, onAdd, onEdit, onDelete, onBack }: {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </div>
@@ -743,6 +962,14 @@ export function AdminView({ navigate, user }: AdminViewProps) {
     if (!window.confirm('确认删除该词库？')) return;
     setLibraries(p => p.filter(l => l.id !== id));
   };
+  const addWordToLib = (libId: string, wordId: string) =>
+    setLibraries(p => p.map(l => l.id === libId
+      ? { ...l, wordIds: l.wordIds.includes(wordId) ? l.wordIds : [...l.wordIds, wordId] }
+      : l));
+  const removeWordFromLib = (libId: string, wordId: string) =>
+    setLibraries(p => p.map(l => l.id === libId
+      ? { ...l, wordIds: l.wordIds.filter(id => id !== wordId) }
+      : l));
   const addWord = (w: Word) => setWords(p => [...p, w]);
   const editWord = (id: string, w: Word) => setWords(p => p.map(x => x.id === id ? w : x));
   const deleteWord = (id: string) => {
@@ -753,8 +980,8 @@ export function AdminView({ navigate, user }: AdminViewProps) {
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', minHeight: '100vh', background: BG }}>
       {section === 'overview' && <Overview libraries={libraries} words={words} onNavigate={setSection} onExit={() => navigate({ name: 'profile' })} />}
-      {section === 'libraries' && <LibraryManager libraries={libraries} words={words} onAdd={addLib} onEdit={editLib} onDelete={deleteLib} onBack={() => setSection('overview')} />}
-      {section === 'words' && <WordManager words={words} libraries={libraries} onAdd={addWord} onEdit={editWord} onDelete={deleteWord} onBack={() => setSection('overview')} />}
+      {section === 'libraries' && <LibraryManager libraries={libraries} words={words} onAdd={addLib} onEdit={editLib} onDelete={deleteLib} onAddWordToLib={addWordToLib} onRemoveWordFromLib={removeWordFromLib} onBack={() => setSection('overview')} />}
+      {section === 'words' && <WordManager words={words} onAdd={addWord} onEdit={editWord} onDelete={deleteWord} onBack={() => setSection('overview')} />}
       {section === 'users' && <UserManager onBack={() => setSection('overview')} />}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

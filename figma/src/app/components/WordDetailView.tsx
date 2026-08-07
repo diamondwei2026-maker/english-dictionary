@@ -51,7 +51,7 @@ export function WordDetailView({ wordId, navigate, user, notes, onSaveNote, onTo
     );
   }
 
-  const library = mockLibraries.find(l => l.id === word.libraryId);
+  const library = mockLibraries.find(l => l.wordIds.includes(word.id));
   const allNotes = notes
     .filter(n => n.wordId === wordId)
     .sort((a, b) => b.likedBy.length - a.likedBy.length);
