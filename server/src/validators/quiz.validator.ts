@@ -49,6 +49,27 @@ export function validateGetQuestionsQuery(query: unknown): {
 }
 
 // ============================================================
+// validateGenerateBody — POST /quiz/generate 请求体校验
+// ============================================================
+
+export function validateGenerateBody(body: unknown): {
+  wordbankId: string;
+} {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new AppError(400, "VALIDATION_ERROR", "请求体格式错误");
+  }
+
+  const b = body as Record<string, unknown>;
+  const wordbankId = b.wordbankId;
+
+  if (!wordbankId || typeof wordbankId !== "string" || wordbankId.trim().length === 0) {
+    throw new AppError(400, "VALIDATION_ERROR", "wordbankId 为必填项");
+  }
+
+  return { wordbankId: wordbankId.trim() };
+}
+
+// ============================================================
 // validateSubmitAnswerBody — POST /quiz/submit 请求体校验
 // ============================================================
 

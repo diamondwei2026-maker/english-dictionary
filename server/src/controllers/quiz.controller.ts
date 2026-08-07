@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import * as quizService from "../services/quiz.service.js";
+import { generateQuestionsForWordbank } from "../services/quiz-ai.service.js";
 import {
   validateGetQuestionsQuery,
   validateSubmitAnswerBody,
   validateHistoryQuery,
+  validateGenerateBody,
 } from "../validators/quiz.validator.js";
 
 // ============================================================
@@ -23,6 +25,20 @@ export const getQuestions = asyncHandler(
     );
 
     res.json({ data: questions });
+  },
+);
+
+// ============================================================
+// POST /quiz/generate — AI 出题（需认证，限流）
+// ============================================================
+
+export const generateQuestions = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+    const { wordbankId } = validateGenerateBody(req.body);
+
+    const stats = await generateQuestionsForWordbank(wordbankId);
+
+    res.json(stats);
   },
 );
 

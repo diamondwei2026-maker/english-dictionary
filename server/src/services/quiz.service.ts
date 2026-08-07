@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import { QuizQuestion, QuizAttempt } from "../models/index.js";
+import { QuizQuestion, QuizAttempt, Word, WordBank } from "../models/index.js";
 import type { IQuizQuestion, IQuizAttempt } from "../models/index.js";
 import { AppError } from "../utils/errors.js";
 import { shuffle, scoreAnswer } from "@english-dict/shared";
+import { generateQuestionsForWordbank } from "./quiz-ai.service.js";
 
 // ============================================================
 // 类型定义
@@ -23,18 +24,59 @@ export interface QuizResult {
 // ============================================================
 
 /**
+ * 确定用于 AI 出题的目标词库 ID。
+ * 优先级：显式 wordbankId > wordId 关联词库 > 任意第一个有单词的词库。
+ */
+async function resolveWordbankId(
+  wordId?: string,
+  wordbankId?: string,
+): Promise<string | null> {
+  if (wordbankId) return wordbankId;
+
+  if (wordId && mongoose.Types.ObjectId.isValid(wordId)) {
+    const word = await Word.findById(wordId).select("wordbankId").lean();
+    if (word?.wordbankId) return String(word.wordbankId);
+  }
+
+  // 兜底：找第一个有单词的词库
+  const anyWordbank = await WordBank.findOne({}).select("_id").lean();
+  return anyWordbank ? String(anyWordbank._id) : null;
+}
+
+/**
  * 从 QuizQuestion 集合中按策略选取 10 题（或可用的最大数量）。
  *
  * - 有 wordId：优先取该单词题目，不足用同方向其他题目补齐
+ * - 有 wordbankId：指定词库，不足时自动触发 AI 出题
  * - 有 userId：排除 24h 内已答题目
  * - 无 wordId：从全部题库随机抽取
+ * - 题库不足 10 题：自动调用 AI 生成（需配置 DEEPSEEK_API_KEY）
  */
 export async function generateQuiz(
   direction: "zh2en" | "en2zh",
   wordId?: string,
   userId?: string,
+  wordbankId?: string,
 ): Promise<IQuizQuestion[]> {
-  const all = await QuizQuestion.find({ direction }).lean<IQuizQuestion[]>();
+  let all = await QuizQuestion.find({ direction }).lean<IQuizQuestion[]>();
+
+  // 题库不足 10 题 → 自动触发 AI 生成
+  if (all.length < 10) {
+    const targetWordbankId = await resolveWordbankId(wordId, wordbankId);
+    if (targetWordbankId) {
+      try {
+        const stats = await generateQuestionsForWordbank(targetWordbankId);
+        console.log(
+          `[Quiz] Auto-generated ${stats.generated} questions for wordbank ${targetWordbankId}`,
+        );
+        // 重新查询（AI 可能刚写入新题）
+        all = await QuizQuestion.find({ direction }).lean<IQuizQuestion[]>();
+      } catch (err) {
+        // AI 生成失败不阻塞请求 — 降级返回现有题目
+        console.warn("[Quiz] AI generation failed, falling back to existing questions:", err);
+      }
+    }
+  }
 
   if (all.length === 0) {
     return [];
