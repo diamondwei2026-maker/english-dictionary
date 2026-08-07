@@ -1,5 +1,24 @@
 import mongoose, { Schema, Types, Document } from "mongoose";
 
+// === 难度等级枚举 ===
+
+export const DIFFICULTY_LEVELS = [
+  "primary",      // 小学
+  "junior",       // 初中
+  "senior",       // 高中
+  "college",      // 大学
+  "cet4",         // 四级
+  "cet6",         // 六级
+  "tem4",         // 专四
+  "tem8",         // 专八
+  "ielts",        // 雅思
+  "toefl",        // 托福
+  "gre",          // GRE
+  "other",        // 其他/未分类
+] as const;
+
+export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
+
 // === 枚举常量 ===
 
 const PHYSICAL_IMAGE_TYPES = [
@@ -52,6 +71,7 @@ export interface IWord extends Document {
   coreImageSvg?: string;
   extendedMeanings: IExtendedMeaning[];
   collocations: string[];
+  difficulty: DifficultyLevel;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,6 +117,12 @@ const WordSchema = new Schema<IWord>(
     coreImageSvg: { type: String, default: "" },
     extendedMeanings: [ExtendedMeaningSchema],
     collocations: [{ type: String }],
+    difficulty: {
+      type: String,
+      enum: { values: [...DIFFICULTY_LEVELS], message: "无效的难度等级" },
+      default: "other",
+      index: true,
+    },
   },
   { timestamps: true }
 );

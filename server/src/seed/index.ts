@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import { config } from "../config/index.js";
 import { User } from "../models/User.js";
 import { WordBank } from "../models/WordBank.js";
@@ -81,6 +82,16 @@ function getImageDescription(imageType: string): string {
 }
 
 async function seed(): Promise<void> {
+  // 🔒 安全保护：禁止连接远程 Atlas 执行全量清空+重新播种
+  if (config.mongodbUri.includes("mongodb+srv://") || config.mongodbUri.includes("atlas")) {
+    console.error(
+      "❌ 拒绝连接远程 MongoDB（mongodb+srv / Atlas）执行 seed！\n" +
+      "   seed 脚本会清空所有数据，仅用于本地开发库。\n" +
+      "   如确需操作远程库，请使用 insert-admin.ts 等非破坏性脚本。"
+    );
+    process.exit(1);
+  }
+
   console.log("Connecting to MongoDB...");
   await mongoose.connect(config.mongodbUri);
   console.log("Connected.");
@@ -162,17 +173,20 @@ async function seed(): Promise<void> {
   console.log(`Inserted/upserted ${quizCount} quiz questions.`);
 
   // === 插入管理员用户 ===
+  // 默认密码为 admin123（与 insert-admin.ts 保持一致），生成真实 bcrypt 哈希
+  const DEFAULT_ADMIN_PASSWORD = "admin123";
   console.log("Seeding admin user...");
   const adminUsers = mockUsers.filter((u) => u.role === "admin");
 
   if (adminUsers.length === 0) {
     console.log("No admin user found in mock data — skipping user seed.");
   } else {
+    const defaultHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
     const users = await User.insertMany(
       adminUsers.map((mu) => ({
         username: mu.username,
         phone: mu.phone,
-        passwordHash: "$2b$10$placeholder",
+        passwordHash: defaultHash,
         role: mu.role,
       })),
     );

@@ -16,9 +16,10 @@ export const list = asyncHandler(
     );
     const wordbankId = req.query.wordbank_id as string | undefined;
     const q = req.query.q as string | undefined;
+    const difficulty = req.query.difficulty as string | undefined;
     const isAdmin = req.user?.role === "admin";
 
-    const result = await wordService.listWords({ page, pageSize, wordbankId, q, isAdmin });
+    const result = await wordService.listWords({ page, pageSize, wordbankId, q, difficulty, isAdmin });
 
     res.json({
       data: result.data,

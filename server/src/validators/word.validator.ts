@@ -1,5 +1,5 @@
 import { AppError } from "../utils/errors.js";
-import { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES } from "../models/index.js";
+import { PHYSICAL_IMAGE_TYPES, PART_OF_SPEECH_TYPES, DIFFICULTY_LEVELS } from "../models/index.js";
 
 // === 输入类型 ===
 
@@ -23,6 +23,7 @@ export interface CreateWordInput {
   coreImageSvg?: string;
   extendedMeanings?: ExtendedMeaningInput[];
   collocations?: string[];
+  difficulty?: string;
 }
 
 export interface UpdateWordInput {
@@ -36,6 +37,7 @@ export interface UpdateWordInput {
   coreImageSvg?: string;
   extendedMeanings?: ExtendedMeaningInput[];
   collocations?: string[];
+  difficulty?: string;
 }
 
 // === 辅助类型 ===
@@ -162,6 +164,7 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     coreImageSvg,
     extendedMeanings,
     collocations,
+    difficulty,
   } = body as Record<string, unknown>;
 
   // word
@@ -307,6 +310,18 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     }
   }
 
+  // difficulty (optional, default "other")
+  let resolvedDifficulty = "other";
+  if (difficulty !== undefined && difficulty !== null) {
+    if (typeof difficulty !== "string") {
+      collect(errs, "difficulty", "难度等级格式不正确");
+    } else if (!(DIFFICULTY_LEVELS as readonly string[]).includes(difficulty)) {
+      collect(errs, "difficulty", `难度等级必须为以下之一：${(DIFFICULTY_LEVELS as readonly string[]).join(", ")}`);
+    } else {
+      resolvedDifficulty = difficulty;
+    }
+  }
+
   if (errs.length > 0) {
     throw new AppError(400, "VALIDATION_ERROR", "输入验证失败", errs);
   }
@@ -323,6 +338,7 @@ export function validateCreateWordInput(body: unknown): CreateWordInput {
     coreImageSvg: coreImageSvg as string | undefined,
     extendedMeanings: parsedExtendedMeanings,
     collocations: collocations as string[] | undefined,
+    difficulty: resolvedDifficulty,
   };
 }
 
@@ -346,6 +362,7 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     coreImageSvg,
     extendedMeanings,
     collocations,
+    difficulty,
   } = body as Record<string, unknown>;
 
   // 检查是否至少有一个字段
@@ -360,6 +377,7 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     coreImageSvg,
     extendedMeanings,
     collocations,
+    difficulty,
   ].some((v) => v !== undefined);
   if (!hasAnyField) {
     throw new AppError(400, "VALIDATION_ERROR", "至少需要提供一个更新字段");
@@ -500,6 +518,15 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
     }
   }
 
+  // difficulty (optional)
+  if (difficulty !== undefined && difficulty !== null) {
+    if (typeof difficulty !== "string") {
+      collect(errs, "difficulty", "难度等级格式不正确");
+    } else if (!(DIFFICULTY_LEVELS as readonly string[]).includes(difficulty)) {
+      collect(errs, "difficulty", `难度等级必须为以下之一：${(DIFFICULTY_LEVELS as readonly string[]).join(", ")}`);
+    }
+  }
+
   if (errs.length > 0) {
     throw new AppError(400, "VALIDATION_ERROR", "输入验证失败", errs);
   }
@@ -533,6 +560,8 @@ export function validateUpdateWordInput(body: unknown): UpdateWordInput {
   }
   if (collocations !== undefined && collocations !== null)
     result.collocations = collocations as string[];
+  if (difficulty !== undefined && difficulty !== null)
+    result.difficulty = difficulty as string;
 
   return result;
 }

@@ -37,6 +37,7 @@ export interface QuizGenerationStats {
 function compactWordEntry(w: IWord): Record<string, unknown> {
   return {
     word: w.word,
+    difficulty: w.difficulty,
     coreMeaning: w.coreMeaning,
     coreExampleEn: w.coreExampleEn,
     coreExampleZh: w.coreExampleZh,
@@ -145,8 +146,14 @@ function extractJsonArray(raw: string): unknown[] | null {
 const QUIZ_SYSTEM_PROMPT = `You are an expert English vocabulary quiz creator for Chinese native speakers.
 
 ## Task
-Given vocabulary entries (word, meanings, example sentences, collocations),
+Given vocabulary entries (word, difficulty, meanings, example sentences, collocations),
 generate 3 "Chinese-to-English translation" quiz questions per word.
+
+## Difficulty Levels
+Each word has a "difficulty" field (e.g. "primary", "cet4", "gre"). Tailor the quiz questions accordingly:
+- For lower levels (primary/junior/senior): use simpler Chinese prompts, common everyday vocabulary, shorter sentences
+- For mid levels (college/cet4/cet6): use standard academic vocabulary, moderate sentence complexity
+- For higher levels (tem4/tem8/ielts/toefl/gre): use more sophisticated vocabulary, complex sentence structures, nuanced expressions
 
 ## Output Format
 Return ONLY a JSON object with a "questions" array:
@@ -170,6 +177,7 @@ Return ONLY a JSON object with a "questions" array:
 4. The hint should be concise — give directional clues, NOT the answer
 5. Keywords: select 3-6 English words critical to the correct translation (used for scoring)
 6. Prefer adapting the given example sentences as reference answers — they are guaranteed correct
+7. Match the question difficulty to the word's difficulty level
 
 ## Language
 - prompt, hint, analysis: Chinese

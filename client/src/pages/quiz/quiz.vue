@@ -344,6 +344,7 @@ function submit() {
     index.value = index.value + 1;
     input.value = "";
     result.value = null;
+    showHint.value = false;
   }
 }
 

@@ -1,4 +1,5 @@
 import { AppError } from "../utils/errors.js";
+import { DIFFICULTY_LEVELS } from "../models/index.js";
 
 // ============================================================
 // validateGetQuestionsQuery — GET /quiz/questions 参数校验
@@ -9,6 +10,7 @@ const VALID_DIRECTIONS = ["zh2en", "en2zh"] as const;
 export function validateGetQuestionsQuery(query: unknown): {
   direction: string;
   wordId?: string;
+  difficulty?: string;
 } {
   if (!query || typeof query !== "object") {
     throw new AppError(
@@ -42,9 +44,22 @@ export function validateGetQuestionsQuery(query: unknown): {
     throw new AppError(400, "VALIDATION_ERROR", "wordId 参数格式不正确");
   }
 
+  // difficulty (optional)
+  const difficulty = q.difficulty;
+  if (difficulty !== undefined) {
+    if (typeof difficulty !== "string" || !(DIFFICULTY_LEVELS as readonly string[]).includes(difficulty)) {
+      throw new AppError(
+        400,
+        "VALIDATION_ERROR",
+        `difficulty 参数值非法: "${String(difficulty)}"，有效值：${(DIFFICULTY_LEVELS as readonly string[]).join(", ")}`,
+      );
+    }
+  }
+
   return {
     direction: direction as string,
     wordId: wordId as string | undefined,
+    difficulty: difficulty as string | undefined,
   };
 }
 

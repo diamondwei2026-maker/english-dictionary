@@ -34,14 +34,15 @@ export async function listWords(options: {
   pageSize: number;
   wordbankId?: string;
   q?: string;
+  difficulty?: string;
   isAdmin?: boolean;
 }): Promise<{
   data: IWord[];
   pagination: { total: number; page: number; pageSize: number; totalPages: number };
 }> {
-  const { page, pageSize, wordbankId, q, isAdmin } = options;
+  const { page, pageSize, wordbankId, q, difficulty, isAdmin } = options;
 
-  const cacheKey = `words:list:${wordbankId || "all"}:${page}:${pageSize}:${q || "none"}:${isAdmin ? "admin" : "public"}`;
+  const cacheKey = `words:list:${wordbankId || "all"}:${page}:${pageSize}:${q || "none"}:${difficulty || "any"}:${isAdmin ? "admin" : "public"}`;
 
   // 读缓存
   const cached = await tryCacheGet<{
@@ -75,6 +76,11 @@ export async function listWords(options: {
   } else if (wordbankId) {
     ensureValidId(wordbankId);
     filter.wordbankId = wordbankId;
+  }
+
+  // 难度筛选
+  if (difficulty) {
+    filter.difficulty = difficulty;
   }
 
   // ==========================================================

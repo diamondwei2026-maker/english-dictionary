@@ -15,13 +15,15 @@ import {
 
 export const getQuestions = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
-    const { direction, wordId } = validateGetQuestionsQuery(req.query);
+    const { direction, wordId, difficulty } = validateGetQuestionsQuery(req.query);
     const userId = req.user?.userId;
 
     const questions = await quizService.generateQuiz(
       direction as "zh2en" | "en2zh",
       wordId,
       userId,
+      undefined,
+      difficulty,
     );
 
     res.json({ data: questions });

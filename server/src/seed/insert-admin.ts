@@ -7,11 +7,16 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-dotenv.config();
+// 基于脚本自身位置解析 .env，避免 CWD 不同导致加载失败
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/english-dictionary";
+  process.env.MONGODB_URI || "mongodb://localhost:27017/english-dictionary-dev";
 
 const ADMIN = {
   phone: "13800000001",

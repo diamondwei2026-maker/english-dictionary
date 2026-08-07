@@ -48,6 +48,7 @@ async function resolveWordbankId(
  *
  * - 有 wordId：优先取该单词题目，不足用同方向其他题目补齐
  * - 有 wordbankId：指定词库，不足时自动触发 AI 出题
+ * - 有 difficulty：按单词难度筛选题目（通过 wordId → Word.difficulty）
  * - 有 userId：排除 24h 内已答题目
  * - 无 wordId：从全部题库随机抽取
  * - 题库不足 10 题：自动调用 AI 生成（需配置 DEEPSEEK_API_KEY）
@@ -57,8 +58,21 @@ export async function generateQuiz(
   wordId?: string,
   userId?: string,
   wordbankId?: string,
+  difficulty?: string,
 ): Promise<IQuizQuestion[]> {
   let all = await QuizQuestion.find({ direction }).lean<IQuizQuestion[]>();
+
+  // 按难度筛选：通过 QuizQuestion.wordId → Word.difficulty
+  if (difficulty) {
+    const wordIdsWithDifficulty = await Word
+      .find({ difficulty } as Record<string, unknown>)
+      .select("_id")
+      .lean();
+    const wantedIds = new Set(wordIdsWithDifficulty.map(w => String(w._id)));
+    all = all.filter(
+      (q) => q.wordId && wantedIds.has(String(q.wordId)),
+    );
+  }
 
   // 题库不足 10 题 → 自动触发 AI 生成
   if (all.length < 10) {
