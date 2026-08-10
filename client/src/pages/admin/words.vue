@@ -460,8 +460,8 @@ async function handleAI() {
 
   try {
     // 优先走 SSE 流式，避免 V4 Pro 非流式超时
-    await generateWordStream(form.word, '', !!form.coreMeaning, {
-      onThinking(msg) {
+    await generateWordStream(form.word, {
+      onThinking(_msg) {
         // 仅改变按钮文案让用户感知进度
         // aiLoading 已是 true，按钮已显示 spinner + "正在生成..."
       },

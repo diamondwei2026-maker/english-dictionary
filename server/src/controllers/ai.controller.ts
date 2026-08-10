@@ -10,16 +10,12 @@ import type { SSEChunk } from "../providers/llm.js";
  * POST /api/v1/words/generate
  *
  * AI 词条生成 — 仅管理员可调用。
- * Query 参数: ?force=true 强制重新生成已存在的单词。
  */
 export const generate = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const input = validateGenerateWordInput(req.body);
-    const force = req.query.force === "true";
 
-    const wordData = await aiService.generateWord(input.wordName, input.wordbankId, {
-      force,
-    });
+    const wordData = await aiService.generateWord(input.wordName);
 
     // 不持久化，始终返回 200
     res.status(200).json(wordData);
@@ -30,7 +26,6 @@ export const generate = asyncHandler(
  * POST /api/v1/words/generate/stream
  *
  * SSE 流式 AI 词条生成 — 仅管理员可调用。
- * Query 参数: ?force=true 强制重新生成已存在的单词。
  *
  * Response: text/event-stream
  * 事件序列: thinking → content* → done | error
@@ -50,7 +45,6 @@ export const generateStream = asyncHandler(
 
     // 1. 校验输入（在设置 SSE headers 之前，校验失败仍返回普通 JSON 错误）
     const input = validateGenerateWordInput(req.body);
-    const force = req.query.force === "true";
 
     try {
       // 2. 设置 SSE Headers
@@ -70,9 +64,7 @@ export const generateStream = asyncHandler(
 
       // 4. 迭代 AsyncGenerator，逐事件推送
       for await (const chunk of aiStreamService.generateWordStream(
-        input.wordName,
-        input.wordbankId,
-        { force }
+        input.wordName
       )) {
         sendEvent(chunk);
       }

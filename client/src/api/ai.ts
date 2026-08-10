@@ -34,19 +34,14 @@ interface BackendWordResponse {
 
 /**
  * AI 词条生成 — 非流式。
- * POST /api/v1/words/generate?force=true
+ * POST /api/v1/words/generate
  */
 export async function generateWord(
-  wordName: string,
-  wordbankId?: string,
-  force = false
+  wordName: string
 ): Promise<Word> {
-  const query = force ? "?force=true" : "";
-  const path = `/api/v1/words/generate${query}`;
-
-  const res = await request<BackendWordResponse>(path, {
+  const res = await request<BackendWordResponse>("/api/v1/words/generate", {
     method: "POST",
-    data: { wordName, wordbankId },
+    data: { wordName },
   });
 
   return adaptWord(res);
@@ -88,19 +83,16 @@ export interface GenerateWordStreamCallbacks {
 
 /**
  * AI 词条生成 — SSE 流式。
- * POST /api/v1/words/generate/stream?force=true
+ * POST /api/v1/words/generate/stream
  *
  * H5 端使用 fetch + ReadableStream；小程序端不支持 ReadableStream，
  * 调用方应捕获异常并降级到非流式 generateWord()。
  */
 export async function generateWordStream(
   wordName: string,
-  wordbankId?: string,
-  force: boolean = false,
   callbacks: GenerateWordStreamCallbacks
 ): Promise<void> {
-  const query = force ? "?force=true" : "";
-  const url = `/api/v1/words/generate/stream${query}`;
+  const url = "/api/v1/words/generate/stream";
   const token = getToken();
 
   let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
@@ -112,7 +104,7 @@ export async function generateWordStream(
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ wordName, wordbankId }),
+      body: JSON.stringify({ wordName }),
     });
 
     if (!response.ok) {
