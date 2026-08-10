@@ -191,14 +191,44 @@ description: >-
 
   分支 B — HAS-GAP-DESIGN：
     → 判定：Figma 差异涉及后端/架构变更，PRD 和 ADR 已由 figma-sync 更新
-    → 输出："🔴 Figma 差异涉及后端/架构变更（HAS-GAP-DESIGN），PRD 和 ADR 已更新。需重新规划开发计划。自动启动新需求轮次。"
+    → 输出："🔴 Figma 差异涉及后端/架构变更（HAS-GAP-DESIGN），PRD 和 ADR 已更新。需重新规划开发计划。"
     → 从状态文件读取「新需求标识」(slug)
-    → 如果 slug 为空或无效，使用默认 slug: figma-sync-<YYYYMMDD>
+    → ⚠️ 多 slug 解析（CRITICAL）：
+      - slug 字段可能包含逗号分隔的多个值（如 "training-backend, figma-sync-20260807"）
+      - 必须按逗号分隔解析为 slug 数组：`slugs = slug.split(",").map(s => s.trim()).filter(Boolean)`
+      - 如果解析后的数组为空，使用默认 slug: figma-sync-<YYYYMMDD>
+      - 对数组中的每个 slug **依次独立处理**（见下方「多 slug 流水线」）
+    → **禁止将整个逗号分隔字符串当作一个 slug 传递给下游**——每个 slug 是独立的需求标识
+    → 如果只有一个 slug，使用下方「单 slug 流水线」
+    
+    ═══════════════════════════════════════════════════════════════
+    单 slug 流水线（slugs.length === 1）：
+    ═══════════════════════════════════════════════════════════════
     → 输出："新需求标识：<slug>"
     → 删除 .docs/development-plan.md（如存在）
     → 删除 .docs/tasks.md（如存在）
     → 注意：保留 .docs/tasks/<old-slug>/ 目录（历史 Task 记录）
     → 进入步骤 1（project-planner），将新 slug 作为本轮需求标识
+    
+    ═══════════════════════════════════════════════════════════════
+    多 slug 流水线（slugs.length > 1）：
+    ═══════════════════════════════════════════════════════════════
+    → 输出："检测到 <slugs.length> 个后端需求：<slugs 列表>。将逐个处理。"
+    → 对每个 slug（按数组顺序）：
+      1. 输出："── 处理需求 <current_slug>（<index>/<total>）──"
+      2. 删除 .docs/development-plan.md（如存在）
+      3. 删除 .docs/tasks.md（如存在）
+      4. 调用 Skill("project-planner")，传入当前 slug 作为需求标识
+      5. project-planner 完成后，调用 Skill("task-planner")
+      6. task-planner 完成后，按步骤 3-5-7 流水线执行开发（所有 Task done）
+      7. 开发完成后，更新 .docs/figma-sync-state.md：
+         - 在对应 GAP-DESIGN 行追加 "（已完成: <当前日期>）"
+         - 不应删除该行——保留完整追踪链
+      8. 继续下一个 slug
+    → ⚠️ 每个 slug 的流水线是独立的——一个 slug 的 build/test 失败不阻塞下一个
+    → 所有 slug 处理完毕后，汇总输出：
+      "✅ 已处理 <slugs.length> 个后端需求：<slugs 列表>。Figma 同步完成。"
+    → 进入步骤 7（代码审查）
 
   分支 C — NO-GAPS：
     → 判定：Figma 原型与实际项目无差异
@@ -362,10 +392,58 @@ description: >-
   1. 在 .docs/development-plan.md 中将该阶段的产出从 [ ] 更新为 [x]
   2. 记录验证通过的场景清单
   3. 汇报阶段完成状态
-  4. 检查是否所有阶段都已完成：
+  4. 🔴 Figma GAP-DESIGN 闭环追踪检查（见下方步骤 5.8.1）
+  5. 检查是否所有阶段都已完成：
      → 是：进入步骤 6（检查开发完成）
      → 否：回到步骤 4，自动选择下一个阶段的第一个 pending Task
 ```
+
+##### 步骤 5.8.1 — 🔴 Figma GAP-DESIGN 闭环追踪 Gate 🆕
+
+**目的**：防止 figma-sync 检测到的后端需求在流水线中被静默丢弃。每个阶段完成后，强制检查 figma-sync-state.md 中的 GAP-DESIGN 项是否都已排期或完成。
+
+**触发条件**：`.docs/figma-sync-state.md` 文件存在
+
+**检查流程**：
+
+```
+1. 读取 .docs/figma-sync-state.md 中的 GAP-DESIGN 表格
+
+2. 对每条 GAP-DESIGN 项，判定其完成状态：
+   a. 检查该项是否有对应的「建议方案」列中的 slug
+   b. 检查 .docs/tasks.md 或 .docs/development-plan.md 中是否有该 slug
+      → 存在对应的开发计划 + Task 全部 done → ✅ 已完成
+      → 存在对应的开发计划 + 有 pending Task → 🔄 进行中
+      → 不存在对应的开发计划 → ⚠️ 未排期（孤儿 GAP-DESIGN）
+      → 该项无 slug → ⚠️ 无标识（无法追踪）
+
+3. 输出 GAP-DESIGN 状态面板：
+
+   📊 Figma GAP-DESIGN 追踪面板
+   
+   | # | 功能模块 | Slug | 状态 | 备注 |
+   |---|---------|------|:---:|------|
+   | 1 | 短句翻译训练后端 | training-backend | ✅ 已完成 | 开发计划 + Task 全部 done |
+   | 2 | WordBank.wordIds M:N | figma-sync-20260807 | ⚠️ 未排期 | 无对应开发计划——可能被丢弃 |
+   | 3 | 英译中方向扩展 | — | ⚠️ 未排期 | 无 slug，需手动决策 |
+
+4. 对「未排期」和「无标识」项的处理：
+   → 输出："⚠️ 检测到 <N> 个 Figma 后端需求尚未排期或缺乏追踪标识。"
+   → 列出每项当前状态和建议动作
+   → 询问用户：
+     "以上 Figma 后端需求尚未排期。是否需要在下一轮迭代中处理？"
+     → 选项 A：立即为未排期项生成开发计划（回到步骤 1，传入对应 slug）
+     → 选项 B：标记为延迟（在 GAP-DESIGN 行追加「（延迟: <日期>）」，不阻塞当前流水线）
+     → 选项 C：标记为放弃（在 GAP-DESIGN 行追加「（放弃: <日期> <原因>）」，不阻塞）
+   
+5. 全部 GAP-DESIGN 项状态为「已完成」或「已标记」→ 继续步骤 5.8 的第 5 步
+```
+
+**注意事项**：
+- 此 Gate 是**信息性检查**（informational gate），不硬阻塞流水线——用户有权延迟或放弃
+- 但必须在报告中醒目提示未处理项，防止静默丢弃
+- 如果 `.docs/figma-sync-state.md` 不存在，跳过此 Gate（项目未使用 Figma 原型）
+- 步骤 5.8.1 的输出应出现在 ai-master 的「状态汇报格式」中
 
 #### 步骤 5.9：阶段验证失败处理
 

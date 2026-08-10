@@ -92,6 +92,22 @@ Agent D 的核心任务是判断一个功能是否 **真正实现**（而不仅�
   - 后端有对应 API → **GAP-UI**（前端已 mock 但可对接真实 API）
   - 后端无对应 API → **GAP-DESIGN**（需要新建后端 + 前端对接改造）
 
+**D1.1 — API 适配器层硬编码占位检测** 🆕：
+- 扫描 `client/src/api/adapters.ts` 和 `client/src/api/*.ts` 中的硬编码空值/占位赋值：
+  - 模式：`fieldName: []`（空数组占位）、`fieldName: ""`（空字符串占位）
+  - 模式：`fieldName: null`、`fieldName: 0`（零值占位）
+  - 模式：`fieldName: {}`（空对象占位）
+- 对每个命中的占位字段，执行交叉验证：
+  - 该字段是否在 `client/src/data/types.ts` 中定义为非 optional（`fieldName: Type` 而非 `fieldName?: Type`）
+  - 该字段在 `server/src/models/` 对应 Model 中是否不存在
+  - 该字段的值是否通过 API 响应真实填充（而非硬编码）
+- 判定：
+  - types.ts 中必填 + adapters 中硬编码空值 + server Model 无此字段 → 🔴 **GAP-DESIGN**（数据流断裂：前端类型期望有值但后端不提供）
+  - types.ts 中必填 + adapters 中硬编码空值 + server Model 有此字段但路由不返回 → 🟡 **GAP-UI**（需前端对接真实 API）
+  - types.ts 中 optional → 不报（合理默认值）
+- ⚠️ 这是最高优先级的检测——适配器层占位不会触发 UI stub 信号（无 disabled/CSS/注释），但会导致功能静默不可用（如 wordCount 永远为 0）
+- 命中示例：`adapters.ts:147 wordIds: []` — `WordLibrary.wordIds: string[]`（types.ts 必填）→ `WordBank` Model 无 `wordIds` 字段 → GAP-DESIGN
+
 **D2 — API 对接完整性**：
 - 对 figma plan 中描述的每个功能模块，反向检查：
   - 前端是否有对应的 `client/src/api/<module>.ts` 模块？
@@ -102,6 +118,22 @@ Agent D 的核心任务是判断一个功能是否 **真正实现**（而不仅�
   - Figma 功能 → 前端有 UI → 无 `api/` 调用 → **GAP-UI**（前端使用 mock/本地数据）
   - Figma 功能 → 前端有 UI → 有 `api/` 调用 → 后端无路由 → **GAP-DESIGN**
   - Figma 功能 → 前端有 UI → 有 `api/` 调用 → 后端有路由 → ✅ 已完整实现
+
+**D2.1 — 前端 API 函数 ↔ 后端路由逆向验证** 🆕：
+- 扫描 `client/src/api/*.ts` 中所有导出函数（排除 `request.ts`、`adapters.ts`、`index.ts`）
+- 对每个 API 函数，提取其 HTTP 语义：
+  - 函数名含 `fetch`/`get`/`list` → 预期 `GET` 路由
+  - 函数名含 `create`/`add`/`submit` → 预期 `POST` 路由
+  - 函数名含 `update`/`edit` → 预期 `PUT` 路由
+  - 函数名含 `delete`/`remove` → 预期 `DELETE` 路由
+- 对每个提取的 HTTP 语义，grep `server/src/routes/` 验证是否存在对应路由：
+  - 检查 `router.get/post/put/delete` 调用 + 路径模式
+  - 路由路径与 API 函数中 `request()` 的 URL 路径匹配
+- 判定：
+  - 前端 API 函数存在 + 后端对应路由存在 → ✅ 已对接
+  - 前端 API 函数存在 + 后端对应路由不存在 → 🔴 **GAP-DESIGN**（前端已准备好调用，后端未实现）
+  - 前端无 API 函数 + 后端路由存在 → 可能遗留路由，标记但不阻塞
+- 输出格式：`API 函数 <函数名>（<HTTP方法> <路径>）→ server 端 <有/无>对应路由 → <判定>`
 
 **D3 — 前端 stub/placeholder 检测**：
 - 扫描以下信号：
@@ -118,12 +150,15 @@ Agent D 的核心任务是判断一个功能是否 **真正实现**（而不仅�
 **Agent D 差异汇总**：
 
 ```
-Agent D 发现 = D1(mock) + D2(API缺失) + D3(占位) + D4(基础设施)
+Agent D 发现 = D1(mock) + D1.1(适配器占位) + D2(API缺失) + D2.1(API↔路由验证) + D3(占位) + D4(基础设施)
   → 合并去重
   → 按以下规则分类：
 
   发现 mock 数据 + 后端有对应 API → GAP-UI（前端待对接，纯前端工作）
   发现 mock 数据 + 后端无对应 API → GAP-DESIGN（需新建后端 + 前端对接）
+  发现适配器硬编码占位 + types.ts 必填 + server Model 无 → GAP-DESIGN（数据流断裂，需后端新建）
+  发现适配器硬编码占位 + types.ts 必填 + server Model 有但路由不返回 → GAP-UI（前端待对接）
+  发现前端 API 函数 + 后端无对应路由 → GAP-DESIGN
   发现 stub/占位 + Figma 描述为完整功能 → GAP-UI
   发现 import 路径不存在 → GAP-DIFF
   全部通过 → 无新增差异（此维度）
@@ -363,6 +398,83 @@ client.md:
 - 提取公共组件时，已有页面的 SCSS 作用域变化（`scoped` 属性）需一并迁移
 - 提取为时，原组件添加 slot 不改变已有使用者的渲染结果（slot 是 opt-in）
 - 提取后必须立即 build 验证，确认所有引用文件编译通过
+
+**Step 3.5.5 — 🔴 逆向契约验证（CRITICAL）** 🆕
+
+> 在 Phase 3 前端变更实施完毕后、构建验证前，必须执行逆向契约验证。此步骤杜绝"前端改好了但后端不支持"的假一致性。
+
+**目的**：figma-sync 的 Phase 1 检测是正向的（Figma plan → 检查 client/server 对齐），但 Phase 3 实施了前端 GAP-UI 变更后，前端代码的**数据依赖已发生变化**，必须反向验证这些变更所依赖的字段/API 在后端是否均已就绪。
+
+**Step 3.5.5.1 — 收集本次变更涉及的前端类型字段**
+
+- 从 Phase 3 实施的变更中，提取 `client/src/data/types.ts` 的 diff：
+  - 新增的 interface 字段（非 optional，即 `fieldName: Type` 而非 `fieldName?: Type`）
+  - 修改的字段类型（如 `libraryId: string` → 移除，新增 `wordIds: string[]`）
+  - 删除的字段（需验证 server Model 是否也删除了——不应出现前端已删但后端仍依赖的情况）
+
+**Step 3.5.5.2 — 对每个变更字段执行四层验证**
+
+| 验证层 | 检查内容 | 命令/方法 |
+|--------|---------|----------|
+| L1 — 类型层 | `server/src/models/` 对应 Model 是否包含该字段 | grep 字段名在 models/ 目录 |
+| L2 — 适配器层 | `client/src/api/adapters.ts` 中 `adapt*` 函数是否从 API 响应中映射该字段（非硬编码） | grep adapters.ts 中对应 adapt 函数 |
+| L3 — 路由层 | `server/src/routes/` 是否有端点接受/返回该字段 | grep 对应 route 文件的 handler |
+| L4 — 种子数据层 | `server/src/seed/` 是否包含该字段的测试数据 | grep 对应 seed 文件的字段值 |
+
+**Step 3.5.5.3 — 验证矩阵与判定**
+
+```
+L1(后端Model) + L2(适配器) + L3(路由) + L4(种子数据)
+─────────────────────────────────────────────────────
+✅ ✅ ✅ ✅ → ✅ 完整闭环（前端类型 ↔ 后端实现一致）
+✅ ✅ ✅ ❌ → ⚠️  GAP-UI（后端实现就绪但种子数据缺失，前端可对接）
+✅ ❌ ✅ ❌ → 🟡 GAP-UI（后端 Model+路由就绪但适配器未对接，纯前端工作）
+❌ ❌ ❌ ❌ → 🔴 GAP-DESIGN（数据流断裂：前端类型期望字段但后端完全不存在）
+✅ ❌ ❌ ❌ → 🔴 GAP-DESIGN（后端有 Model 字段但路由不暴露且适配器未对接）
+❌ ✅ ❌ ❌ → 🔴 GAP-DESIGN（适配器映射了字段但后端 Model 不存在——可能是误报或需要后端新建）
+```
+
+**Step 3.5.5.4 — 产出逆向验证报告**
+
+```
+═══════════════════════════════════════════════════════════════
+              逆向契约验证报告（Phase 3 后）
+═══════════════════════════════════════════════════════════════
+
+变更类型字段：
+  client/src/data/types.ts:
+    ➕ 新增: WordLibrary.wordIds: string[]      ← 来源: app-flickering-alpaca plan
+    ➖ 删除: Word.libraryId: string              ← 来源: app-flickering-alpaca plan
+
+验证结果：
+
+  ✅ WordLibrary.wordIds → L1✅ L2❌ L3❌ L4❌ → 🔴 GAP-DESIGN
+     → server/src/models/WordBank.ts: 无 wordIds 字段
+     → client/src/api/adapters.ts:147: wordIds: [] (硬编码占位)
+     → server/src/routes/wordbank.routes.ts: 无 M:N 管理端点
+     → server/src/seed/: 种子数据无 wordIds
+     → 结论: 需新建 WordBank.wordIds 字段 + PUT/DELETE /wordbanks/:id/words 端点
+
+  ⚠️ Word.libraryId → L1✅ L3✅ → 后端仍保留旧 FK，前端已删除
+     → server/src/models/Word.ts:64: wordbankId: Types.ObjectId
+     → server/src/routes/words: GET /wordbanks/:id/words 使用 wordbankId 查询
+     → 结论: 后端旧 FK 字段需评估废弃/迁移策略（标记为技术债，不阻塞本轮）
+
+═══════════════════════════════════════════════════════════════
+GAP-DESIGN 新增: 1 项（WordBank.wordIds 后端缺失）
+GAP-UI 新增: 0 项
+技术债标记: 1 项（Word.wordbankId 旧 FK）
+═══════════════════════════════════════════════════════════════
+```
+
+**Step 3.5.5.5 — 判定与路由**
+
+- 逆向验证产出新增 GAP-DESIGN → **追加到阶段 1 的差异清单**，并：
+  - 更新 `.docs/figma-sync-state.md` 的 GAP-DESIGN 表格（追加新行）
+  - 将同步结果设为 `HAS-GAP-DESIGN`（如果原本是 GAP-UI-ONLY 则覆盖）
+  - 在下方的「同步步骤完成状态」中追加：`- [ ] 逆向契约验证发现的新增 GAP-DESIGN（待 ai-master 接管）`
+  - ⚠️ **不阻塞 Phase 3 的构建验证**——GAP-UI 变更本身是正确的，只是需要额外后端工作
+- 逆向验证无新增 GAP-DESIGN → 继续 Step 3.6 构建验证
 
 **Step 3.6 — 验证**
 ```bash
